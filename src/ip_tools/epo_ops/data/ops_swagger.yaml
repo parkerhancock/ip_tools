@@ -1,0 +1,2226 @@
+# This is an Open API specification of OPS API.
+# Version 1.2 only is supported by Apigee SmartDocs
+swagger: '2.0'
+
+info:
+  title: Open Patent Services API
+  description: Open Patent Services (OPS) is a web service which provides access to the EPO's raw data via a standardised interface.
+  version: "3.2"
+  termsOfService: http://www.epo.org/searching-for-patents/data/web-services/ops.html#tab-1
+  contact:
+    name: OPS Support
+    url: https://forms.epo.org/service-support/contact-us/contact0-form.html?topic=OnlineServices&subject=OPS
+    email: patentdata@epo.org
+  license:
+    name: Fair use charter
+    url: http://www.epo.org/service-support/ordering/fair-use.html
+
+# the domain of the service
+# If host is not specified, it is assumed to be the same host where the API documentation is being served.
+host: ops.epo.org
+# array of all schemes that your API supports
+schemes:
+  - http
+  - https
+# will be prefixed to all paths
+basePath: /3.2/rest-services
+paths:
+  /published-data/search:
+    get:
+      operationId: Published Data Keywords Search without Consituents
+      summary: Bibliographic data search service
+      description: Bibliographic data search service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: Range
+          in: query
+          description: Range of elements were requested
+          required: false
+          type: string
+          format: string
+          default: 1-25
+          allowEmptyValue: true
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          type: string
+          format: string
+          default: ti=plastic
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/search/{constituent}:
+    get:
+      operationId: Published Data Keywords Search with Variable Constituents
+      summary: Bibliographic data search service
+      description: Bibliographic data search service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: constituent
+          in: path
+          description: Constituent
+          required: true
+          type: string
+          format: string
+          default: biblio
+          enum: [biblio, full-cycle, abstract]
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          type: string
+          format: string
+          default: ti=plastic
+        - name: Range
+          in: query
+          description: Range of elements were requested
+          required: false
+          type: string
+          format: string
+          default: 1-25
+          allowEmptyValue: true
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+
+  /published-data/{type}/{format}/{number}/biblio:
+    get:
+      operationId: Published Data Retrieval
+      summary: Bibliographic data retrieval service
+      description: Bibliographic data retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/biblio:
+    post:
+      operationId: Published Data Retrieval (POST)
+      summary: Bibliographic data retrieval service
+      description: Bibliographic data retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/abstract:
+    get:
+      operationId: Published Data Abstract Service
+      summary: Publications abstract service
+      description: Publications abstract service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/abstract:
+    post:
+      operationId: Published Data Abstract Service (POST)
+      summary: Publications abstract service
+      description: Publications abstract service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/full-cycle:
+    get:
+      operationId: Published Data Full Cycle Service
+      summary: Publications full cycle service
+      description: Publications full cycle service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/full-cycle:
+    post:
+      operationId: Published Data Full Cycle Service (POST)
+      summary: Publications full cycle service
+      description: Publications full cycle service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/fulltext:
+    get:
+      operationId: Published Data Fulltext Inquiry Service
+      summary: Fulltext inquiry service
+      description: Fulltext inquiry service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/fulltext:
+    post:
+      operationId: Published Data Fulltext Inquiry Service (POST)
+      summary: Fulltext inquiry service
+      description: Fulltext inquiry service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/description:
+    get:
+      operationId: Published Data Description Retrieval Service
+      summary: Description retrieval service
+      description: Description retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/description:
+    post:
+      operationId: Published Data Description Retrieval Service (POST)
+      summary: Description retrieval service
+      description: Description retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/claims:
+    get:
+      operationId: Published Data Claims Retrieval Service
+      summary: Claims retrieval service
+      description: Claims retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/claims:
+    post:
+      operationId: Published Claims Retrieval Service (POST)
+      summary: Claims retrieval service
+      description: Claims retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/equivalents:
+    get:
+      operationId: Published Equivalents Retrieval Service
+      summary: Equivalents retrieval service
+      description: Equivalents retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/equivalents:
+    post:
+      operationId: Published Equivalents Retrieval Service (POST)
+      description: Equivalents retrieval service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/{number}/images:
+    get:
+      operationId: Published Images Inquiry Service
+      description: Images inquiry service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: docdb
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP.1000000.A1
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/{type}/{format}/images:
+    post:
+      operationId: Published Images Inqury Service (POST)
+      summary: Images inquiry service
+      description: Images inquiry service
+      tags:
+        - Published
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: docdb
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/images/{image-country}/{image-number}/{image-kind}/{image-type}:
+    get:
+      operationId: Published Images Retrieval Service
+      summary: Images retrieval service
+      description: Images retrieval service
+      tags:
+        - Published
+      produces:
+        - application/pdf
+        - application/tiff
+        - image/png
+        - image/tiff
+      parameters:
+        - name: image-country
+          in: path
+          description: Image Id country code part
+          required: true
+          type: string
+          format: string
+          default: EP
+        - name: image-number
+          in: path
+          description: Image Id number part
+          required: true
+          type: string
+          format: string
+          default: 1000000
+        - name: image-kind
+          in: path
+          description: Image Id kind part
+          required: true
+          type: string
+          format: string
+          default: A1
+        - name: image-type
+          in: path
+          description: Image Id document type part
+          required: true
+          type: string
+          format: string
+          default: fullimage
+        - name: Range
+          in: query
+          description: Page number
+          required: true
+          type: integer
+          format: string
+          default: 1
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /published-data/images:
+    post:
+      operationId: Published Images Retrieval Service (POST)
+      description: Images retrieval service
+      tags:
+        - Published
+      produces:
+        - application/pdf
+        - application/tiff
+        - image/png
+        - image/tiff
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: Range
+          in: query
+          description: Page number
+          required: true
+          type: integer
+          format: string
+          default: 1
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}/{number}:
+    get:
+      operationId: INPADOC Family Retrieval Service
+      summary: Family retrieval service
+      description: Family retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}:
+    post:
+      operationId: INPADOC Family Retrieval Service (POST)
+      summary: Family retrieval service
+      description: Family retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}/{number}/biblio:
+    get:
+      operationId: INPADOC Family Retrieval Service with Biblio
+      summary: Family + biblio retrieval service
+      description: Family + biblio retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}/biblio:
+    post:
+      operationId: INPADOC Family Retrieval Service with Biblio  (POST)
+      summary: Family + biblio retrieval service
+      description: Family + biblio retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}/{number}/legal:
+    get:
+      operationId: INPADOC Family Retrieval Service with Legal
+      summary: Family + legal data retrieval service
+      description: Family + legal data retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /family/{type}/{format}/legal:
+    post:
+      operationId: INPADOC Family Retrieval Service with Legal (POST)
+      summary: Family + legal data retrieval service
+      description: Family + legal data retrieval service
+      tags:
+        - Family
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /legal/{type}/{format}/{number}:
+    get:
+      operationId: Legal Data Retrieval Service
+      summary: Legal data retrieval service
+      description: Legal data retrieval service
+      tags:
+        - Legal
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /legal/{type}/{format}:
+    post:
+      operationId: Legal Data Retrieval Service (POST)
+      summary: Legal data retrieval service
+      description: Legal data retrieval service
+      tags:
+        - Legal
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, priority, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [docdb, epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/search:
+    get:
+      operationId: Register Search Service without Constituents
+      summary: Register data search service
+      description: Register data search service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: Range
+          in: query
+          description: Range of elements were requested, e.g. 1-20
+          required: false
+          type: string
+          format: string
+          default: 1-25
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          type: string
+          format: string
+          default: ti=plastic
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/search/{constituent}:
+    get:
+      operationId: Register Search Service with Variable Constituents
+      summary: Register data search service
+      description: Register data search service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: constituent
+          in: path
+          description: Constituent
+          required: true
+          type: string
+          format: string
+          default: biblio
+          enum: [biblio, events, procedural-steps, upp]
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          type: string
+          format: string
+          default: ti=plastic
+        - name: Range
+          in: query
+          description: Range of elements were requested, e.g. 1-20
+          required: false
+          type: string
+          format: string
+          default: 1-25
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/{number}/biblio:
+    get:
+      operationId: Register Retrieval Service
+      summary: Register data retrieval service
+      description: Register data retrieval service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/biblio:
+    post:
+      operationId: Register Retrieval Service (POST)
+      summary: Register data retrieval service
+      description: Register data retrieval service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/{number}/events:
+    get:
+      operationId: Register Events Service
+      summary: Register events service
+      description: Register events service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/events:
+    post:
+      operationId: Register Events Service (POST)
+      summary: Register events service
+      description: Register events service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/{number}/procedural-steps:
+    get:
+      operationId: Register Procedural Steps Service
+      summary: Register procedural steps service
+      description: Register procedural steps service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/procedural-steps:
+    post:
+      operationId: Register Procedural Steps Service (POST)
+      summary: Register procedural steps service
+      description: Register procedural steps service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/{number}/upp:
+    get:
+      operationId: Register UNIP Service
+      summary: Register unitary patent service
+      description: Register unitary patent service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: EP1000000
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /register/{type}/{format}/upp:
+    post:
+      operationId: Register UNIP Service (POST)
+      summary: Register unitary patent service
+      description: Register unitary patent service
+      tags:
+        - Register
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: publication
+          enum: [application, publication]
+        - name: format
+          in: path
+          description: Reference format
+          required: true
+          type: string
+          format: string
+          default: epodoc
+          enum: [epodoc]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/cpc/{class}:
+    get:
+      operationId: Classification Schema Service
+      summary: Classification schema service
+      description: Classification schema service
+      tags:
+        - Classification
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: class
+          in: path
+          description: CPC class name
+          required: true
+          type: string
+          format: string
+          default: A01B
+        - name: ancestors
+          in: query
+          description: Ancestors flag
+          required: false
+          type: boolean
+          format: string
+          enum: [false, true]
+          allowEmptyValue: true
+        - name: navigation
+          in: query
+          description: Navigation flag
+          required: false
+          type: boolean
+          format: string
+          enum: [false, true]
+          allowEmptyValue: true
+        - name: depth
+          in: query
+          description: Classification tree traversing depth
+          required: false
+          type: string
+          format: string
+          enum: [0, 1, 2, 3, all]
+          allowEmptyValue: true
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/cpc/{class}/{subclass}:
+    get:
+      operationId: Classification Schema Subclass Service
+      summary: Classification schema service
+      description: Classification schema service
+      tags:
+        - Classification
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: class
+          in: path
+          description: CPC class name
+          required: true
+          type: string
+          format: string
+          default: A01B1
+        - name: subclass
+          in: path
+          description: CPC subclass name
+          required: true
+          type: string
+          format: string
+          default: '00'
+        - name: ancestors
+          in: query
+          description: Ancestors flag
+          required: false
+          type: boolean
+          format: string
+          enum: [false, true]
+          allowEmptyValue: true
+        - name: navigation
+          in: query
+          description: Navigation flag
+          required: false
+          type: boolean
+          format: string
+          enum: [false, true]
+          allowEmptyValue: true
+        - name: depth
+          in: query
+          description: Classification tree traversing depth
+          required: false
+          type: string
+          format: string
+          enum: [0, 1, 2, 3, all]
+          allowEmptyValue: true
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/cpc:
+    post:
+      operationId: Classification Schema Service (POST)
+      summary: Classification schema service
+      description: Classification schema service
+      tags:
+        - Classification
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/cpc/media/{media-name}:
+    get:
+      operationId: Classification Media Service
+      summary: Classification media retrieval service
+      description: Classification media retrieval service
+      tags:
+        - Classification
+      produces:
+        - image/gif
+      parameters:
+        - name: media-name
+          in: path
+          description: CPC media resource name
+          required: true
+          type: string
+          format: string
+          default: 1000.gif
+        - name: attachment
+          in: query
+          description: Attachment/inline content disposition indicator. Inline is a default value.
+          required: false
+          type: boolean
+          format: string
+          enum: [false, true]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/cpc/search:
+    get:
+      operationId: Classification Statistics Service
+      summary: Classification statistics search service
+      description: Classification statistics search service
+      tags:
+        - Classification
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          required: true
+          type: string
+          format: string
+          default: plastic
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /classification/map/{input-format}/{class}/{subclass}/{output-format}:
+    get:
+      operationId: Classification Mapping Service
+      summary: Classification mapping service
+      description: Classification mapping service
+      tags:
+        - Classification
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: input-format
+          in: path
+          description: Input classification conversion format
+          required: true
+          type: string
+          format: string
+          default: ecla
+          enum: [cpc, ecla]
+        - name: class
+          in: path
+          description: Valid
+          required: true
+          type: string
+          format: string
+          default: A01D2085
+        - name: subclass
+          in: path
+          description: Valid
+          required: true
+          type: string
+          format: string
+          default: 008
+        - name: output-format
+          in: path
+          description: Output classification conversion format
+          required: true
+          type: string
+          format: string
+          default: cpc
+          enum: [cpc, ecla, ipc]
+        - name: additional
+          in: query
+          description: Invention/Additional resolution indicator. Invention is default value.
+          required: true
+          type: boolean
+          format: string
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /number-service/{type}/{input-format}/{number}/{output-format}:
+    get:
+      operationId: Number Service
+      summary: Number service
+      description: Number service
+      tags:
+        - Number
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      parameters:
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: application
+          enum: [application, priority, publication]
+        - name: input-format
+          in: path
+          description: Input reference format
+          required: true
+          type: string
+          format: string
+          default: original
+          enum: [docdb, original]
+        - name: number
+          in: path
+          description: Reference number
+          required: true
+          type: string
+          format: string
+          default: US.(05/948,554).19781004
+        - name: output-format
+          in: path
+          description: Output reference format
+          required: true
+          type: string
+          format: string
+          default: docdb
+          enum: [docdb, epodoc, original]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+  /number-service/{type}/{input-format}/{output-format}:
+    post:
+      operationId: Number Service (POST)
+      summary: Number service
+      description: Number service
+      tags:
+        - Number
+      produces:
+        - application/xml
+        - application/json
+        - application/javascript
+      consumes:
+        - text/plain
+      parameters:
+        - name: body
+          in: body
+          description: Request payload
+          required: true
+          schema:
+            $ref: '#/definitions/Body'
+        - name: type
+          in: path
+          description: Reference type
+          required: true
+          type: string
+          format: string
+          default: application
+          enum: [application, priority, publication]
+        - name: input-format
+          in: path
+          description: Input reference format
+          required: true
+          type: string
+          format: string
+          default: original
+          enum: [docdb, epodoc, original]
+        - name: output-format
+          in: path
+          description: Output reference format
+          required: true
+          type: string
+          format: string
+          default: docdb
+          enum: [docdb, epodoc, original]
+      responses:
+        200:
+          description: Valid
+          schema:
+            type: string
+        default:
+          description: Error
+          schema:
+            $ref: '#/definitions/Error'
+      security:
+        - client-credentials: []
+
+
+securityDefinitions:
+  client-credentials:
+    type: oauth2
+    flow: accessCode
+    tokenUrl: https://ops.epo.org/3.2/auth/accesstoken?grant_type=client_credentials
+    authorizationUrl: http://ops.epo.org/3.2/auth/accesstoken?grant_type=client_credentials
+    scopes:
+      core: core
+
+definitions:
+  Body:
+    type: string
+
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+
+    xml:
+      name: fault

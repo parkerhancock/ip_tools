@@ -15,11 +15,5 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  - repo: local
-    hooks:
-      - id: ty
-        name: ty type checker
-        entry: uv run ty check
-        language: system
-        types: [python]
-        pass_filenames: false
+  # ty type checker disabled in pre-commit due to external library type issues
+  # Run manually with: uv run ty check src/ip_tools/

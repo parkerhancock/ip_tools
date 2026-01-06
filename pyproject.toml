@@ -17,7 +17,20 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
 ]
-dependencies = []
+dependencies = [
+    "anyio>=4.4",
+    "httpx>=0.27",
+    "h2>=4.1",
+    "lxml>=5.2",
+    "cssselect>=1.2",
+    "pydantic>=2.7",
+    "python-dateutil>=2.9",
+    "tenacity>=8.4",
+    "hishel[async]>=1.1.3",
+    "markitdown>=0.1",
+    "pypdf>=4.2",
+    "pyyaml>=6.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/parkerhancock/ip_tools"
@@ -55,6 +68,9 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
+    "SIM103", # return condition directly (stylistic)
+    "SIM108", # use ternary operator (stylistic, can reduce readability)
+    "C416",   # unnecessary dict comprehension (stylistic)
 ]
 
 [tool.ruff.lint.isort]
