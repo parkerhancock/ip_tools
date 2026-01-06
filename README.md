@@ -1,13 +1,19 @@
-# IP Tools
+<p align="center">
+  <img src="assets/banner.png" alt="IP Tools" width="400">
+</p>
 
-**Give your AI agent access to the world's patent data.**
+<p align="center">
+  <strong>Give your AI agent access to the world's patent data.</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.12+-blue.svg" alt="Python 3.12+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-green.svg" alt="License: Apache-2.0"></a>
+</p>
 
 ```bash
 claude plugins add github:parkerhancock/ip_tools
 ```
-
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 ---
 
