@@ -1,12 +1,9 @@
 """Agent tooling infrastructure for ip_tools."""
 
 from collections.abc import Callable
-from typing import TypeVar
-
-T = TypeVar("T")
 
 
-def agent_tool(func: Callable[..., T]) -> Callable[..., T]:
+def agent_tool[T](func: Callable[..., T]) -> Callable[..., T]:
     """
     Decorator that marks a function as an agent-discoverable tool.
 
