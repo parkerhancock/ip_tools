@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 from typing import Any, Self
 
 import httpx
 
-from .cache import build_cached_http_client
+from .cache import CacheManager, CacheStats, build_cached_http_client
 from .exceptions import (
     ApiError,
     AuthenticationError,
@@ -32,6 +33,26 @@ class BaseAsyncClient:
 
             async def get_resource(self, id: str) -> dict:
                 return await self._request_json("GET", f"/resources/{id}")
+
+    Cache Management:
+        async with MyApiClient() as client:
+            # Make requests...
+            result = await client.get_resource("123")
+
+            # Get cache statistics
+            stats = await client.cache_stats()
+            print(f"Hit rate: {stats.hit_rate:.1f}%")
+            print(f"Cache size: {stats.size_mb:.2f} MB")
+
+            # Clear all cached data
+            cleared = await client.cache_clear()
+            print(f"Cleared {cleared} entries")
+
+            # Clear entries older than 1 hour
+            cleared = await client.cache_clear_expired(max_age=timedelta(hours=1))
+
+            # Invalidate specific URLs by pattern
+            cleared = await client.cache_invalidate(r"/resources/123")
     """
 
     DEFAULT_BASE_URL: str = ""
@@ -44,6 +65,7 @@ class BaseAsyncClient:
         cache_path: Path | None = None,
         client: httpx.AsyncClient | None = None,
         use_cache: bool = True,
+        ttl_seconds: int | None = None,
         max_retries: int = 4,
         headers: dict[str, str] | None = None,
     ) -> None:
@@ -54,19 +76,23 @@ class BaseAsyncClient:
             cache_path: Custom path for the cache directory.
             client: Existing httpx.AsyncClient to use (for testing).
             use_cache: Whether to enable HTTP caching.
+            ttl_seconds: Default TTL for cache entries. None uses HTTP headers.
             max_retries: Maximum retry attempts for transient failures.
             headers: Additional headers to include in requests.
         """
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self._owns_client = client is None
         self._max_retries = max_retries
+        self._cache_manager: CacheManager | None = None
 
         if client is None:
             cache_dir = cache_path or Path.home() / ".cache" / "ip_tools"
             cache_dir.mkdir(parents=True, exist_ok=True)
-            self._client = build_cached_http_client(
+            self._client, self._cache_manager = build_cached_http_client(
                 use_cache=use_cache,
                 cache_name=self.CACHE_NAME,
+                cache_dir=cache_dir,
+                ttl_seconds=ttl_seconds,
                 headers=headers or {},
                 follow_redirects=True,
             )
@@ -76,10 +102,75 @@ class BaseAsyncClient:
                 for key, value in headers.items():
                     self._client.headers.setdefault(key, value)
 
+    @property
+    def cache_enabled(self) -> bool:
+        """Check if caching is enabled."""
+        return self._cache_manager is not None
+
+    async def cache_stats(self) -> CacheStats:
+        """Get cache statistics.
+
+        Returns:
+            CacheStats with hits, misses, entry count, and size.
+
+        Raises:
+            RuntimeError: If caching is disabled.
+        """
+        if self._cache_manager is None:
+            raise RuntimeError("Caching is disabled for this client")
+        return await self._cache_manager.get_stats()
+
+    async def cache_clear(self) -> int:
+        """Clear all cache entries.
+
+        Returns:
+            Number of entries cleared.
+
+        Raises:
+            RuntimeError: If caching is disabled.
+        """
+        if self._cache_manager is None:
+            raise RuntimeError("Caching is disabled for this client")
+        return await self._cache_manager.clear_all()
+
+    async def cache_clear_expired(self, max_age: timedelta | None = None) -> int:
+        """Clear expired cache entries.
+
+        Args:
+            max_age: Maximum age for entries. Defaults to TTL or 24 hours.
+
+        Returns:
+            Number of entries cleared.
+
+        Raises:
+            RuntimeError: If caching is disabled.
+        """
+        if self._cache_manager is None:
+            raise RuntimeError("Caching is disabled for this client")
+        return await self._cache_manager.clear_expired(max_age)
+
+    async def cache_invalidate(self, url_pattern: str) -> int:
+        """Invalidate cache entries matching a URL pattern.
+
+        Args:
+            url_pattern: Regex pattern to match against cached URLs.
+
+        Returns:
+            Number of entries invalidated.
+
+        Raises:
+            RuntimeError: If caching is disabled.
+        """
+        if self._cache_manager is None:
+            raise RuntimeError("Caching is disabled for this client")
+        return await self._cache_manager.invalidate_pattern(url_pattern)
+
     async def close(self) -> None:
         """Close the underlying HTTP client if we own it."""
         if self._owns_client:
             await self._client.aclose()
+            if self._cache_manager is not None:
+                await self._cache_manager.close()
 
     async def __aenter__(self) -> Self:
         return self

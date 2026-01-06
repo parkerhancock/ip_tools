@@ -9,7 +9,7 @@ This module provides shared infrastructure used across all ip_tools packages:
 """
 
 from .base_client import BaseAsyncClient
-from .cache import build_cached_http_client
+from .cache import CacheManager, CacheStats, build_cached_http_client
 from .exceptions import (
     ApiError,
     AuthenticationError,
@@ -34,6 +34,8 @@ __all__ = [
     "BaseAsyncClient",
     # Caching
     "build_cached_http_client",
+    "CacheManager",
+    "CacheStats",
     # Exceptions
     "IpToolsError",
     "ApiError",
