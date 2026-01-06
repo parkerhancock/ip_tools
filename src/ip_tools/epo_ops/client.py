@@ -32,6 +32,11 @@ from .models import (
     LegalEventsResponse,
     NumberConversionResponse,
     PdfDownloadResponse,
+    RegisterBiblioResponse,
+    RegisterEventsResponse,
+    RegisterProceduralStepsResponse,
+    RegisterSearchResponse,
+    RegisterUppResponse,
     SearchResponse,
 )
 from .parsing import (
@@ -45,6 +50,11 @@ from .parsing import (
     parse_family,
     parse_legal_events,
     parse_number_conversion,
+    parse_register_biblio,
+    parse_register_events,
+    parse_register_procedural_steps,
+    parse_register_search,
+    parse_register_upp,
     parse_search_response,
 )
 
@@ -429,6 +439,119 @@ class EpoOpsClient:
             num_pages=num_pages,
             pdf_base64=base64.b64encode(pdf_bytes).decode("ascii"),
         )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # EP Register Methods
+    # ─────────────────────────────────────────────────────────────────────────
+
+    async def search_register(
+        self,
+        *,
+        query: str,
+        range_begin: int = 1,
+        range_end: int = 25,
+    ) -> RegisterSearchResponse:
+        """Search the EP Register for European patent applications.
+
+        Args:
+            query: CQL query (e.g., 'pa="Siemens"' for applicant search)
+            range_begin: Start of result range (1-indexed)
+            range_end: End of result range
+
+        Returns:
+            RegisterSearchResponse with matching applications
+        """
+        params = {"q": query, "Range": f"{range_begin}-{range_end}"}
+        response = await self._request("GET", "/rest-services/register/search", params=params)
+        return parse_register_search(response.text)
+
+    async def fetch_register_biblio(
+        self,
+        *,
+        number: str,
+        doc_type: str = "application",
+        fmt: str = "epodoc",
+    ) -> RegisterBiblioResponse:
+        """Fetch EP Register bibliographic data for an application.
+
+        Args:
+            number: Application number (e.g., 'EP20200001')
+            doc_type: 'application' or 'publication'
+            fmt: Number format ('epodoc' or 'docdb')
+
+        Returns:
+            RegisterBiblioResponse with detailed register data
+        """
+        normalized = self._normalize_number(number)
+        path = f"/rest-services/register/{doc_type}/{fmt}/{normalized}/biblio"
+        response = await self._request("GET", path)
+        return parse_register_biblio(response.text)
+
+    async def fetch_register_events(
+        self,
+        *,
+        number: str,
+        doc_type: str = "application",
+        fmt: str = "epodoc",
+    ) -> RegisterEventsResponse:
+        """Fetch EP Register events for an application.
+
+        Args:
+            number: Application number (e.g., 'EP20200001')
+            doc_type: 'application' or 'publication'
+            fmt: Number format ('epodoc' or 'docdb')
+
+        Returns:
+            RegisterEventsResponse with register events
+        """
+        normalized = self._normalize_number(number)
+        path = f"/rest-services/register/{doc_type}/{fmt}/{normalized}/events"
+        response = await self._request("GET", path)
+        return parse_register_events(response.text)
+
+    async def fetch_register_procedural_steps(
+        self,
+        *,
+        number: str,
+        doc_type: str = "application",
+        fmt: str = "epodoc",
+    ) -> RegisterProceduralStepsResponse:
+        """Fetch EP Register procedural steps (prosecution history).
+
+        Args:
+            number: Application number (e.g., 'EP20200001')
+            doc_type: 'application' or 'publication'
+            fmt: Number format ('epodoc' or 'docdb')
+
+        Returns:
+            RegisterProceduralStepsResponse with procedural steps
+        """
+        normalized = self._normalize_number(number)
+        path = f"/rest-services/register/{doc_type}/{fmt}/{normalized}/procedural-steps"
+        response = await self._request("GET", path)
+        return parse_register_procedural_steps(response.text)
+
+    async def fetch_register_upp(
+        self,
+        *,
+        number: str,
+        doc_type: str = "application",
+        fmt: str = "epodoc",
+    ) -> RegisterUppResponse:
+        """Fetch Unitary Patent (UPP) data from EP Register.
+
+        Args:
+            number: Application number (e.g., 'EP20200001')
+            doc_type: 'application' or 'publication'
+            fmt: Number format ('epodoc' or 'docdb')
+
+        Returns:
+            RegisterUppResponse with UPP status and participating states
+        """
+        normalized = self._normalize_number(number)
+        path = f"/rest-services/register/{doc_type}/{fmt}/{normalized}/upp"
+        response = await self._request("GET", path)
+        return parse_register_upp(response.text)
 
 
 def client_from_env() -> EpoOpsClient:

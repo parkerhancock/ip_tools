@@ -31,41 +31,100 @@ This project draws from [patent_client](https://github.com/parkerhancock/patent_
 │                   ip_tools Library                           │
 │    ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
 │    │  USPTO   │  │   EPO    │  │  Google  │  │   JPO    │   │
-│    │ Patents  │  │   OPS    │  │ Patents  │  │          │   │
+│    │   ODP    │  │   OPS    │  │ Patents  │  │          │   │
 │    └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Features
+## Data Source Coverage
 
-### Data Sources
+### Google Patents
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Patent lookup | ✅ | Fetch by publication number |
+| Full-text search | ✅ | Keyword, assignee, inventor search |
+| Claims & description | ✅ | Full-text content |
+| Citations | ✅ | Forward and backward citations |
+| Patent families | ✅ | Related applications |
+| PDF download | ✅ | Full document PDFs |
 
-| Source | Coverage | Status |
-|--------|----------|--------|
-| **USPTO** | Patents, applications, assignments, prosecution history | Planned |
-| **EPO OPS** | European patents, patent families, legal status | Planned |
-| **Google Patents** | Global patent search, full-text, citations | Planned |
-| **JPO** | Japanese patents and applications | Planned |
+### USPTO Open Data Portal (ODP)
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Applications** | | |
+| Application search | ✅ | Search by number, date, status |
+| Application details | ✅ | Bibliographic data, status |
+| Continuity data | ✅ | Parent/child relationships |
+| Foreign priority | ✅ | Priority claims |
+| Assignments | ✅ | Ownership records |
+| Attorneys | ✅ | Attorney/agent of record |
+| Transactions | ✅ | Office action history |
+| Adjustments | ✅ | PTA/PTE data |
+| **PTAB Trials** | | |
+| IPR/PGR/CBM search | ✅ | Search inter partes reviews |
+| Trial details | ✅ | Party info, status, decisions |
+| Trial documents | ✅ | Petitions, responses, decisions |
+| **PTAB Appeals** | | |
+| Appeal search | ✅ | Ex parte appeals |
+| Appeal details | ✅ | Status, decisions |
+| **Bulk Data** | | |
+| Bulk downloads | ✅ | XML/JSON data packages |
+| Full-text grants | ✅ | Weekly patent grants |
+| Full-text applications | ✅ | Weekly applications |
 
-### Design Principles
+### USPTO Assignments
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Assignment search | ✅ | Search by reel/frame, patent |
+| Assignment details | ✅ | Parties, conveyance type |
+| Property lookup | ✅ | Patents in assignment |
 
-- **100% Async** - All APIs are async-first with no sync wrappers
-- **Fully Typed** - Complete type annotations checked with `ty`
-- **Fully Tested** - Comprehensive test coverage with `pytest-asyncio`
-- **Agent-Optimized** - Output formats designed for LLM parsing
-- **Cacheable** - Built-in HTTP caching for efficient repeated queries
+### EPO OPS (Open Patent Services)
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Published Data (Inpadoc)** | | |
+| Patent search | ✅ | CQL query search |
+| Family search | ✅ | Search grouped by family |
+| Bibliographic data | ✅ | Titles, abstracts, parties |
+| Claims | ✅ | Full claim text |
+| Description | ✅ | Full description text |
+| Legal events | ✅ | Status changes, fees |
+| Patent families | ✅ | INPADOC family members |
+| PDF download | ✅ | Full document PDFs |
+| Number conversion | ✅ | Format conversion |
+| **EP Register** | | |
+| Register search | ✅ | Search EP applications |
+| Register biblio | ✅ | Detailed EP data |
+| Procedural steps | ✅ | Prosecution history |
+| Register events | ✅ | EPO Bulletin events |
+| Designated states | ✅ | Validation countries |
+| Opposition data | ✅ | Opposition proceedings |
+| Unitary Patent | ✅ | UPP status and states |
+| **Classification** | | |
+| CPC lookup | ✅ | Classification hierarchy |
+| CPC search | ✅ | Keyword search |
+| CPC mapping | ✅ | CPC/IPC/ECLA conversion |
 
-## Installation
+### JPO (Japan Patent Office)
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Patent progress | ✅ | Application status |
+| Examination history | ✅ | Office actions |
+| Documents | ✅ | Filed documents |
+| Citations | ✅ | Cited prior art |
+| Family info | ✅ | Divisionals, priorities |
+| Registration | ✅ | Grant details |
+| PCT national phase | ✅ | JP national entry lookup |
+| Design/trademark | ✅ | Similar methods available |
 
-```bash
-pip install ip-tools
-```
-
-### As a Claude Code Plugin
-
-```bash
-claude plugins add ip-tools
-```
+### Cross-Source Features
+| Feature | Status | Description |
+|---------|--------|-------------|
+| HTTP caching | ✅ | SQLite-backed with TTL |
+| Cache statistics | ✅ | Hit rate, size monitoring |
+| Cache invalidation | ✅ | Pattern-based clearing |
+| Rate limiting | ✅ | Built-in throttling |
+| Retry logic | ✅ | Automatic retries |
 
 ## Quick Start
 
@@ -84,6 +143,27 @@ async with GooglePatentsClient() as client:
         print(f"{patent.publication_number}: {patent.title}")
 ```
 
+## Installation
+
+```bash
+pip install ip-tools
+```
+
+### As a Claude Code Plugin
+
+```bash
+claude plugins add ip-tools
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `EPO_OPS_API_KEY` | For EPO | EPO OPS consumer key |
+| `EPO_OPS_API_SECRET` | For EPO | EPO OPS consumer secret |
+| `JPO_API_USERNAME` | For JPO | JPO API username |
+| `JPO_API_PASSWORD` | For JPO | JPO API password |
+
 ## For Agents
 
 When installed as a Claude Code plugin, agents can access IP data through natural language:
@@ -99,6 +179,14 @@ The skill handles:
 - API selection
 - Result formatting
 - Error handling
+
+## Design Principles
+
+- **100% Async** - All APIs are async-first with no sync wrappers
+- **Fully Typed** - Complete type annotations checked with `ty`
+- **Fully Tested** - Comprehensive test coverage with `pytest-asyncio`
+- **Agent-Optimized** - Output formats designed for LLM parsing
+- **Cacheable** - Built-in HTTP caching for efficient repeated queries
 
 ## Development
 
@@ -120,10 +208,6 @@ uv run ruff format .
 # Run type checking
 uv run ty check
 ```
-
-## Project Status
-
-IP Tools is under active development. See [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) for the roadmap.
 
 ## Related Projects
 
