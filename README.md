@@ -205,9 +205,13 @@ async with GooglePatentsClient() as client:
 git clone https://github.com/parkerhancock/ip_tools.git
 cd ip_tools
 uv sync --group dev
-uv run pytest
+uv run pytest                       # 685 tests, replays VCR cassettes
 uv run ruff check . && uv run ruff format .
 ```
+
+Tests use [pytest-recording](https://github.com/kiwicom/pytest-recording) (VCR.py) to replay recorded HTTP interactions without hitting live APIs. To record new cassettes: `uv run pytest --record-mode=new_episodes`.
+
+Errors follow a log-first pattern — concise messages with a path to `~/.cache/ip_tools/ip_tools.log` for full details.
 
 ## Related
 
