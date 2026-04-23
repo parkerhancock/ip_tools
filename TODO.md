@@ -33,7 +33,7 @@ that fix them.
       re-record.
 
 - [ ] **Cold-start latency on first plugin use.** First `uvx` invocation
-      after `/plugin install patent-client-agents@parkerhancock` downloads ~100 packages and takes ~30
+      after `/plugin install patent-client-agents@patent-client-agents` downloads ~100 packages and takes ~30
       seconds. Subsequent invocations hit uv's cache and are ~1s. Consider
       pre-warming the cache at plugin-add time (via a Claude Code install
       hook, if one ever gets blessed) or leaning on the skill-first UX

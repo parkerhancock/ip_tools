@@ -1,11 +1,11 @@
 {
   "$schema": "https://docs.claude.com/schemas/claude-plugin-marketplace-v1.json",
-  "name": "parkerhancock",
+  "name": "patent-client-agents",
   "owner": {
     "name": "Parker Hancock",
     "url": "https://github.com/parkerhancock"
   },
-  "description": "Parker Hancock's Claude Code plugins.",
+  "description": "Patent client tools for AI agents — USPTO, EPO, Google Patents, JPO, MPEP, and CPC.",
   "plugins": [
     {
       "name": "patent-client-agents",

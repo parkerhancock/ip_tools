@@ -11,7 +11,7 @@ Inside Claude Code:
 
 ```
 /plugin marketplace add parkerhancock/ip_tools
-/plugin install patent-client-agents@parkerhancock
+/plugin install patent-client-agents@patent-client-agents
 ```
 
 See [docs/installation.md](docs/installation.md) for all seven install modes.
@@ -55,7 +55,7 @@ For Claude Code users — run these inside a Claude Code session:
 
 ```
 /plugin marketplace add parkerhancock/ip_tools
-/plugin install patent-client-agents@parkerhancock
+/plugin install patent-client-agents@patent-client-agents
 ```
 
 Two slash commands (not shell). You get the `ip_research` skill and

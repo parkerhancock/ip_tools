@@ -9,7 +9,6 @@
   "repository": "https://github.com/parkerhancock/ip_tools",
   "license": "Apache-2.0",
   "keywords": ["patent", "trademark", "intellectual-property", "uspto", "epo", "mcp"],
-  "skills": "skills",
   "mcpServers": {
     "patent-client-agents": {
       "command": "uvx",
