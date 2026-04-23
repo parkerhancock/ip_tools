@@ -34,6 +34,16 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
+[project.optional-dependencies]
+mcp = [
+    "fastmcp>=3.2.3",
+    "starlette>=0.37",
+]
+
+[project.scripts]
+ip-tools-mcp = "ip_tools.mcp.server:main"
+ip-tools-skill-install = "ip_tools.skill_install:main"
+
 [project.urls]
 Homepage = "https://github.com/parkerhancock/ip_tools"
 Repository = "https://github.com/parkerhancock/ip_tools"

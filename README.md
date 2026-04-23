@@ -8,8 +8,10 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 ```bash
-claude plugins add github:parkerhancock/ip_tools
+claude plugin add github:parkerhancock/ip_tools
 ```
+
+See [docs/installation.md](docs/installation.md) for all seven install modes.
 
 ---
 
@@ -46,29 +48,33 @@ and retry logic via `law_tools_core`.
 
 ## Install
 
+For Claude Code users:
+
 ```bash
-claude plugins add github:parkerhancock/ip_tools
+claude plugin add github:parkerhancock/ip_tools
 ```
 
-That's it. Claude Code now has access to patent data through the `ip_research` skill.
+One command. You get the `ip_research` skill and all 63 patent MCP
+tools. Prereq: [uv](https://docs.astral.sh/uv/) on PATH (the MCP server
+runs under `uvx` so you don't pip install anything yourself).
 
-### API Keys
+**Seven install modes are documented in [docs/installation.md](docs/installation.md)**
+— Python library, Python+MCP runtime, Claude Code plugin, dev symlink, stdio
+MCP, Cowork remote MCP, and generic remote MCP. Pick the one that matches
+how you'll use it.
 
-Some data sources require API keys:
+### API keys
 
-| Variable | Source | Required | How to Get |
+| Variable | Source | Required | How to get |
 |----------|--------|----------|------------|
-| `USPTO_ODP_API_KEY` | USPTO ODP | Yes | [Request at USPTO](https://developer.uspto.gov/) |
-| `EPO_OPS_API_KEY` | EPO OPS | Yes | [Register at EPO](https://developers.epo.org/) |
-| `EPO_OPS_API_SECRET` | EPO OPS | Yes | [Register at EPO](https://developers.epo.org/) |
-| `JPO_API_USERNAME` | JPO | Yes | [Register at JPO](https://www.j-platpat.inpit.go.jp/) |
-| `JPO_API_PASSWORD` | JPO | Yes | [Register at JPO](https://www.j-platpat.inpit.go.jp/) |
+| `USPTO_ODP_API_KEY` | USPTO ODP | Most USPTO tools | [developer.uspto.gov](https://developer.uspto.gov/) (free) |
+| `EPO_OPS_API_KEY`, `EPO_OPS_API_SECRET` | EPO OPS | All EPO tools | [developers.epo.org](https://developers.epo.org/) (free) |
+| `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | JPO tools only | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
 
-**No API key needed:** Google Patents, USPTO Assignments.
+**No API key needed:** Google Patents, USPTO Publications (PPUBS), USPTO
+Assignments, MPEP, CPC.
 
-## As a Python Library
-
-IP Tools is also a standalone async Python library:
+## Quickstart — Python library
 
 ```bash
 pip install ip-tools
@@ -78,13 +84,13 @@ pip install ip-tools
 from ip_tools.google_patents import GooglePatentsClient
 
 async with GooglePatentsClient() as client:
-    patent = await client.fetch("US10123456B2")
+    patent = await client.get_patent_data("US10123456B2")
     print(patent.title)
     print(patent.abstract)
 
-    results = await client.search("machine learning neural network")
-    for patent in results:
-        print(f"{patent.publication_number}: {patent.title}")
+    results = await client.search_patents(keywords=["machine learning neural network"])
+    for r in results.results:
+        print(f"{r.publication_number}: {r.title}")
 ```
 
 ## Detailed Coverage

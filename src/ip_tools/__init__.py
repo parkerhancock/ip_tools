@@ -2,6 +2,6 @@
 
 from law_tools_core.logging import configure as _configure_logging
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 _configure_logging("ip_tools")
