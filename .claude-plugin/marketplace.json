@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "patent-client-agents",
-      "source": "./.claude-plugin",
+      "source": ".",
       "description": "Intellectual property research toolkit — async Python clients and 63 MCP tools for USPTO, EPO, Google Patents, JPO, MPEP, and CPC."
     }
   ]
