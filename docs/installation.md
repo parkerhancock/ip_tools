@@ -518,4 +518,5 @@ gcloud builds submit --config=cloudbuild.yaml
 - Issues: [github.com/parkerhancock/ip_tools/issues](https://github.com/parkerhancock/ip_tools/issues)
 - Full source: [github.com/parkerhancock/ip_tools](https://github.com/parkerhancock/ip_tools)
 - Remote MCP deployment: [github.com/parkerhancock/patent-client-agents-deploy](https://github.com/parkerhancock/patent-client-agents-deploy)
-- Per-connector API notes: `src/patent_client_agents/catalog/*.md`
+- Per-source API notes: `src/patent_client_agents/catalog/sources/`
+- MCP tool reference (by intent): `src/patent_client_agents/catalog/intents/`

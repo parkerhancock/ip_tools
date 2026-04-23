@@ -43,10 +43,4 @@ async with AssignmentCenterClient() as client:
 
 | Tool | Description |
 |------|-------------|
-| `search_patent_assignments_by_assignee` | Search by assignee name |
-| `search_patent_assignments_by_assignor` | Search by assignor name |
-| `search_patent_assignments_by_patent` | Get assignment chain of title for a patent |
-| `search_patent_assignments_by_application` | Get assignments by application number |
-| `search_patent_assignments_by_reel_frame` | Search by recording reel/frame |
-| `search_all_patent_assignments` | Paginated search through all matching assignments |
-| `search_patent_assignments` | General assignment search by assignee name |
+| `search_patent_assignments(assignee?, assignor?, patent_number?, application_number?, reel_frame?, paginate_all?)` | Unified patent-assignment search. Set exactly one filter. `paginate_all=True` auto-paginates for assignee/assignor searches. |

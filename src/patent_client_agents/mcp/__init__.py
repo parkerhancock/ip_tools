@@ -31,7 +31,7 @@ ip_mcp = FastMCP(
     instructions=(
         "Patent and IP data connectors: USPTO (ODP, PPUBS, Assignments, "
         "Office Actions, PTAB, Petitions, Bulk Data), EPO OPS, Google "
-        "Patents, CPC, and the MPEP. ~100 read-only tools."
+        "Patents, CPC, and the MPEP. ~40 read-only tools, grouped by intent."
     ),
 )
 

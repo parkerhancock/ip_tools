@@ -10,8 +10,8 @@ from typing import Annotated
 
 from fastmcp import FastMCP
 
-from patent_client_agents.mpep import SearchInput, get_section, search
 from law_tools_core.mcp.annotations import READ_ONLY
+from patent_client_agents.mpep import SearchInput, get_section, search
 
 mpep_mcp = FastMCP("MPEP")
 

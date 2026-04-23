@@ -7,9 +7,9 @@ from urllib.parse import urlparse
 
 from fastmcp import FastMCP
 
-from patent_client_agents.uspto_odp import PtabTrialsClient, UsptoOdpClient
 from law_tools_core.mcp.annotations import READ_ONLY
 from law_tools_core.mcp.downloads import register_source
+from patent_client_agents.uspto_odp import PtabTrialsClient, UsptoOdpClient
 
 uspto_mcp = FastMCP("USPTO")
 
@@ -213,10 +213,10 @@ async def get_file_history_item(
     """
     import base64
 
-    from patent_client_agents.uspto_odp.clients.applications import ApplicationsClient
     from law_tools_core.exceptions import NotFoundError
     from law_tools_core.filenames import file_history_item as _fh_name
     from law_tools_core.mcp.downloads import download_response
+    from patent_client_agents.uspto_odp.clients.applications import ApplicationsClient
 
     async with ApplicationsClient() as client:
         try:
@@ -313,89 +313,145 @@ async def get_patent_assignment(
 
 
 # ---------------------------------------------------------------------------
-# PTAB Trials
+# PTAB (trials, appeals, interferences)
 # ---------------------------------------------------------------------------
 
 
+_PTAB_SEARCH_METHOD = {
+    "proceeding": "search_trial_proceedings",
+    "trial_decision": "search_trial_decisions",
+    "trial_document": "search_trial_documents",
+    "appeal_decision": "search_appeal_decisions",
+    "interference_decision": "search_interference_decisions",
+}
+
+_PTAB_GET_METHOD = {
+    "proceeding": ("get_trial_proceeding", "trial_number"),
+    "trial_decision": ("get_trial_decision", "document_identifier"),
+    "trial_document": ("get_trial_document", "document_identifier"),
+    "appeal_decision": ("get_appeal_decision", "document_identifier"),
+    "interference_decision": ("get_interference_decision", "document_identifier"),
+}
+
+
 @uspto_mcp.tool(annotations=READ_ONLY)
-async def search_ptab_proceedings(
-    query: Annotated[str, "Search query for PTAB proceedings (IPR, PGR, CBM)"],
+async def search_ptab(
+    type: Annotated[
+        str,
+        "What to search. 'proceeding' — AIA trial proceedings (IPR/PGR/CBM/DER). "
+        "'trial_decision' — decisions issued in AIA trials. "
+        "'trial_document' — documents filed in AIA trials. "
+        "'appeal_decision' — ex parte appeal decisions (different legal vehicle from "
+        "AIA trials). 'interference_decision' — pre-AIA interference decisions.",
+    ],
+    query: Annotated[str, "Search query"],
     limit: Annotated[int, "Maximum number of results"] = 25,
     offset: Annotated[int, "Result offset for pagination"] = 0,
 ) -> dict:
-    """Search PTAB trial proceedings (IPR, PGR, CBM, DER)."""
-    async with UsptoOdpClient() as client:
-        result = await client.search_trial_proceedings(query=query, limit=limit, offset=offset)
-        return _dump(result)  # type: ignore[return-value]
+    """Search PTAB records across trials, appeals, and interferences.
 
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_ptab_proceeding(
-    trial_number: Annotated[str, "PTAB trial number (e.g. 'IPR2024-00001')"],
-) -> dict:
-    """Get details for a specific PTAB trial proceeding."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_trial_proceeding(trial_number)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def search_ptab_decisions(
-    query: Annotated[str, "Search query for PTAB trial decisions"],
-    limit: Annotated[int, "Maximum number of results"] = 25,
-    offset: Annotated[int, "Result offset for pagination"] = 0,
-) -> dict:
-    """Search PTAB trial decisions."""
-    async with UsptoOdpClient() as client:
-        result = await client.search_trial_decisions(query=query, limit=limit, offset=offset)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_ptab_decisions_by_trial(
-    trial_number: Annotated[str, "PTAB trial number (e.g. 'IPR2024-00001')"],
-) -> dict:
-    """Get all decisions for a specific PTAB trial."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_trial_decisions_by_trial(trial_number)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_ptab_document(
-    document_identifier: Annotated[str, "PTAB trial document identifier"],
-) -> dict:
-    """Get a single PTAB trial document by identifier."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_trial_document(document_identifier)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_ptab_documents_by_trial(
-    trial_number: Annotated[str, "PTAB trial number (e.g. 'IPR2024-00001')"],
-) -> dict:
-    """Get all documents filed in a PTAB trial proceeding.
-
-    Use download_ptab_document to download a specific document PDF.
+    Appeals and interferences are legally distinct tribunals from AIA
+    trials — pick ``type`` deliberately. For trial-bound searches, use
+    ``proceeding`` / ``trial_decision`` / ``trial_document``.
     """
+    key = type.strip().lower()
+    method_name = _PTAB_SEARCH_METHOD.get(key)
+    if method_name is None:
+        from law_tools_core.exceptions import ValidationError
+
+        raise ValidationError(
+            f"type must be one of {sorted(_PTAB_SEARCH_METHOD)}; got {type!r}"
+        )
     async with UsptoOdpClient() as client:
-        result = await client.get_trial_documents_by_trial(trial_number)
+        method = getattr(client, method_name)
+        result = await method(query=query, limit=limit, offset=offset)
         return _dump(result)  # type: ignore[return-value]
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
-async def search_ptab_documents(
-    query: Annotated[str, "Search query for PTAB trial documents"],
-    limit: Annotated[int, "Maximum number of results"] = 25,
+async def get_ptab(
+    type: Annotated[
+        str,
+        "Record type to fetch. 'proceeding' — takes a trial number (e.g. "
+        "'IPR2024-00001'). 'trial_decision' / 'trial_document' / "
+        "'appeal_decision' / 'interference_decision' — take a document identifier "
+        "from the corresponding search.",
+    ],
+    identifier: Annotated[
+        str,
+        "Trial number for 'proceeding'; document identifier for all other types.",
+    ],
 ) -> dict:
-    """Search PTAB trial documents across all proceedings.
+    """Fetch a single PTAB record (proceeding, decision, or document) by identifier."""
+    key = type.strip().lower()
+    if key not in _PTAB_GET_METHOD:
+        from law_tools_core.exceptions import ValidationError
 
-    Use download_ptab_document to download a specific document PDF.
-    """
+        raise ValidationError(
+            f"type must be one of {sorted(_PTAB_GET_METHOD)}; got {type!r}"
+        )
+    method_name, _id_kind = _PTAB_GET_METHOD[key]
     async with UsptoOdpClient() as client:
-        result = await client.search_trial_documents(query=query, limit=limit)
+        method = getattr(client, method_name)
+        result = await method(identifier)
         return _dump(result)  # type: ignore[return-value]
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def list_ptab_children(
+    parent_type: Annotated[
+        str,
+        "What the ``parent_identifier`` refers to. 'trial' — an AIA trial number "
+        "(e.g. 'IPR2024-00001'); lists decisions and/or documents. 'application' — "
+        "a USPTO application number; lists ex parte appeal decisions for it. "
+        "'interference' — an interference number; lists decisions.",
+    ],
+    parent_identifier: Annotated[str, "Trial number, application number, or interference number"],
+    include: Annotated[
+        str,
+        "For parent_type='trial' only: 'decisions' (default), 'documents', or 'both'. "
+        "Appeals and interferences only return decisions.",
+    ] = "decisions",
+) -> dict:
+    """List PTAB children (decisions, documents) attached to a parent record.
+
+    Use ``download_ptab_document`` to retrieve the PDF of any trial document.
+    """
+    from law_tools_core.exceptions import ValidationError
+
+    pt = parent_type.strip().lower()
+    inc = include.strip().lower()
+    async with UsptoOdpClient() as client:
+        if pt == "trial":
+            if inc not in ("decisions", "documents", "both"):
+                raise ValidationError(
+                    f"include must be 'decisions', 'documents', or 'both' for trials; got {include!r}"
+                )
+            out: dict[str, object] = {"trial_number": parent_identifier}
+            if inc in ("decisions", "both"):
+                decisions = await client.get_trial_decisions_by_trial(parent_identifier)
+                out["decisions"] = _dump(decisions)
+            if inc in ("documents", "both"):
+                documents = await client.get_trial_documents_by_trial(parent_identifier)
+                out["documents"] = _dump(documents)
+            return out
+        if pt == "application":
+            if inc not in ("decisions",):
+                raise ValidationError(
+                    "parent_type='application' only supports include='decisions'"
+                )
+            result = await client.get_appeal_decisions_by_number(parent_identifier)
+            return {"application_number": parent_identifier, "decisions": _dump(result)}
+        if pt == "interference":
+            if inc not in ("decisions",):
+                raise ValidationError(
+                    "parent_type='interference' only supports include='decisions'"
+                )
+            result = await client.get_interference_decisions_by_number(parent_identifier)
+            return {"interference_number": parent_identifier, "decisions": _dump(result)}
+        raise ValidationError(
+            f"parent_type must be 'trial', 'application', or 'interference'; got {parent_type!r}"
+        )
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
@@ -446,90 +502,6 @@ async def download_ptab_document(
             content_type="application/pdf",
             document_identifier=document_identifier,
         )
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_ptab_decision(
-    document_identifier: Annotated[str, "PTAB trial decision document identifier"],
-) -> dict:
-    """Get a single PTAB trial decision by document identifier."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_trial_decision(document_identifier)
-        return _dump(result)  # type: ignore[return-value]
-
-
-# ---------------------------------------------------------------------------
-# PTAB Appeals
-# ---------------------------------------------------------------------------
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def search_ptab_appeals(
-    query: Annotated[str, "Search query for PTAB appeal decisions"],
-    limit: Annotated[int, "Maximum number of results"] = 25,
-    offset: Annotated[int, "Result offset for pagination"] = 0,
-) -> dict:
-    """Search PTAB ex parte appeal decisions."""
-    async with UsptoOdpClient() as client:
-        result = await client.search_appeal_decisions(query=query, limit=limit, offset=offset)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_appeal_decisions(
-    application_number: Annotated[str, "Application or appeal number"],
-) -> dict:
-    """Get appeal decisions for a specific application or appeal number."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_appeal_decisions_by_number(application_number)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_appeal_decision(
-    document_identifier: Annotated[str, "PTAB appeal decision document identifier"],
-) -> dict:
-    """Get a single PTAB appeal decision by document identifier."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_appeal_decision(document_identifier)
-        return _dump(result)  # type: ignore[return-value]
-
-
-# ---------------------------------------------------------------------------
-# PTAB Interferences
-# ---------------------------------------------------------------------------
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def search_ptab_interferences(
-    query: Annotated[str, "Search query for PTAB interference decisions"],
-    limit: Annotated[int, "Maximum number of results"] = 25,
-    offset: Annotated[int, "Result offset for pagination"] = 0,
-) -> dict:
-    """Search PTAB interference decisions."""
-    async with UsptoOdpClient() as client:
-        result = await client.search_interference_decisions(query=query, limit=limit, offset=offset)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_interference_decision(
-    document_identifier: Annotated[str, "PTAB interference decision document identifier"],
-) -> dict:
-    """Get a single PTAB interference decision."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_interference_decision(document_identifier)
-        return _dump(result)  # type: ignore[return-value]
-
-
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def get_interference_decisions(
-    number: Annotated[str, "PTAB interference number"],
-) -> dict:
-    """Get all decisions for a specific PTAB interference by number."""
-    async with UsptoOdpClient() as client:
-        result = await client.get_interference_decisions_by_number(number)
-        return _dump(result)  # type: ignore[return-value]
 
 
 # ---------------------------------------------------------------------------

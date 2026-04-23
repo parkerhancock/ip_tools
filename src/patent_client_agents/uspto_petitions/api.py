@@ -24,7 +24,10 @@ from __future__ import annotations
 import warnings
 
 from patent_client_agents.uspto_odp import UsptoOdpClient
-from patent_client_agents.uspto_odp.models import PetitionDecisionIdentifierResponse, PetitionDecisionResponse
+from patent_client_agents.uspto_odp.models import (
+    PetitionDecisionIdentifierResponse,
+    PetitionDecisionResponse,
+)
 
 __all__ = [
     "UsptoOdpClient",

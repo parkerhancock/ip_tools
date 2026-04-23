@@ -58,15 +58,13 @@ async with client:
 
 | Tool | Description |
 |------|-------------|
-| `search_epo_patents` | Search published patents via EPO OPS using CQL syntax |
-| `get_epo_cql_help` | CQL field reference for building complex `search_epo_patents` queries |
+| `search_epo(cql_query, group_by="publication"\|"family", range_begin, range_end)` | Search patents via EPO OPS. `group_by="publication"` returns one row per publication (default); `group_by="family"` deduplicates across INPADOC families. |
+| `get_epo_cql_help` | CQL field reference for building complex `search_epo` queries |
 | `get_epo_biblio` | Get bibliographic data for a patent from EPO OPS |
 | `get_epo_fulltext` | Get full text (description and claims) of a patent |
 | `get_epo_family` | Get patent family members (INPADOC family) |
 | `get_epo_legal_events` | Get legal status events for a patent |
-| `search_epo_families` | Search patent families via EPO OPS using CQL syntax |
 | `convert_epo_number` | Convert a patent number between EPO formats |
-| `download_epo_pdf` | Download a patent PDF from EPO OPS |
 | `lookup_cpc` | Look up a CPC classification symbol to get its title and hierarchy |
 | `map_cpc_classification` | Map a patent classification between CPC, IPC, and USCLS |
 | `search_cpc` | Search CPC classifications by keyword |

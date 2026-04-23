@@ -1,4 +1,9 @@
-"""Google Patents MCP tools."""
+"""Google Patents and cross-source patent MCP tools.
+
+The fused tools (``get_patent_claims``, ``download_patent_pdf``) delegate to
+:mod:`patent_client_agents.unified` — the MCP wrappers handle annotations,
+view shapes, and signed-URL packaging; fusion semantics live in the library.
+"""
 
 from __future__ import annotations
 
@@ -6,10 +11,11 @@ from typing import Annotated
 
 from fastmcp import FastMCP
 
-from patent_client_agents.google_patents import GooglePatentsClient
 from law_tools_core.filenames import patent_pdf as _patent_pdf_name
 from law_tools_core.mcp.annotations import READ_ONLY
 from law_tools_core.mcp.downloads import download_response, register_source
+from patent_client_agents import unified
+from patent_client_agents.google_patents import GooglePatentsClient
 
 patents_mcp = FastMCP("Patents")
 
@@ -106,33 +112,59 @@ async def get_patent(
 async def get_patent_claims(
     patent_number: Annotated[
         str,
-        "Patent publication number with country and kind code (e.g. 'US10123456B2'). "
-        "For US patents, get_patent_publication (PPUBS) also returns structured claims.",
+        "Patent publication number with country and kind code. "
+        "Examples: 'US10123456B2', 'US20230012345A1', 'EP3456789A1'.",
     ],
+    view: Annotated[
+        str,
+        "Which claims to return. 'full' (default): all claims with full nested "
+        "limitation structure. 'independent_only': only independent claims "
+        "(those with no claim-ref). 'limitations': compact mapping "
+        "{claim_number: [{text, depth}]} for infringement claim charts.",
+    ] = "full",
 ) -> dict:
-    """Get structured patent claims with dependency information.
+    """Get structured patent claims with nested limitation depth.
 
-    For US patents, fetches claims from the USPTO patent grant XML (via ODP),
-    which preserves hierarchical indentation of claim text. Falls back to
-    Google Patents for non-US patents or when the grant XML is unavailable.
+    Cascades two sources for full coverage:
+
+    1. USPTO ODP grant XML (authoritative for US patents post-~2000)
+    2. Google Patents (worldwide fallback, including pre-2000 US patents)
+
+    Both paths produce the **same canonical shape** per claim:
+
+    ```
+    {
+        "claim_number": int,
+        "limitations": [{"text": str, "depth": int}, ...],
+        "claim_text": str,   # rebuilt from limitations with 4-space-per-depth indent
+        "claim_type": "independent" | "dependent",
+        "depends_on": int | None,
+    }
+    ```
+
+    ``depth=0`` is the claim preamble (e.g. "A method comprising:"); ``depth=1``
+    are the top-level requirements; ``depth=2+`` are sub-requirements nested
+    within a parent limitation. Use the depth structure for infringement
+    claim-charting — sub-limitations only apply within their parent.
     """
-    from patent_client_agents.uspto_odp.clients.applications import ApplicationsClient
-    from law_tools_core.exceptions import LawToolsCoreError
+    view_key = view.strip().lower()
+    if view_key not in ("full", "independent_only", "limitations"):
+        from law_tools_core.exceptions import ValidationError
 
-    if patent_number.strip().upper().startswith("US"):
-        try:
-            async with ApplicationsClient() as odp:
-                result = await odp.get_granted_claims(patent_number)
-            if result:
-                return {"results": result}
-        except LawToolsCoreError:
-            pass  # fall through to Google Patents
+        raise ValidationError(
+            f"view must be 'full', 'independent_only', or 'limitations'; got {view!r}"
+        )
 
-    async with GooglePatentsClient() as client:
-        result = await client.get_patent_claims(patent_number)
-        if result is None:
-            raise ValueError(f"Claims not found for patent {patent_number}")
-        return {"results": result}
+    claims = await unified.get_patent_claims(patent_number)
+
+    if view_key == "independent_only":
+        claims = [c for c in claims if c["depends_on"] is None]
+    if view_key == "limitations":
+        return {
+            "patent_number": patent_number,
+            "limitations_by_claim": {c["claim_number"]: c["limitations"] for c in claims},
+        }
+    return {"patent_number": patent_number, "claims": claims}
 
 
 @patents_mcp.tool(annotations=READ_ONLY)
@@ -151,62 +183,45 @@ async def get_patent_figures(
 
 
 @patents_mcp.tool(annotations=READ_ONLY)
-async def get_structured_claim_limitations(
-    patent_number: Annotated[
-        str,
-        "Patent publication number with country and kind code (e.g. 'US10123456B2').",
-    ],
-) -> dict:
-    """Get claim limitations broken down by claim number from Google Patents.
-
-    Returns a mapping of claim numbers to lists of limitation text strings.
-    Useful for claim charting and infringement analysis.
-    """
-    async with GooglePatentsClient() as client:
-        result = await client.get_structured_claim_limitations(patent_number)
-        if result is None:
-            raise ValueError(f"Claims not found for patent {patent_number}")
-        return result
-
-
-@patents_mcp.tool(annotations=READ_ONLY)
 async def download_patent_pdf(
     patent_number: Annotated[
         str,
-        "Patent publication number with country and kind code (e.g. 'US10123456B2'). "
-        "For US patents, download_publication_pdf (PPUBS) may be more reliable.",
+        "Patent or publication number. Accepts 'US10123456B2', 'US20230012345A1', "
+        "'EP3456789A1', etc. The 'US' prefix is added automatically when omitted.",
     ],
 ) -> dict:
-    """Download a patent PDF from Google Patents.
+    """Download a patent or publication PDF.
+
+    Cascades three sources until one returns bytes:
+
+    1. Google Patents (preferred — PDFs are already OCR'ed for text extraction)
+    2. USPTO PPUBS (US patents; clean 404s on non-US numbers, fall through)
+    3. EPO OPS (worldwide fallback)
 
     Returns a signed `download_url` (or `file_path` in local stdio mode) plus
-    `filename`, `content_type`, `size_bytes`. Covers worldwide patents.
-    For US patents, download_publication_pdf is a more reliable alternative.
+    `filename`, `content_type`, `size_bytes`, and `source` (which of the three
+    served the bytes). Non-not-found errors (auth, transient HTTP failures)
+    surface immediately rather than being masked by silent fallback.
     """
-    async with GooglePatentsClient() as client:
-        pdf_bytes = await client.download_patent_pdf(patent_number)
-        return download_response(
-            f"patents/{patent_number}",
-            pdf_bytes,
-            filename=_patent_pdf_name(patent_number),
+    pdf = await unified.download_patent_pdf(patent_number)
+    signed_path_prefix = {
+        "google_patents": "patents",
+        "ppubs": "publications",
+        "epo": "epo/patents",
+    }[pdf.source]
+    extra: dict[str, object] = {"patent_number": pdf.patent_number}
+    if pdf.patent_title is not None:
+        extra["patent_title"] = pdf.patent_title
+    return {
+        **download_response(
+            f"{signed_path_prefix}/{pdf.patent_number}",
+            pdf.pdf_bytes,
+            filename=pdf.filename,
             content_type="application/pdf",
-            patent_number=patent_number,
-        )
-
-
-@patents_mcp.tool(annotations=READ_ONLY)
-async def get_independent_claims(
-    patent_number: Annotated[
-        str,
-        "Patent publication number with country and kind code (e.g. 'US10123456B2').",
-    ],
-) -> dict:
-    """Get only the independent claims for a patent from Google Patents."""
-    async with GooglePatentsClient() as client:
-        claims = await client.get_patent_claims(patent_number)
-        if claims is None:
-            raise ValueError(f"Claims not found for patent {patent_number}")
-        return {"results": [c for c in claims if not c.get("depends_on")]}
+            **extra,
+        ),
+        "source": pdf.source,
+    }
 
 
 @patents_mcp.tool(annotations=READ_ONLY)
@@ -253,7 +268,8 @@ async def get_forward_citations(
     citing application, vs. cited by the applicant).
 
     For USPTO-official citations-against this patent in later office actions,
-    use search_oa_citations with citedDocumentIdentifier filter.
+    use search_office_actions(result_type='citations', criteria=...) with a
+    citedDocumentIdentifier filter.
     """
     async with GooglePatentsClient() as client:
         patent = await client._get_patent_data(patent_number)

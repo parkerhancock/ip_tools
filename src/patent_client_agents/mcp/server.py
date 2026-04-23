@@ -18,8 +18,8 @@ from __future__ import annotations
 import argparse
 import sys
 
-from patent_client_agents import __version__
 from law_tools_core.mcp.server_factory import build_server
+from patent_client_agents import __version__
 
 from . import ip_mcp
 
@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="patent-client-agents-mcp",
         description=(
-            "Run the patent-client-agents MCP server on stdio. Exposes 63 patent/IP "
+            "Run the patent-client-agents MCP server on stdio. Exposes ~40 patent/IP "
             "tools from USPTO, EPO, Google Patents, and MPEP to any MCP "
             "client. See docs/installation.md for client configuration."
         ),

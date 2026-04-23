@@ -86,21 +86,10 @@ async with UsptoOdpClient() as client:
 | `get_patent_family` | Get patent family relationships (continuations, divisionals) |
 | `get_patent_assignment` | Get assignment and ownership history for an application |
 | `get_patent_claims` | Structured patent claims from USPTO grant XML (falls back to Google Patents for non-US or when XML unavailable) |
-| `search_ptab_proceedings` | Search PTAB trial proceedings (IPR, PGR, CBM, DER) |
-| `get_ptab_proceeding` | Get details for a specific PTAB trial proceeding |
-| `search_ptab_decisions` | Search PTAB trial decisions |
-| `get_ptab_decisions_by_trial` | Get all decisions for a specific PTAB trial |
-| `get_ptab_document` | Get a single PTAB trial document by identifier |
-| `get_ptab_documents_by_trial` | Get all documents filed in a PTAB trial proceeding |
+| `search_ptab(type, query, limit, offset)` | Search PTAB records. `type` = `proceeding` (AIA trials: IPR/PGR/CBM/DER), `trial_decision`, `trial_document`, `appeal_decision` (ex parte appeals), or `interference_decision`. |
+| `get_ptab(type, identifier)` | Fetch a single PTAB record. `identifier` is a trial number for `proceeding`; a document identifier for other types. |
+| `list_ptab_children(parent_type, parent_identifier, include)` | List decisions/documents for a parent record. `parent_type` = `trial` (include=decisions\|documents\|both), `application` (ex parte appeals, decisions only), or `interference` (decisions only). |
 | `download_ptab_document` | Download a PTAB trial document PDF |
-| `search_ptab_documents` | Search PTAB trial documents across all proceedings |
-| `get_ptab_decision` | Get a single PTAB trial decision by document identifier |
-| `search_ptab_appeals` | Search PTAB ex parte appeal decisions |
-| `get_appeal_decisions` | Get appeal decisions for a specific application or appeal number |
-| `get_appeal_decision` | Get a single PTAB appeal decision by document identifier |
-| `search_ptab_interferences` | Search PTAB interference decisions |
-| `get_interference_decision` | Get a single PTAB interference decision |
-| `get_interference_decisions` | Get all decisions for a specific PTAB interference |
 | `search_petitions` | Search USPTO petition decisions |
 | `get_petition` | Get details for a specific petition decision |
 | `search_bulk_datasets` | Search available USPTO bulk data products |

@@ -58,7 +58,6 @@ async with GooglePatentsClient() as client:
 | `get_patent` | Get full patent data including title, abstract, claims, description, and citations |
 | `get_patent_details` | Get structured patent details: dates, assignee, inventors |
 | `get_patent_figures` | Get patent figure images with callout annotations |
-| `get_structured_claim_limitations` | Get structured claim limitations broken down by claim number |
-| `get_independent_claims` | Get only independent claims for a patent (filters out dependent claims) |
+| `get_patent_claims(patent_number, view)` | Unified claims tool. Cascades USPTO ODP grant XML → Google Patents for full coverage. Returns canonical shape per claim: `{claim_number, limitations: [{text, depth}], claim_text, claim_type, depends_on}`. `view` = `full` (default), `independent_only`, or `limitations` (compact mapping for infringement charts). |
 | `get_forward_citations` | Get patents that cite the given patent (publication_number, assignee, title, examiner_cited flag); optional family-level citations |
-| `download_patent_pdf` | Download a patent PDF and save to a temporary file |
+| `download_patent_pdf(patent_number)` | Unified PDF download. Cascades Google Patents → PPUBS → EPO OPS until one source returns bytes. Response includes a `source` field indicating which backend served the PDF. |

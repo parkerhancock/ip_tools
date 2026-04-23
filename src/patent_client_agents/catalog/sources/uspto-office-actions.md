@@ -48,10 +48,7 @@ async with OfficeActionClient() as client:
 
 | Tool | Description |
 |------|-------------|
-| `search_oa_rejections` | Search structured rejection data with eligibility indicators |
-| `search_oa_citations` | Search prior art references cited in office actions |
-| `search_oa_text` | Retrieve full office action text |
-| `search_enriched_citations` | Search enriched citation metadata with inventor names and passages |
+| `search_office_actions(criteria, result_type, start, rows)` | Unified search across office-action data. `result_type` selects the shape: `rejections` (per-claim with 101/102/103/112/DP + Alice/Bilski/Mayo/Myriad indicators), `citations` (cited references with examiner/applicant flags), `text` (full body text), or `enriched_citations` (citations with inventor names, country/kind codes, passage locations). Valid Lucene fields differ per `result_type` — see tool description. |
 
 ## Common Query Patterns
 

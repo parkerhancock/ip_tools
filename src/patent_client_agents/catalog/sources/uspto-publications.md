@@ -50,5 +50,6 @@ async with PublicSearchClient() as client:
 |------|-------------|
 | `search_patent_publications` | Search USPTO patent publications by keyword |
 | `get_patent_publication` | Get bibliographic data for a publication number |
-| `download_publication_pdf` | Download a patent publication as PDF |
 | `resolve_publication_number` | Resolve a partial publication number to full metadata |
+
+PDF download is handled by the unified `download_patent_pdf` tool (see catalog/google-patents.md), which cascades Google Patents → PPUBS → EPO OPS.

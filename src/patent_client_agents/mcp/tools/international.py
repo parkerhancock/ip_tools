@@ -7,11 +7,11 @@ from typing import Annotated
 
 from fastmcp import FastMCP
 
-from patent_client_agents.cpc import map_classification
-from patent_client_agents.epo_ops.client import client_from_env
 from law_tools_core.filenames import epo_pdf as _epo_pdf_name
 from law_tools_core.mcp.annotations import READ_ONLY
-from law_tools_core.mcp.downloads import download_response, register_source
+from law_tools_core.mcp.downloads import register_source
+from patent_client_agents.cpc import map_classification
+from patent_client_agents.epo_ops.client import client_from_env
 
 international_mcp = FastMCP("International")
 
@@ -45,7 +45,7 @@ register_source("epo/patents", _fetch_epo_pdf, "application/pdf")
 
 
 @international_mcp.tool(annotations=READ_ONLY)
-async def search_epo_patents(
+async def search_epo(
     cql_query: Annotated[
         str,
         "CQL query string. Common examples: "
@@ -54,21 +54,42 @@ async def search_epo_patents(
         "'pn=EP1234567' (publication number lookup). "
         "For complex queries, call get_epo_cql_help first.",
     ],
+    group_by: Annotated[
+        str,
+        "Result grouping: 'publication' (one row per publication, default) or "
+        "'family' (one row per patent family — de-duplicates across jurisdictions).",
+    ] = "publication",
     range_begin: Annotated[int, "Start of result range (1-indexed)"] = 1,
     range_end: Annotated[int, "End of result range"] = 25,
 ) -> dict:
-    """Search published patents via EPO Open Patent Services.
+    """Search patents via EPO Open Patent Services.
 
     Covers patents worldwide including US, EP, WO, JP, CN, KR, and
     many other jurisdictions. Use CQL query syntax — call
     get_epo_cql_help for the full field reference.
 
+    Set ``group_by='family'`` to deduplicate across priority-linked
+    publications (INPADOC families); the default returns one row per
+    publication.
+
     Returns 404 when no results match (not an error).
     """
-    async with client_from_env() as client:
-        result = await client.search_published(
-            query=cql_query, range_begin=range_begin, range_end=range_end
+    group = group_by.strip().lower()
+    if group not in ("publication", "family"):
+        from law_tools_core.exceptions import ValidationError
+
+        raise ValidationError(
+            f"group_by must be 'publication' or 'family'; got {group_by!r}"
         )
+    async with client_from_env() as client:
+        if group == "family":
+            result = await client.search_families(
+                query=cql_query, range_begin=range_begin, range_end=range_end
+            )
+        else:
+            result = await client.search_published(
+                query=cql_query, range_begin=range_begin, range_end=range_end
+            )
         return _dump(result)  # type: ignore[return-value]
 
 
@@ -154,7 +175,7 @@ async def get_epo_biblio(
 ) -> dict:
     """Get bibliographic data for a patent from EPO OPS.
 
-    Use download_epo_pdf to download the patent PDF.
+    Use download_patent_pdf to download the patent PDF.
     """
     async with client_from_env() as client:
         result = await client.fetch_biblio(number=patent_number)
@@ -192,24 +213,6 @@ async def get_epo_legal_events(
 
 
 @international_mcp.tool(annotations=READ_ONLY)
-async def search_epo_families(
-    cql_query: Annotated[
-        str,
-        "CQL query string (same syntax as search_epo_patents). "
-        "Call get_epo_cql_help for field reference.",
-    ],
-    range_begin: Annotated[int, "Start of result range"] = 1,
-    range_end: Annotated[int, "End of result range"] = 25,
-) -> dict:
-    """Search patent families via EPO OPS. Groups results by family."""
-    async with client_from_env() as client:
-        result = await client.search_families(
-            query=cql_query, range_begin=range_begin, range_end=range_end
-        )
-        return _dump(result)  # type: ignore[return-value]
-
-
-@international_mcp.tool(annotations=READ_ONLY)
 async def convert_epo_number(
     number: Annotated[str, "Patent document number to convert"],
     input_format: Annotated[str, "Input format: 'original', 'docdb', or 'epodoc'"] = "original",
@@ -221,27 +224,6 @@ async def convert_epo_number(
             number=number, input_format=input_format, output_format=output_format
         )
         return _dump(result)  # type: ignore[return-value]
-
-
-@international_mcp.tool(annotations=READ_ONLY)
-async def download_epo_pdf(
-    publication_number: Annotated[str, "Patent publication number (e.g. 'EP1234567A1')"],
-) -> dict:
-    """Download a patent PDF from EPO OPS.
-
-    Returns a signed `download_url` (or `file_path` in local stdio mode) plus
-    `filename`, `content_type`, `size_bytes`.
-    """
-    async with client_from_env() as client:
-        result = await client.download_pdf(number=publication_number)
-        pdf_bytes = base64.b64decode(result.pdf_base64)
-        return download_response(
-            f"epo/patents/{publication_number}",
-            pdf_bytes,
-            filename=_epo_pdf_name(publication_number),
-            content_type="application/pdf",
-            publication_number=publication_number,
-        )
 
 
 @international_mcp.tool(annotations=READ_ONLY)

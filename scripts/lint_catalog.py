@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Lint ``catalog/*.md`` against ``catalog/_TEMPLATE.md``.
+"""Lint ``catalog/sources/*.md`` against ``catalog/sources/_TEMPLATE.md``.
 
 Checks:
 
-1. Every ``catalog/*.md`` (except ``_TEMPLATE.md``) has the required h2
-   sections: ``Source``, ``Library API``, ``MCP Tools`` (the last two may be
-   omitted for skill-only or disabled connectors).
+1. Every ``catalog/sources/*.md`` (except ``_TEMPLATE.md``) has the required
+   h2 sections: ``Source`` and ``Library API`` (the latter omitted for
+   skill-only or disabled connectors).
 2. The Source meta-table contains rows for: Module, Client, Base URL, Auth,
    Rate limits, Status.
-3. Every link ``[...](catalog/X.md)`` in ``CATALOG.md`` resolves to an
-   existing file, and every ``catalog/*.md`` is referenced from
-   ``CATALOG.md``.
+3. Every link ``[...](src/patent_client_agents/catalog/sources/X.md)`` in
+   ``CATALOG.md`` resolves to an existing file, and every
+   ``catalog/sources/*.md`` is referenced from ``CATALOG.md``.
+
+MCP tool coverage is not linted per-source; it lives in
+``catalog/intents/`` as free-form pages.
 
 Exit 0 on success, non-zero on any violation. Output is grouped by file.
 
@@ -28,11 +31,16 @@ ROOT = Path(__file__).resolve().parent.parent
 # Catalog lives inside the Python package so it ships via importlib.resources
 # in both editable and wheel installs. Downstream consumers read these files
 # via `importlib.resources.files("patent_client_agents") / "catalog"`.
-CATALOG_DIR = ROOT / "src" / "patent_client_agents" / "catalog"
+#
+# Catalog is split into two layers:
+#   sources/*.md   — per-backend Python client reference
+#   intents/*.md   — MCP tool reference grouped by intent (not linted per-file;
+#                    uses a different free-form structure).
+CATALOG_SOURCES_DIR = ROOT / "src" / "patent_client_agents" / "catalog" / "sources"
 CATALOG_INDEX = ROOT / "CATALOG.md"
 
 REQUIRED_SECTIONS = ["Source"]
-CONDITIONAL_SECTIONS = ["Library API", "MCP Tools"]
+CONDITIONAL_SECTIONS = ["Library API"]
 REQUIRED_SOURCE_ROWS = {"Module", "Client", "Base URL", "Auth", "Rate limits", "Status"}
 SKILL_ONLY_STATUSES = {"Skill-only", "Deprecated", "Disabled"}
 
@@ -87,19 +95,27 @@ def lint_file(path: Path) -> list[str]:
 
 
 def lint_index_links() -> list[str]:
-    """Cross-check CATALOG.md links against files on disk."""
+    """Cross-check CATALOG.md source links against files on disk.
+
+    Only the source-layer docs are cross-checked here — intent pages are
+    free-form and not required to be linked 1:1 from CATALOG.md.
+    """
     errors: list[str] = []
     text = CATALOG_INDEX.read_text()
-    referenced = set(re.findall(r"\]\(src/patent_client_agents/catalog/([a-z0-9-]+\.md)\)", text))
-    on_disk = {p.name for p in CATALOG_DIR.glob("*.md") if not p.name.startswith("_")}
+    referenced = set(
+        re.findall(
+            r"\]\(src/patent_client_agents/catalog/sources/([a-z0-9-]+\.md)\)", text
+        )
+    )
+    on_disk = {p.name for p in CATALOG_SOURCES_DIR.glob("*.md") if not p.name.startswith("_")}
 
     missing_files = referenced - on_disk
     for name in sorted(missing_files):
-        errors.append(f"CATALOG.md links catalog/{name} but file does not exist")
+        errors.append(f"CATALOG.md links sources/{name} but file does not exist")
 
     orphaned = on_disk - referenced
     for name in sorted(orphaned):
-        errors.append(f"catalog/{name} exists but is not linked from CATALOG.md")
+        errors.append(f"sources/{name} exists but is not linked from CATALOG.md")
 
     return errors
 
@@ -107,7 +123,7 @@ def lint_index_links() -> list[str]:
 def main() -> int:
     any_errors = False
 
-    for path in sorted(CATALOG_DIR.glob("*.md")):
+    for path in sorted(CATALOG_SOURCES_DIR.glob("*.md")):
         if path.name.startswith("_"):
             continue
         errors = lint_file(path)
