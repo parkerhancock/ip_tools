@@ -1,4 +1,4 @@
-# Running `ip-tools` as a stdio MCP server
+# Running `patent-client-agents` as a stdio MCP server
 
 The `[mcp]` extra ships a ready-to-run stdio MCP server that exposes
 all patent and IP tools to any MCP-speaking client — Claude Code,
@@ -7,19 +7,19 @@ Claude Desktop, Cursor, Cline, CoWork, or a homegrown fastmcp Client.
 ## Install
 
 ```bash
-pip install 'ip-tools[mcp]'
+pip install 'patent-client-agents[mcp]'
 ```
 
 This installs the runtime (`fastmcp`, `starlette`) and adds the
-`ip-tools-mcp` console script.
+`patent-client-agents-mcp` console script.
 
 ## Run
 
 ```bash
-ip-tools-mcp                  # default: stdio transport, no auth
+patent-client-agents-mcp                  # default: stdio transport, no auth
 ```
 
-`ip-tools-mcp` is a thin wrapper around `ip_tools.mcp.server:mcp` that
+`patent-client-agents-mcp` is a thin wrapper around `ip_tools.mcp.server:mcp` that
 runs via fastmcp. You can also invoke it directly:
 
 ```bash
@@ -35,8 +35,8 @@ project root or `~/.claude.json` for user-scope):
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "command": "ip-tools-mcp"
+    "patent-client-agents": {
+      "command": "patent-client-agents-mcp"
     }
   }
 }
@@ -47,8 +47,8 @@ If you prefer to invoke a specific venv or Python interpreter:
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "command": "/path/to/.venv/bin/ip-tools-mcp",
+    "patent-client-agents": {
+      "command": "/path/to/.venv/bin/patent-client-agents-mcp",
       "env": {
         "USPTO_ODP_API_KEY": "…",
         "EPO_OPS_API_KEY": "…",
@@ -93,7 +93,7 @@ from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
 
 async def main():
-    async with Client(StdioTransport(command="ip-tools-mcp", args=[])) as c:
+    async with Client(StdioTransport(command="patent-client-agents-mcp", args=[])) as c:
         tools = await c.list_tools()
         print(len(tools), "tools")
         result = await c.call_tool("get_mpep_section", {"section": "2106"})
@@ -106,7 +106,7 @@ Expect 63 tools and the title `2106 … Patent Subject Matter Eligibility`.
 
 ## Not installed?
 
-If `ip-tools-mcp` is on PATH but startup fails with
+If `patent-client-agents-mcp` is on PATH but startup fails with
 `ModuleNotFoundError: No module named 'fastmcp'`, you installed
-`ip-tools` without the `[mcp]` extra. Re-install with
-`pip install 'ip-tools[mcp]'`.
+`patent-client-agents` without the `[mcp]` extra. Re-install with
+`pip install 'patent-client-agents[mcp]'`.

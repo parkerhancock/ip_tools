@@ -1,6 +1,6 @@
 {
-  "name": "ip-tools",
-  "description": "Intellectual property data tools - async Python clients and 63 MCP tools for USPTO, EPO, Google Patents, JPO, MPEP, and CPC",
+  "name": "patent-client-agents",
+  "description": "Intellectual property research toolkit — async Python clients and 63 MCP tools for USPTO, EPO, Google Patents, JPO, MPEP, and CPC",
   "version": "0.2.0",
   "author": {
     "name": "Parker Hancock",
@@ -8,12 +8,12 @@
   },
   "repository": "https://github.com/parkerhancock/ip_tools",
   "license": "Apache-2.0",
-  "keywords": ["patent", "intellectual-property", "uspto", "epo", "mcp"],
+  "keywords": ["patent", "trademark", "intellectual-property", "uspto", "epo", "mcp"],
   "skills": "src/ip_tools/skills",
   "mcpServers": {
-    "ip-tools": {
+    "patent-client-agents": {
       "command": "uvx",
-      "args": ["--from", "${CLAUDE_PLUGIN_ROOT}[mcp]", "ip-tools-mcp"]
+      "args": ["--from", "${CLAUDE_PLUGIN_ROOT}[mcp]", "patent-client-agents-mcp"]
     }
   }
 }

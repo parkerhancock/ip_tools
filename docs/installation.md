@@ -1,6 +1,6 @@
-# Installing `ip-tools`
+# Installing `patent-client-agents`
 
-`ip-tools` ships in one wheel that covers six install modes. Pick the
+`patent-client-agents` ships in one wheel that covers six install modes. Pick the
 one that matches how you're going to use it:
 
 | Mode | You want to... | Section |
@@ -10,7 +10,7 @@ one that matches how you're going to use it:
 | Claude Code plugin (from GitHub) | One-command install into Claude Code | [§3](#3-claude-code-plugin-from-github) |
 | Claude Code skill (dev symlink) | Edit the skill content and hot-reload | [§4](#4-claude-code-skill-dev-symlink) |
 | Stdio MCP (any MCP client) | Connect Claude Desktop / Cursor / Cline / CoWork-local / custom client | [§5](#5-stdio-mcp-from-any-mcp-client) |
-| Remote MCP — Cowork | Add `ip-tools` to a shared Cowork workspace | [§6](#6-remote-mcp--cowork) |
+| Remote MCP — Cowork | Add `patent-client-agents` to a shared Cowork workspace | [§6](#6-remote-mcp--cowork) |
 | Remote MCP — Claude Code / Desktop / others | HTTP MCP with Bearer token | [§7](#7-remote-mcp--generic-claude-code-desktop-etc) |
 
 Skip to the section you need — they're independent.
@@ -26,13 +26,13 @@ MCP-runtime dependencies (`fastmcp`, `starlette`), so it stays lean.
 ### Install
 
 ```bash
-pip install ip-tools
+pip install patent-client-agents
 ```
 
 Or with `uv`:
 
 ```bash
-uv add ip-tools
+uv add patent-client-agents
 ```
 
 ### API keys
@@ -71,13 +71,13 @@ Expected output: `Phase change material heat sink using additive manufacturing a
 
 Use this when you want to run the stdio MCP server from the same venv
 as other Python work — e.g. embedding `ip_mcp` in your own composed
-FastMCP server, or running `ip-tools-mcp` as a subprocess from a
+FastMCP server, or running `patent-client-agents-mcp` as a subprocess from a
 Python script.
 
 ### Install
 
 ```bash
-pip install 'ip-tools[mcp]'
+pip install 'patent-client-agents[mcp]'
 ```
 
 The `[mcp]` extra pulls `fastmcp>=3.2.3` and `starlette>=0.37` on top
@@ -87,8 +87,8 @@ of the base dependencies.
 
 Two new console scripts on your PATH:
 
-- `ip-tools-mcp` — launches the stdio MCP server (63 patent tools)
-- `ip-tools-skill-install` — symlinks the `ip_research` skill into `~/.claude/skills/` (see §4)
+- `patent-client-agents-mcp` — launches the stdio MCP server (63 patent tools)
+- `patent-client-agents-skill-install` — symlinks the `ip_research` skill into `~/.claude/skills/` (see §4)
 
 Plus the Python-importable MCP surface:
 
@@ -107,7 +107,7 @@ my_server = FastMCP("my-server")
 my_server.mount(ip_mcp)  # + your own tools alongside
 ```
 
-This is exactly how `law-tools` consumes `ip-tools` in the monorepo.
+This is exactly how `law-tools` consumes `patent-client-agents` in the monorepo.
 
 ---
 
@@ -135,19 +135,19 @@ claude plugin add github:parkerhancock/ip_tools
 
 What happens:
 
-1. Claude Code clones the repo into `~/.claude/plugins/ip-tools/`.
+1. Claude Code clones the repo into `~/.claude/plugins/patent-client-agents/`.
 2. It auto-discovers the `ip_research` skill at
    `src/ip_tools/skills/` — available to the agent immediately.
 3. It registers the MCP server declared in `.claude-plugin/plugin.json`.
-   On first use, `uvx` installs `ip-tools[mcp]` from the plugin clone
-   into a managed environment and launches `ip-tools-mcp`. The cold
+   On first use, `uvx` installs `patent-client-agents[mcp]` from the plugin clone
+   into a managed environment and launches `patent-client-agents-mcp`. The cold
    start takes ~30 seconds; after that it's fast because uv caches
    the resolved environment.
 
 ### Update
 
 ```bash
-claude plugin update ip-tools
+claude plugin update patent-client-agents
 ```
 
 Re-clones and reinstalls. The uv-managed env gets rebuilt on next
@@ -156,7 +156,7 @@ MCP launch.
 ### Remove
 
 ```bash
-claude plugin remove ip-tools
+claude plugin remove patent-client-agents
 ```
 
 ### Configure API keys
@@ -190,7 +190,7 @@ Or, more directly — list MCP tools from within a Claude Code session:
 /mcp
 ```
 
-`ip-tools` should show up with 63 tools.
+`patent-client-agents` should show up with 63 tools.
 
 ### Troubleshooting
 
@@ -216,8 +216,8 @@ installer copies the repo — this symlinks it, so edits are live.
 ### Install
 
 ```bash
-pip install 'ip-tools[mcp]'
-ip-tools-skill-install
+pip install 'patent-client-agents[mcp]'
+patent-client-agents-skill-install
 ```
 
 Creates `~/.claude/skills/ip-research` as a symlink into the
@@ -226,13 +226,13 @@ pip-installed package. Idempotent — re-runs no-op when already linked.
 ### Point at a different target
 
 ```bash
-ip-tools-skill-install --target=/path/to/other/skills/dir
+patent-client-agents-skill-install --target=/path/to/other/skills/dir
 ```
 
 ### Replace an existing directory
 
 ```bash
-ip-tools-skill-install --force
+patent-client-agents-skill-install --force
 ```
 
 Backs up any existing `ip-research` dir to `ip-research.bak` and
@@ -242,9 +242,9 @@ replaces with the symlink.
 
 | | Native installer (§3) | Dev symlink (§4) |
 |---|---|---|
-| Command | `claude plugin add ...` | `ip-tools-skill-install` |
+| Command | `claude plugin add ...` | `patent-client-agents-skill-install` |
 | Source | Cloned copy of the repo | Pip-installed package (symlinked) |
-| Updates | `claude plugin update` (re-clones) | Picks up edits live — reinstall `ip-tools` to refresh |
+| Updates | `claude plugin update` (re-clones) | Picks up edits live — reinstall `patent-client-agents` to refresh |
 | Best for | Users | Contributors editing SKILL.md or references |
 
 ---
@@ -259,10 +259,10 @@ JSON-RPC over stdio.
 ### Install
 
 ```bash
-pip install 'ip-tools[mcp]'
+pip install 'patent-client-agents[mcp]'
 ```
 
-This gives you the `ip-tools-mcp` console script on PATH.
+This gives you the `patent-client-agents-mcp` console script on PATH.
 
 ### Wire the MCP client
 
@@ -274,8 +274,8 @@ user-scope):
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "command": "ip-tools-mcp"
+    "patent-client-agents": {
+      "command": "patent-client-agents-mcp"
     }
   }
 }
@@ -284,7 +284,7 @@ user-scope):
 Or add from the CLI:
 
 ```bash
-claude mcp add ip-tools ip-tools-mcp
+claude mcp add patent-client-agents patent-client-agents-mcp
 ```
 
 If you're using a venv, point at the absolute path so Claude Code
@@ -293,8 +293,8 @@ launches the right interpreter:
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "command": "/path/to/.venv/bin/ip-tools-mcp",
+    "patent-client-agents": {
+      "command": "/path/to/.venv/bin/patent-client-agents-mcp",
       "env": {
         "USPTO_ODP_API_KEY": "…",
         "EPO_OPS_API_KEY": "…",
@@ -313,8 +313,8 @@ or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "command": "ip-tools-mcp",
+    "patent-client-agents": {
+      "command": "patent-client-agents-mcp",
       "env": {
         "USPTO_ODP_API_KEY": "…"
       }
@@ -325,7 +325,7 @@ or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 #### Cursor, Cline, and other stdio MCP clients
 
-Same pattern — `command: "ip-tools-mcp"` plus any env vars. Consult
+Same pattern — `command: "patent-client-agents-mcp"` plus any env vars. Consult
 the client's own MCP config docs for the file location.
 
 ### Verify
@@ -336,7 +336,7 @@ from fastmcp import Client
 from fastmcp.client.transports import StdioTransport
 
 async def main():
-    async with Client(StdioTransport(command="ip-tools-mcp", args=[])) as c:
+    async with Client(StdioTransport(command="patent-client-agents-mcp", args=[])) as c:
         tools = await c.list_tools()
         print(f"{len(tools)} tools")
         result = await c.call_tool("get_mpep_section", {"section": "2106"})
@@ -350,8 +350,8 @@ Eligibility`.
 
 ### Troubleshooting
 
-**`ip-tools-mcp: command not found`** — `[mcp]` extra wasn't
-installed. Rerun `pip install 'ip-tools[mcp]'`.
+**`patent-client-agents-mcp: command not found`** — `[mcp]` extra wasn't
+installed. Rerun `pip install 'patent-client-agents[mcp]'`.
 
 **`ModuleNotFoundError: No module named 'fastmcp'` at startup** — same
 root cause. Something is launching a Python that doesn't have fastmcp.
@@ -363,14 +363,14 @@ server. Check the JSON config points at the right binary.
 
 ## 6. Remote MCP — Cowork
 
-Use this when your team uses Cowork and wants `ip-tools` available as
+Use this when your team uses Cowork and wants `patent-client-agents` available as
 a shared connector for the whole workspace. Requires a deployed
-`ip-tools` remote MCP endpoint (see §7 for what's running on the
+`patent-client-agents` remote MCP endpoint (see §7 for what's running on the
 server side, and `deploy/DEPLOYMENT.md` for standing one up).
 
 ### Prereqs
 
-- A deployed `ip-tools` MCP server — e.g. `https://mcp.example.com/ip_tools/`
+- A deployed `patent-client-agents` MCP server — e.g. `https://mcp.example.com/ip_tools/`
 - The `LAW_TOOLS_CORE_API_KEY` secret value set on that server
 - Cowork admin access to the target workspace
 
@@ -381,7 +381,7 @@ server side, and `deploy/DEPLOYMENT.md` for standing one up).
 3. Fill in:
    - **Server URL**: `https://mcp.example.com/ip_tools/mcp`
    - **Auth type**: **OAuth2 client credentials**
-   - **Client ID**: any string (`ip-tools` is a fine default — the
+   - **Client ID**: any string (`patent-client-agents` is a fine default — the
      server doesn't check client_id, only client_secret)
    - **Client secret**: the `LAW_TOOLS_CORE_API_KEY` value from the
      server's `.env`
@@ -398,7 +398,7 @@ it for an access token. The server returns the same token back as the
 ### Verify
 
 After saving, Cowork should list the connector as **Connected**. Open
-any Cowork chat and ask a patent question — the `ip-tools` connector
+any Cowork chat and ask a patent question — the `patent-client-agents` connector
 should appear in the tool-use indicators.
 
 ### Troubleshooting
@@ -410,7 +410,7 @@ whitespace.
 
 **Connection test fails with `500 server_error` on token exchange** —
 `LAW_TOOLS_CORE_API_KEY` is not set on the server at all. Check the
-systemd unit's `EnvironmentFile` and `sudo systemctl restart ip-tools-mcp`.
+systemd unit's `EnvironmentFile` and `sudo systemctl restart patent-client-agents-mcp`.
 
 **Tools list empty after connecting** — the bearer token wasn't
 forwarded. Double-check Cowork is sending it as `Authorization: Bearer
@@ -421,7 +421,7 @@ forwarded. Double-check Cowork is sending it as `Authorization: Bearer
 ## 7. Remote MCP — generic (Claude Code, Desktop, etc.)
 
 Use this when you're pointing Claude Code, Claude Desktop, or any
-HTTP-speaking MCP client at a deployed `ip-tools` remote MCP. No
+HTTP-speaking MCP client at a deployed `patent-client-agents` remote MCP. No
 OAuth2 round-trip — you paste the bearer token directly.
 
 ### Prereqs
@@ -436,7 +436,7 @@ For setup, see `deploy/DEPLOYMENT.md`.
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
+    "patent-client-agents": {
       "url": "https://mcp.example.com/ip_tools/mcp",
       "headers": {
         "Authorization": "Bearer <LAW_TOOLS_CORE_API_KEY value>"
@@ -461,7 +461,7 @@ curl -s -X POST https://mcp.example.com/ip_tools/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 ```
 
-Expect a JSON response with `"serverInfo": {"name": "ip-tools", ...}`.
+Expect a JSON response with `"serverInfo": {"name": "patent-client-agents", ...}`.
 
 ### Downloads
 

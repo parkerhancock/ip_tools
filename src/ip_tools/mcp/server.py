@@ -1,13 +1,16 @@
-"""Standalone ip-tools MCP server entry point.
+"""Standalone patent-client-agents MCP server entry point.
 
-Run via the ``ip-tools-mcp`` console script (installed by the
-``[mcp]`` extra), or directly::
+Run via the ``patent-client-agents-mcp`` console script (installed by the ``[mcp]``
+extra of the ``patent-client-agents`` distribution), or directly::
 
     python -m ip_tools.mcp.server
     fastmcp run ip_tools.mcp.server:mcp
 
 Stdio is the default transport. Pass ``--transport http`` (or use
 ``fastmcp run``) for HTTP mode.
+
+Note on naming: the PyPI distribution is ``patent-client-agents``; the import module
+stays ``ip_tools`` (PyYAML/yaml, scikit-learn/sklearn style decoupling).
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ from law_tools_core.mcp.server_factory import build_server
 from . import ip_mcp
 
 mcp = build_server(
-    name="ip-tools",
+    name="patent-client-agents",
     instructions=(
         "Patent and IP data connectors: USPTO (ODP, PPUBS, Assignments, "
         "Office Actions, PTAB, Petitions, Bulk Data), EPO OPS, Google "
@@ -32,15 +35,15 @@ mcp.mount(ip_mcp)
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Entry point for the ``ip-tools-mcp`` console script.
+    """Entry point for the ``patent-client-agents-mcp`` console script.
 
     No args ⇒ run the MCP server on stdio (the default behavior MCP
     clients expect). ``--version`` and ``--help`` print and exit.
     """
     parser = argparse.ArgumentParser(
-        prog="ip-tools-mcp",
+        prog="patent-client-agents-mcp",
         description=(
-            "Run the ip-tools MCP server on stdio. Exposes 63 patent/IP "
+            "Run the patent-client-agents MCP server on stdio. Exposes 63 patent/IP "
             "tools from USPTO, EPO, Google Patents, and MPEP to any MCP "
             "client. See docs/installation.md for client configuration."
         ),
@@ -48,7 +51,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"ip-tools {__version__}",
+        version=f"patent-client-agents {__version__}",
     )
     parser.parse_args(argv)
     try:

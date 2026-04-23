@@ -1,10 +1,10 @@
-# `ip-tools` Remote MCP Server Deployment
+# `patent-client-agents` Remote MCP Server Deployment
 
-Design-only guide. The artifacts here (`ip-tools-mcp.service`,
+Design-only guide. The artifacts here (`patent-client-agents-mcp.service`,
 `nginx-mcp.conf`, `env.example`) are deployment templates modelled on
 the law-tools deployment at `tools/law-tools/deploy/` but stripped of
 firm-specific infrastructure (GCP WIF, PACER, RECAP). They stand up a
-public MCP server for the ip-tools patent surface.
+public MCP server for the patent-client-agents patent surface.
 
 ## Architecture
 
@@ -37,43 +37,43 @@ clients ──HTTPS──▶  nginx (443)  ──127.0.0.1:8002──▶  fastmc
 These steps assume a fresh Ubuntu 22.04/24.04 VM. Adapt package
 managers as needed for other distros.
 
-### 1. Create the `ip-tools` system user
+### 1. Create the `patent-client-agents` system user
 
 ```bash
-sudo useradd --system --shell /usr/sbin/nologin --home /opt/ip-tools ip-tools
+sudo useradd --system --shell /usr/sbin/nologin --home /opt/patent-client-agents patent-client-agents
 ```
 
 ### 2. Clone and install
 
 ```bash
-sudo mkdir -p /opt/ip-tools
-sudo git clone https://github.com/parkerhancock/ip_tools.git /opt/ip-tools
-sudo chown -R ip-tools:ip-tools /opt/ip-tools
-cd /opt/ip-tools
-sudo -u ip-tools python3 -m venv .venv
-sudo -u ip-tools .venv/bin/pip install -e '.[mcp]'
+sudo mkdir -p /opt/patent-client-agents
+sudo git clone https://github.com/parkerhancock/patent-client-agents.git /opt/patent-client-agents
+sudo chown -R patent-client-agents:patent-client-agents /opt/patent-client-agents
+cd /opt/patent-client-agents
+sudo -u patent-client-agents python3 -m venv .venv
+sudo -u patent-client-agents .venv/bin/pip install -e '.[mcp]'
 ```
 
 ### 3. Provision env file
 
 ```bash
-sudo cp deploy/env.example /opt/ip-tools/.env
-sudo chown ip-tools:ip-tools /opt/ip-tools/.env
-sudo chmod 600 /opt/ip-tools/.env
-sudo -u ip-tools nano /opt/ip-tools/.env
+sudo cp deploy/env.example /opt/patent-client-agents/.env
+sudo chown patent-client-agents:patent-client-agents /opt/patent-client-agents/.env
+sudo chmod 600 /opt/patent-client-agents/.env
+sudo -u patent-client-agents nano /opt/patent-client-agents/.env
 ```
 
 Mint the bearer token in-place:
 
 ```bash
-sudo -u ip-tools bash -c 'echo "LAW_TOOLS_CORE_API_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")" >> /opt/ip-tools/.env'
+sudo -u patent-client-agents bash -c 'echo "LAW_TOOLS_CORE_API_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")" >> /opt/patent-client-agents/.env'
 ```
 
 ### 4. Optional: provision log + cache directories
 
 ```bash
-sudo mkdir -p /var/log/ip-tools /var/cache/ip-tools/downloads
-sudo chown -R ip-tools:ip-tools /var/log/ip-tools /var/cache/ip-tools
+sudo mkdir -p /var/log/patent-client-agents /var/cache/patent-client-agents/downloads
+sudo chown -R patent-client-agents:patent-client-agents /var/log/patent-client-agents /var/cache/patent-client-agents
 ```
 
 Add the corresponding `LAW_TOOLS_CORE_LOG_DIR` and
@@ -83,11 +83,11 @@ them.
 ### 5. Install the systemd unit
 
 ```bash
-sudo cp deploy/ip-tools-mcp.service /etc/systemd/system/
+sudo cp deploy/patent-client-agents-mcp.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable ip-tools-mcp
-sudo systemctl start ip-tools-mcp
-sudo systemctl status ip-tools-mcp
+sudo systemctl enable patent-client-agents-mcp
+sudo systemctl start patent-client-agents-mcp
+sudo systemctl status patent-client-agents-mcp
 ```
 
 ### 6. Install the nginx config + obtain a TLS cert
@@ -114,14 +114,14 @@ sudo certbot renew --dry-run
 From any machine:
 
 ```bash
-curl -s -X POST https://mcp.example.com/ip_tools/mcp \
+curl -s -X POST https://mcp.example.com/patent-client-agents/mcp \
   -H "Authorization: Bearer <LAW_TOOLS_CORE_API_KEY value>" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 ```
 
-Expect a JSON response carrying `"serverInfo":{"name":"ip-tools"...}`.
+Expect a JSON response carrying `"serverInfo":{"name":"patent-client-agents"...}`.
 
 ## Client Configuration
 
@@ -130,8 +130,8 @@ Expect a JSON response carrying `"serverInfo":{"name":"ip-tools"...}`.
 ```json
 {
   "mcpServers": {
-    "ip-tools": {
-      "url": "https://mcp.example.com/ip_tools/mcp",
+    "patent-client-agents": {
+      "url": "https://mcp.example.com/patent-client-agents/mcp",
       "headers": {
         "Authorization": "Bearer <LAW_TOOLS_CORE_API_KEY value>"
       }
@@ -143,7 +143,7 @@ Expect a JSON response carrying `"serverInfo":{"name":"ip-tools"...}`.
 ### OAuth2-only clients
 
 ```
-POST https://mcp.example.com/ip_tools/oauth/token
+POST https://mcp.example.com/patent-client-agents/oauth/token
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials&client_secret=<LAW_TOOLS_CORE_API_KEY value>
@@ -154,17 +154,17 @@ Response: `{"access_token": "<token>", "token_type": "bearer"}`.
 ## Service Management
 
 ```bash
-sudo systemctl status ip-tools-mcp
-sudo systemctl restart ip-tools-mcp
-sudo journalctl -u ip-tools-mcp -f           # tail
-sudo journalctl -u ip-tools-mcp --since today
+sudo systemctl status patent-client-agents-mcp
+sudo systemctl restart patent-client-agents-mcp
+sudo journalctl -u patent-client-agents-mcp -f           # tail
+sudo journalctl -u patent-client-agents-mcp --since today
 ```
 
 ## Updating env vars
 
 ```bash
-sudo -u ip-tools nano /opt/ip-tools/.env
-sudo systemctl restart ip-tools-mcp
+sudo -u patent-client-agents nano /opt/patent-client-agents/.env
+sudo systemctl restart patent-client-agents-mcp
 ```
 
 ## Deploying new code
@@ -173,39 +173,39 @@ Pull and restart. The unit runs `pip install -e .`, so pulling
 refreshes the running code the next time the service is restarted:
 
 ```bash
-sudo -u ip-tools bash -c 'cd /opt/ip-tools && git pull origin main'
-sudo systemctl restart ip-tools-mcp
+sudo -u patent-client-agents bash -c 'cd /opt/patent-client-agents && git pull origin main'
+sudo systemctl restart patent-client-agents-mcp
 ```
 
 If dependencies changed:
 
 ```bash
-sudo -u ip-tools /opt/ip-tools/.venv/bin/pip install -e '.[mcp]'
-sudo systemctl restart ip-tools-mcp
+sudo -u patent-client-agents /opt/patent-client-agents/.venv/bin/pip install -e '.[mcp]'
+sudo systemctl restart patent-client-agents-mcp
 ```
 
 ## Co-tenanting with `law-tools`
 
-The nginx template ships with a single `location /ip_tools/` block. If
+The nginx template ships with a single `location /patent-client-agents/` block. If
 you also run `law-tools` on the same host, add its block alongside:
 
 ```nginx
-location /ip_tools/ { ... proxy_pass http://127.0.0.1:8002; ... }
+location /patent-client-agents/ { ... proxy_pass http://127.0.0.1:8002; ... }
 location /law_tools/ { ... proxy_pass http://127.0.0.1:8001; ... }
 ```
 
 Different ports, different systemd units, shared TLS cert and bearer
 token (or mint separate tokens per service). The two MCP surfaces have
 no import-time coupling — the law-tools unit mounts `ip_mcp` via the
-`ip-tools` package dependency but runs a separate process.
+`patent-client-agents` package dependency but runs a separate process.
 
 ## Troubleshooting
 
 **`502 Bad Gateway` from nginx.** The fastmcp backend isn't running.
-`systemctl status ip-tools-mcp` and `journalctl -u ip-tools-mcp -n 100`.
+`systemctl status patent-client-agents-mcp` and `journalctl -u patent-client-agents-mcp -n 100`.
 
 **`401 Unauthorized` on initialize.** Bearer token mismatch. Verify the
-token in `/opt/ip-tools/.env` matches the client's `Authorization`
+token in `/opt/patent-client-agents/.env` matches the client's `Authorization`
 header.
 
 **`ModuleNotFoundError: No module named 'fastmcp'`.** The venv was
@@ -217,14 +217,14 @@ re-call the source tool to mint a fresh URL.
 
 **Download URLs 410 Gone.** Intentional — this signals a cache miss on
 a budget-tracked source (PACER/RECAP), which only applies when
-co-tenanting with law-tools. Not reachable via ip-tools alone.
+co-tenanting with law-tools. Not reachable via patent-client-agents alone.
 
 ## Scaling notes
 
 - Each MCP session holds an open HTTP stream. The default VM sizing
   (e2-small, 2 GB RAM) handles ~50 concurrent sessions.
 - USPTO ODP caps at 60 req/min. Under load consider a backend cache
-  tier — the existing hishel SQLite cache (`~/.cache/ip_tools/`)
+  tier — the existing hishel SQLite cache (`~/.cache/patent-client-agents/`)
   already handles this for single-process deployments.
 - If you need more throughput, scale horizontally behind an nginx
   upstream block — fastmcp sessions are stateless (`--stateless` flag

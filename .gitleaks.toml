@@ -1,4 +1,4 @@
-# Gitleaks configuration for ip-tools.
+# Gitleaks configuration for patent-client-agents.
 #
 # Extends the default rule set and allowlists specific upstream documentation
 # files that contain illustrative placeholders and example URLs published by

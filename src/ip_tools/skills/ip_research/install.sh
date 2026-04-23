@@ -7,16 +7,16 @@
 #       claude plugin add github:parkerhancock/ip_tools
 #
 #   - Dev symlink into ~/.claude/skills/:
-#       pip install 'ip-tools[mcp]'
-#       ip-tools-skill-install
+#       pip install 'patent-client-agents[mcp]'
+#       patent-client-agents-skill-install
 #
 #   - Python library only:
-#       pip install ip-tools
+#       pip install patent-client-agents
 #       # or
-#       uv add ip-tools
+#       uv add patent-client-agents
 #
 # This script stays in the wheel as a convenience for editable-install
-# workflows where somebody has the ip-tools repo cloned locally and
+# workflows where somebody has the patent-client-agents repo cloned locally and
 # wants to make `import ip_tools` work without setting up a venv first.
 
 set -e
@@ -41,7 +41,7 @@ if command -v uv >/dev/null 2>&1; then
             exit 1
         }
     else
-        uv pip install --quiet 'ip-tools @ git+https://github.com/parkerhancock/ip_tools.git' || {
+        uv pip install --quiet 'patent-client-agents @ git+https://github.com/parkerhancock/ip_tools.git' || {
             echo "uv pip install from GitHub failed" >&2
             exit 1
         }

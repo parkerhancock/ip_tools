@@ -77,7 +77,7 @@ Assignments, MPEP, CPC.
 ## Quickstart — Python library
 
 ```bash
-pip install ip-tools
+pip install patent-client-agents
 ```
 
 ```python

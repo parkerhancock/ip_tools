@@ -1,6 +1,6 @@
 """Install the ``ip_research`` Claude Code skill into ``~/.claude/skills/``.
 
-Entry point for the ``ip-tools-skill-install`` console script. Creates
+Entry point for the ``patent-client-agents-skill-install`` console script. Creates
 a symlink pointing from ``~/.claude/skills/ip-research`` to the packaged
 skill directory resolved via ``importlib.resources``, so Claude Code
 picks up in-place edits during development and static copies in
@@ -8,9 +8,9 @@ wheel-install scenarios.
 
 Usage::
 
-    ip-tools-skill-install                    # interactive: asks before overwrite
-    ip-tools-skill-install --force            # replace existing symlink/dir
-    ip-tools-skill-install --target=PATH      # override ~/.claude/skills
+    patent-client-agents-skill-install                    # interactive: asks before overwrite
+    patent-client-agents-skill-install --force            # replace existing symlink/dir
+    patent-client-agents-skill-install --target=PATH      # override ~/.claude/skills
 
 The ``~/.claude/skills/ip-research`` target uses a hyphen to match the
 skill-name convention used by other Claude Code skills, even though
@@ -77,7 +77,7 @@ def _install(source: Path, target_dir: Path, force: bool) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="ip-tools-skill-install",
+        prog="patent-client-agents-skill-install",
         description="Install the ip_research Claude Code skill.",
     )
     parser.add_argument(

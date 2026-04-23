@@ -1,4 +1,4 @@
-"""Shared MCP scaffolding for `ip-tools` and `law-tools`.
+"""Shared MCP scaffolding for `patent-client-agents` and `law-tools`.
 
 Consumers compose a FastMCP server via ``build_server()`` and register
 domain-specific download fetchers via

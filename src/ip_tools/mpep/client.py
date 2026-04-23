@@ -34,7 +34,7 @@ class MpepClient(BaseAsyncClient):
             headers={
                 # Note: Do NOT send Accept: application/json - the MPEP API
                 # paradoxically returns HTML when JSON is requested
-                "User-Agent": "ip-tools-mpep/0.2",
+                "User-Agent": "patent-client-agents-mpep/0.2",
             },
         )
 

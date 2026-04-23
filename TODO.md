@@ -1,4 +1,4 @@
-# ip-tools TODO
+# patent-client-agents TODO
 
 Things flagged but not yet done. Sorted by how much they'd hurt if we
 left them unchecked. Add items as you find them; check them off in PRs
@@ -6,10 +6,10 @@ that fix them.
 
 ## User-decision / enablement
 
-- [ ] **Publish `ip-tools` to PyPI.** Install-from-GitHub works fine and
+- [ ] **Publish `patent-client-agents` to PyPI.** Install-from-GitHub works fine and
       the plugin's `uvx --from ${CLAUDE_PLUGIN_ROOT}[mcp]` already "just
-      works" without PyPI. PyPI would unlock the shorter `pip install ip-tools`
-      / `uvx --from ip-tools[mcp]` forms used throughout the docs, and
+      works" without PyPI. PyPI would unlock the shorter `pip install patent-client-agents`
+      / `uvx --from patent-client-agents[mcp]` forms used throughout the docs, and
       enable install-without-git-clone for non-plugin users. Register the
       project name, set up trusted publishing from GitHub Actions, cut a
       0.2.0 release.
@@ -60,8 +60,8 @@ that fix them.
   names corrected.
 - ✓ `docs/api/` backfilled — added uspto-odp.md, uspto-assignments.md,
   uspto-office-actions.md.
-- ✓ Monorepo CLAUDE.md lists ip-tools as a library-backed skill.
-- ✓ `ip-tools-mcp --help` / `--version` works (was a bare `mcp.run()`).
+- ✓ Monorepo CLAUDE.md lists patent-client-agents as a library-backed skill.
+- ✓ `patent-client-agents-mcp --help` / `--version` works (was a bare `mcp.run()`).
 - ✓ `USPTO Publications _poll_print_job()` has a 5-minute bounded timeout.
 - ✓ `Google Patents` retry loop uses `law_tools_core.resilience.default_retryer`
   (consolidated from a bespoke `AsyncRetrying` instance).

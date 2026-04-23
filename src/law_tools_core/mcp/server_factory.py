@@ -6,7 +6,7 @@ standard custom routes mounted (``/downloads/{path}``,
 ``/oauth/token``). Consumers then ``mcp.mount(sub_mcp)`` their
 domain-specific tool servers and call ``mcp.run()``.
 
-Both ``ip-tools`` and ``law-tools`` MCP servers sit on top of this.
+Both ``patent-client-agents`` and ``law-tools`` MCP servers sit on top of this.
 """
 
 from __future__ import annotations

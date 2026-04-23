@@ -6,7 +6,7 @@ sub-servers. Downstream consumers either:
 * Mount ``ip_mcp`` inside their own server (e.g. law-tools does
   ``mcp.mount(ip_mcp)`` to expose the patent tools alongside its own
   non-patent tools), or
-* Run the standalone ip-tools MCP server via ``ip-tools-mcp`` (defined
+* Run the standalone patent-client-agents MCP server via ``patent-client-agents-mcp`` (defined
   in :mod:`ip_tools.mcp.server`).
 
 Importing this module triggers each tool file's ``register_source()``
@@ -27,7 +27,7 @@ from .tools.publications import publications_mcp
 from .tools.uspto import uspto_mcp
 
 ip_mcp = FastMCP(
-    "ip-tools",
+    "patent-client-agents",
     instructions=(
         "Patent and IP data connectors: USPTO (ODP, PPUBS, Assignments, "
         "Office Actions, PTAB, Petitions, Bulk Data), EPO OPS, Google "

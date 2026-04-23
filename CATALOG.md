@@ -1,6 +1,6 @@
 # Patent & IP Data Connector Catalog
 
-Canonical index of the patent and IP data sources shipped by `ip-tools`.
+Canonical index of the patent and IP data sources shipped by `patent-client-agents`.
 
 ## Active connectors
 

@@ -11,7 +11,7 @@ streams it back.
 
 Resource paths are designed to map to future MCP resource templates::
 
-    ip-tools://uspto/applications/{app_number}/documents/{doc_id}
+    patent-client-agents://uspto/applications/{app_number}/documents/{doc_id}
 
 Two rules govern how tool responses handle URLs:
 

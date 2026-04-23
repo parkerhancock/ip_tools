@@ -150,7 +150,7 @@ class EpoOpsClient(BaseAsyncClient):
         cache_dir.mkdir(parents=True, exist_ok=True)
         headers = {
             "Accept": "application/xml",
-            "User-Agent": "ip-tools-epo-ops/0.2",
+            "User-Agent": "patent-client-agents-epo-ops/0.2",
         }
         self.base_url = self.DEFAULT_BASE_URL.rstrip("/")
         self._owns_client = True
