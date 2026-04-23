@@ -26,8 +26,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from law_tools_core.tooling import agent_tool
-
 from .client import (
     ChemicalCompound,
     ChildApplication,
@@ -252,7 +250,6 @@ async def fetch(
         return patent
 
 
-@agent_tool
 async def fetch_pdf(
     patent_number: str,
     *,
@@ -308,7 +305,6 @@ def _figure_entries_from_dict(figures: list[dict[str, Any]]) -> list[FigureEntry
     return entries
 
 
-@agent_tool
 async def fetch_figures(
     patent_number: str,
     *,
@@ -345,7 +341,6 @@ async def fetch_figures(
         return _figure_entries_from_dict(figures)
 
 
-@agent_tool
 async def search(
     input_data: GooglePatentsSearchInput,
     *,

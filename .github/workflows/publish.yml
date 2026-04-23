@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
@@ -77,7 +77,7 @@ jobs:
           version: "latest"
 
       - name: Set up Python
-        run: uv python install 3.12
+        run: uv python install 3.11
 
       - name: Build distributions
         run: uv build

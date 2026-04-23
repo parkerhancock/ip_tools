@@ -7,7 +7,6 @@ Provides the infrastructure that consumers build on:
 - HTTP caching utilities (``CacheManager``, ``build_cached_http_client``)
 - Resilience utilities (``default_retryer``, ``with_retry``)
 - File-based logging configured per consumer app (``configure``)
-- Agent tooling decorator (``agent_tool``)
 """
 
 from .base_client import BaseAsyncClient
@@ -30,7 +29,6 @@ from .resilience import (
     is_retryable_error,
     with_retry,
 )
-from .tooling import agent_tool
 
 __all__ = [
     # Base client
@@ -57,6 +55,4 @@ __all__ = [
     "is_retryable_error",
     "default_retryer",
     "with_retry",
-    # Tooling
-    "agent_tool",
 ]

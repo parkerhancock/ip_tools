@@ -20,7 +20,6 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     pass
 
 from law_tools_core.resilience import default_retryer
-from law_tools_core.tooling import agent_tool
 
 from .cache import build_cached_http_client
 from .parsers import extract_claims, extract_figures, extract_metadata
@@ -858,7 +857,6 @@ def _normalize_patent_number(patent_number: str) -> str:
     return normalized
 
 
-@agent_tool
 async def fetch_patent_from_google_patents(
     patent_number: str,
     use_cache: bool = True,
