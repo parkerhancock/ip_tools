@@ -129,34 +129,50 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### Install
 
-```bash
-claude plugin add github:parkerhancock/ip_tools
+Claude Code's plugin install goes through a **marketplace** — a small
+catalog manifest that points at one or more plugins. This repo ships
+its own single-plugin marketplace (`.claude-plugin/marketplace.json`),
+so the flow is: add the marketplace once, then install the plugin
+from it.
+
+Run these **inside a Claude Code session** (slash commands, not shell):
+
+```
+/plugin marketplace add parkerhancock/ip_tools
+/plugin install patent-client-agents@parkerhancock
 ```
 
 What happens:
 
-1. Claude Code clones the repo into `~/.claude/plugins/patent-client-agents/`.
-2. It auto-discovers the `ip_research` skill at
-   `src/patent_client_agents/skills/` — available to the agent immediately.
-3. It registers the MCP server declared in `.claude-plugin/plugin.json`.
-   On first use, `uvx` installs `patent-client-agents[mcp]` from the plugin clone
-   into a managed environment and launches `patent-client-agents-mcp`. The cold
-   start takes ~30 seconds; after that it's fast because uv caches
-   the resolved environment.
+1. `/plugin marketplace add parkerhancock/ip_tools` clones this repo
+   into `~/.claude/marketplaces/parkerhancock/` and registers the
+   marketplace manifest (`name: "parkerhancock"`).
+2. `/plugin install patent-client-agents@parkerhancock` resolves the
+   `patent-client-agents` plugin from that marketplace, links it into
+   `~/.claude/plugins/`, auto-discovers the `ip_research` skill at
+   `src/patent_client_agents/skills/`, and registers the MCP server
+   declared in `.claude-plugin/plugin.json`.
+3. On first MCP use, `uvx` installs `patent-client-agents[mcp]` from
+   the plugin clone into a managed environment and launches
+   `patent-client-agents-mcp`. The cold start takes ~30 seconds;
+   after that it's fast because uv caches the resolved environment.
 
 ### Update
 
-```bash
-claude plugin update patent-client-agents
+```
+/plugin marketplace update parkerhancock
+/plugin install patent-client-agents@parkerhancock
 ```
 
-Re-clones and reinstalls. The uv-managed env gets rebuilt on next
-MCP launch.
+The first command pulls the latest marketplace commit (which may
+include a newer plugin version); the second reinstalls. The
+uv-managed env gets rebuilt on next MCP launch.
 
 ### Remove
 
-```bash
-claude plugin remove patent-client-agents
+```
+/plugin uninstall patent-client-agents@parkerhancock
+/plugin marketplace remove parkerhancock
 ```
 
 ### Configure API keys
@@ -242,7 +258,7 @@ replaces with the symlink.
 
 | | Native installer (§3) | Dev symlink (§4) |
 |---|---|---|
-| Command | `claude plugin add ...` | `patent-client-agents-skill-install` |
+| Command | `/plugin install patent-client-agents@parkerhancock` | `patent-client-agents-skill-install` |
 | Source | Cloned copy of the repo | Pip-installed package (symlinked) |
 | Updates | `claude plugin update` (re-clones) | Picks up edits live — reinstall `patent-client-agents` to refresh |
 | Best for | Users | Contributors editing SKILL.md or references |

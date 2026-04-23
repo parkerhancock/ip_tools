@@ -1,0 +1,16 @@
+{
+  "$schema": "https://docs.claude.com/schemas/claude-plugin-marketplace-v1.json",
+  "name": "parkerhancock",
+  "owner": {
+    "name": "Parker Hancock",
+    "url": "https://github.com/parkerhancock"
+  },
+  "description": "Parker Hancock's Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "patent-client-agents",
+      "source": "./.claude-plugin",
+      "description": "Intellectual property research toolkit — async Python clients and 63 MCP tools for USPTO, EPO, Google Patents, JPO, MPEP, and CPC."
+    }
+  ]
+}

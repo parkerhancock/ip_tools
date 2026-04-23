@@ -7,8 +7,11 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
-```bash
-claude plugin add github:parkerhancock/ip_tools
+Inside Claude Code:
+
+```
+/plugin marketplace add parkerhancock/ip_tools
+/plugin install patent-client-agents@parkerhancock
 ```
 
 See [docs/installation.md](docs/installation.md) for all seven install modes.
@@ -48,15 +51,17 @@ and retry logic via `law_tools_core`.
 
 ## Install
 
-For Claude Code users:
+For Claude Code users — run these inside a Claude Code session:
 
-```bash
-claude plugin add github:parkerhancock/ip_tools
+```
+/plugin marketplace add parkerhancock/ip_tools
+/plugin install patent-client-agents@parkerhancock
 ```
 
-One command. You get the `ip_research` skill and all 63 patent MCP
-tools. Prereq: [uv](https://docs.astral.sh/uv/) on PATH (the MCP server
-runs under `uvx` so you don't pip install anything yourself).
+Two slash commands (not shell). You get the `ip_research` skill and
+all 63 patent MCP tools. Prereq: [uv](https://docs.astral.sh/uv/) on
+PATH (the MCP server runs under `uvx` so you don't pip install
+anything yourself).
 
 **Seven install modes are documented in [docs/installation.md](docs/installation.md)**
 — Python library, Python+MCP runtime, Claude Code plugin, dev symlink, stdio
