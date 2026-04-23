@@ -9,11 +9,11 @@
   "repository": "https://github.com/parkerhancock/ip_tools",
   "license": "Apache-2.0",
   "keywords": ["patent", "trademark", "intellectual-property", "uspto", "epo", "mcp"],
-  "skills": "src/patent_client_agents/skills",
+  "skills": "skills",
   "mcpServers": {
     "patent-client-agents": {
       "command": "uvx",
-      "args": ["--from", "${CLAUDE_PLUGIN_ROOT}[mcp]", "patent-client-agents-mcp"]
+      "args": ["--from", "patent-client-agents[mcp]", "patent-client-agents-mcp"]
     }
   }
 }
