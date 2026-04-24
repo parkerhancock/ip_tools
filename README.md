@@ -7,7 +7,33 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
-Inside Claude Code:
+## Use the hosted demo
+
+The fastest path — nothing to install. Point your MCP-speaking client
+at the public demo at **[mcp.patentclient.com](https://mcp.patentclient.com)**:
+
+```json
+{
+  "mcpServers": {
+    "patent-client-agents": {
+      "url": "https://mcp.patentclient.com/mcp"
+    }
+  }
+}
+```
+
+Or add a custom connector in CoWork / Claude Desktop with just the URL
+`https://mcp.patentclient.com/mcp` — no tokens to paste. On first
+connect you'll be sent to Google sign-in; approve and you're in. Any
+verified Google account works. Usage is rate-limited per account
+(100 MB/day, 20 MB/minute).
+
+This is a public demo — don't send confidential material through it.
+See the [Terms of Use](https://mcp.patentclient.com/terms). For higher
+limits, a private instance, or domain-restricted access see
+[Running your own](#running-your-own) below.
+
+## Or install locally (Claude Code plugin)
 
 ```
 /plugin marketplace add parkerhancock/ip_tools
@@ -244,9 +270,19 @@ The shared HTTP scaffolding (`BaseAsyncClient`, cache, exceptions, retry,
 logging) ships as the `law_tools_core` package inside this same wheel —
 other libraries in the same family import it directly.
 
+## Running your own
+
+If the hosted demo's limits don't fit — bulk jobs, an internal
+Workspace-gated instance, private data sources — run your own GCP
+Cloud Run deployment from
+[**parkerhancock/patent-client-agents-deploy**](https://github.com/parkerhancock/patent-client-agents-deploy).
+Same code as `mcp.patentclient.com`, deploys with one
+`gcloud builds submit`.
+
 ## Related
 
 - [patent_client](https://github.com/parkerhancock/patent_client) - The original patent data library this project builds on
+- [patent-client-agents-deploy](https://github.com/parkerhancock/patent-client-agents-deploy) - Self-hosted GCP Cloud Run deployment
 
 ## License
 
