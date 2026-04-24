@@ -33,20 +33,28 @@ Env vars (all accept a ``LAW_TOOLS_*`` legacy alias)::
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import hmac
+import io
+import logging
 import tempfile
 import time
-from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+import uuid
+import zipfile
+from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import Response, StreamingResponse
 
+from ..exceptions import BulkDownloadError
 from . import _env
+
+logger = logging.getLogger(__name__)
 
 
 def _public_url() -> str:
@@ -62,6 +70,22 @@ def _cache_dir() -> Path:
     if custom:
         return Path(custom)
     return Path.home() / ".cache" / "law_tools_core" / "downloads"
+
+
+def _bulk_zip_dir() -> Path:
+    """Tempfile dir for assembled bulk-download zips. Sibling of the per-doc cache."""
+    return _cache_dir().parent / "bulk_zips"
+
+
+# Bulk zips are deleted on successful delivery; this is the backstop for
+# zips that were assembled but never fully streamed (client disconnected,
+# agent retried instead of consuming, etc.).
+_BULK_ZIP_TTL_SECONDS = 3600
+
+# Throttle for opportunistic sweeping inside handle_download — at most
+# once every 10 minutes so a busy server doesn't reap on every request.
+_BULK_ZIP_REAP_INTERVAL_SECONDS = 600
+_last_bulk_zip_reap: float = 0.0
 
 
 def _key_rotation_seconds() -> int:
@@ -339,9 +363,323 @@ def download_response(
     return payload
 
 
+async def fetch_with_cache(
+    resource_path: str,
+    *,
+    fetcher: Callable[[], Awaitable[tuple[bytes, str]]] | None = None,
+) -> tuple[bytes, str]:
+    """Fetch a resource via the per-doc cache, falling back to a fetcher on miss.
+
+    Standard ``download_response`` only writes the cache; ``handle_download``
+    only reads it. This helper closes the loop so callers (notably bulk
+    download tools) get cache-hit speed on repeat fetches without going
+    through the HTTP route.
+
+    On cache miss, uses ``fetcher`` if provided, else falls back to the
+    fetcher registered with :func:`register_source` for this path. The
+    result is always written back to the cache before returning. Raises
+    ``ValueError`` if neither is available.
+    """
+    resource_path = resource_path.strip("/")
+    cached = _cache_get(resource_path)
+    if cached is not None:
+        content, cached_filename = cached
+        if cached_filename:
+            return content, cached_filename
+    if fetcher is not None:
+        content, filename = await fetcher()
+    else:
+        match = _match_source(resource_path)
+        if match is None:
+            raise ValueError(
+                f"No registered fetcher for resource path {resource_path!r} "
+                "and no inline fetcher was provided."
+            )
+        source, remainder = match
+        content, filename = await source.fetch(remainder)
+    _cache_put(resource_path, content, filename=filename)
+    return content, filename
+
+
+# ---------------------------------------------------------------------------
+# Bulk downloads
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class BulkItem:
+    """One unit of a bulk download request.
+
+    Attributes:
+        item_id: Stable, user-meaningful identifier. Becomes the manifest
+            key and the directory prefix inside the zip archive
+            (``{item_id}/{filename}``).
+        resource_path: Cache key for this item's bytes — must match the
+            registered fetcher's path format. Reused by the n=1
+            short-circuit so per-doc cache stays hot across calls.
+        metadata: Extra fields surfaced in the manifest entry (date,
+            doc_type, anything source-specific).
+    """
+
+    item_id: str
+    resource_path: str
+    metadata: dict = field(default_factory=dict)
+
+
+def _build_zip_bytes(items_in_order: list[tuple[str, bytes, str]]) -> bytes:
+    """Build a zip archive in memory. CPU-bound; call via ``asyncio.to_thread``."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for item_id, content, filename in items_in_order:
+            zf.writestr(f"{item_id}/{filename}", content)
+    return buf.getvalue()
+
+
+async def download_bulk_response(
+    items: list[BulkItem],
+    fetcher: Callable[[BulkItem], Awaitable[tuple[bytes, str]]],
+    *,
+    container_label: str,
+    container_metadata: dict | None = None,
+    content_type_single: str = "application/pdf",
+    max_concurrency: int = 5,
+) -> dict:
+    """Fetch a list of items concurrently and return a download payload.
+
+    n=1: short-circuits to :func:`download_response` (raw file, no zip
+    ceremony). The lone item's ``resource_path`` is reused as the cache
+    key so re-fetches share the per-doc cache.
+
+    n>1: fans out the fetch with bounded concurrency, zips successes
+    into a tempfile under ``~/.cache/law_tools_core/bulk_zips/{uuid}.zip``,
+    and returns a signed one-shot URL plus a manifest. Per-item failures
+    do not fail the call — they go in the manifest with
+    ``status='error'``. If *all* items fail, raises
+    :class:`BulkDownloadError`.
+
+    Args:
+        items: The items to fetch. Empty list raises ``BulkDownloadError``.
+        fetcher: Async callable that takes a ``BulkItem`` and returns
+            ``(content, filename)``. Typically delegates to the source's
+            registered per-doc fetcher.
+        container_label: Used as the zip filename (``{label}.zip``) and
+            surfaced as ``container`` in the response if not overridden.
+        container_metadata: Extra top-level fields for the response (e.g.
+            ``{"container": "16123456"}``). Item-level metadata wins on
+            key collisions.
+        content_type_single: MIME type for the n=1 short-circuit. Ignored
+            for n>1 (zip is always ``application/zip``).
+        max_concurrency: Cap on concurrent fetcher calls. Default 5;
+            polite-source bulks can pass lower (e.g. PACER → 3).
+
+    Returns:
+        A dict matching :func:`download_response`'s shape, plus
+        ``manifest``, ``item_count``, ``ok_count``, and ``error_count``
+        for the n>1 case.
+    """
+    if not items:
+        raise BulkDownloadError("download_bulk_response called with no items")
+
+    container_meta = dict(container_metadata or {})
+
+    if len(items) == 1:
+        only = items[0]
+        content, filename = await fetcher(only)
+        extras: dict = {**container_meta, "item_id": only.item_id, **only.metadata}
+        return download_response(
+            only.resource_path,
+            content,
+            filename=filename,
+            content_type=content_type_single,
+            **extras,
+        )
+
+    sem = asyncio.Semaphore(max_concurrency)
+    results: dict[str, tuple[bytes, str]] = {}
+    manifest_entries: dict[str, dict] = {}
+    manifest_lock = asyncio.Lock()
+
+    async def _fetch_one(item: BulkItem) -> None:
+        entry: dict = {"item_id": item.item_id, **item.metadata}
+        async with sem:
+            try:
+                content, filename = await fetcher(item)
+            except Exception as exc:  # noqa: BLE001 — record per-item, don't fail bulk
+                entry["status"] = "error"
+                entry["error"] = str(exc) or exc.__class__.__name__
+                async with manifest_lock:
+                    manifest_entries[item.item_id] = entry
+                return
+        results[item.item_id] = (content, filename)
+        entry["status"] = "ok"
+        entry["filename"] = f"{item.item_id}/{filename}"
+        entry["size_bytes"] = len(content)
+        async with manifest_lock:
+            manifest_entries[item.item_id] = entry
+
+    await asyncio.gather(*(_fetch_one(item) for item in items))
+
+    # Manifest order matches input order so callers can rely on it.
+    manifest = [
+        manifest_entries[item.item_id] for item in items if item.item_id in manifest_entries
+    ]
+    ok_count = len(results)
+    error_count = len(items) - ok_count
+
+    if ok_count == 0:
+        first_err = next(
+            (e.get("error") for e in manifest if e.get("status") == "error"),
+            "unknown",
+        )
+        raise BulkDownloadError(
+            f"All {len(items)} items failed to fetch (first error: {first_err})."
+        )
+
+    items_in_order = [
+        (item.item_id, *results[item.item_id]) for item in items if item.item_id in results
+    ]
+    zip_bytes = await asyncio.to_thread(_build_zip_bytes, items_in_order)
+    zip_filename = f"{container_label}.zip"
+
+    payload: dict = {
+        **container_meta,
+        "filename": zip_filename,
+        "content_type": "application/zip",
+        "size_bytes": len(zip_bytes),
+        "item_count": len(items),
+        "ok_count": ok_count,
+        "error_count": error_count,
+        "manifest": manifest,
+    }
+
+    if _public_url():
+        bulk_id = uuid.uuid4().hex
+        bulk_dir = _bulk_zip_dir()
+        await asyncio.to_thread(bulk_dir.mkdir, parents=True, exist_ok=True)
+        bulk_path = bulk_dir / f"{bulk_id}.zip"
+        await asyncio.to_thread(bulk_path.write_bytes, zip_bytes)
+        # Sidecar with the user-facing filename for Content-Disposition.
+        await asyncio.to_thread(bulk_path.with_suffix(".name").write_text, zip_filename)
+
+        resource_path = f"bulk_zips/{bulk_id}"
+        payload["download_url"] = build_download_url(resource_path)
+        expiry = _bucket_expiry_epoch(_current_bucket())
+        payload["expires_at"] = datetime.fromtimestamp(expiry, tz=UTC).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+    else:
+        tmp = tempfile.NamedTemporaryFile(
+            suffix=".zip", delete=False, prefix="law_tools_core_bulk_"
+        )
+        tmp.write(zip_bytes)
+        tmp.close()
+        payload["file_path"] = tmp.name
+
+    return payload
+
+
+class _DeleteOnSuccess:
+    """Async stream that unlinks the underlying file only after delivery.
+
+    Bulk-zip route uses this to enforce one-shot-on-success delivery: if
+    the entire byte stream is consumed (``bytes_sent == file_size``),
+    the zip is deleted. If reading is interrupted (client disconnect,
+    error), the file is left in place so the agent can retry — the 1h
+    TTL sweeper acts as the backstop.
+    """
+
+    def __init__(self, path: Path, expected_size: int, chunk_size: int = 65536) -> None:
+        self._path = path
+        self._expected_size = expected_size
+        self._chunk_size = chunk_size
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        bytes_sent = 0
+        try:
+            with self._path.open("rb") as fh:
+                while True:
+                    chunk = await asyncio.to_thread(fh.read, self._chunk_size)
+                    if not chunk:
+                        break
+                    bytes_sent += len(chunk)
+                    yield chunk
+        finally:
+            if bytes_sent == self._expected_size:
+                try:
+                    self._path.unlink()
+                    self._path.with_suffix(".name").unlink(missing_ok=True)
+                except OSError as exc:
+                    logger.warning(
+                        "bulk zip delivered but failed to unlink %s: %s", self._path, exc
+                    )
+
+
+def reap_stale_bulk_zips(*, ttl_seconds: int = _BULK_ZIP_TTL_SECONDS) -> int:
+    """Delete bulk-zip tempfiles older than ``ttl_seconds``.
+
+    Backstop for zips that were never successfully delivered (so
+    ``_DeleteOnSuccess`` never reaped them). Safe to call from a
+    background task or at server startup. Returns the number of files
+    deleted.
+    """
+    bulk_dir = _bulk_zip_dir()
+    if not bulk_dir.exists():
+        return 0
+    cutoff = time.time() - ttl_seconds
+    deleted = 0
+    for path in bulk_dir.iterdir():
+        try:
+            if path.stat().st_mtime < cutoff:
+                path.unlink()
+                deleted += 1
+        except OSError as exc:
+            logger.warning("failed to reap stale bulk zip %s: %s", path, exc)
+    return deleted
+
+
 # ---------------------------------------------------------------------------
 # Route handler (registered in server_factory.build_server)
 # ---------------------------------------------------------------------------
+
+
+def _maybe_reap_bulk_zips() -> None:
+    """Run the bulk-zip sweeper if we haven't recently.
+
+    Called opportunistically from ``handle_download``. Cheap when
+    throttled — just a clock comparison.
+    """
+    global _last_bulk_zip_reap
+    now = time.time()
+    if now - _last_bulk_zip_reap < _BULK_ZIP_REAP_INTERVAL_SECONDS:
+        return
+    _last_bulk_zip_reap = now
+    try:
+        reap_stale_bulk_zips()
+    except Exception as exc:  # noqa: BLE001 — sweeper failure must never fail a download
+        logger.warning("bulk zip sweeper failed: %s", exc)
+
+
+async def _serve_bulk_zip(uuid_hex: str) -> Response:
+    """Stream a bulk zip from the tempfile dir and unlink on full delivery."""
+    bulk_path = _bulk_zip_dir() / f"{uuid_hex}.zip"
+    if not bulk_path.exists():
+        return Response(
+            f"Bulk download {uuid_hex} is no longer available "
+            "(already delivered or expired). Re-call the bulk tool to regenerate.",
+            status_code=404,
+        )
+    size = bulk_path.stat().st_size
+    name_sidecar = bulk_path.with_suffix(".name")
+    filename = name_sidecar.read_text() if name_sidecar.exists() else f"{uuid_hex}.zip"
+    return StreamingResponse(
+        _DeleteOnSuccess(bulk_path, expected_size=size),
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(size),
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 async def handle_download(request: Request) -> Response:
@@ -360,6 +698,18 @@ async def handle_download(request: Request) -> Response:
             f"{_key_rotation_seconds()}s; re-call the tool to mint a fresh one).",
             status_code=403,
         )
+
+    # Opportunistic backstop reap so stale bulk zips don't pile up on
+    # long-running servers. Throttled to once per 10 minutes.
+    _maybe_reap_bulk_zips()
+
+    # Bulk zips live outside the per-doc cache and the source registry —
+    # they're transient tempfiles produced by `download_bulk_response`.
+    if resource_path.startswith("bulk_zips/"):
+        uuid_hex = resource_path[len("bulk_zips/") :]
+        if "/" in uuid_hex or not uuid_hex:
+            return Response(f"Invalid bulk-zip path: {resource_path}", status_code=400)
+        return await _serve_bulk_zip(uuid_hex)
 
     cached = _cache_get(resource_path)
     if cached is not None:

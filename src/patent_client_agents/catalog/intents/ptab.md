@@ -68,11 +68,23 @@ list_ptab_children(parent_type="trial", parent_identifier="IPR2024-00001", inclu
 list_ptab_children(parent_type="application", parent_identifier="16123456")
 ```
 
-### `download_ptab_document(document_identifier)`
+### Bulk downloads (container-scoped)
 
-Stays separate from the unified PDF download — PTAB documents are a
-different document class (trial filings) with their own identifier space
-and download path.
+Four tools, one per API container, each returning a zip (n=1 → raw PDF)
+plus a manifest. Enumerate candidates with `list_ptab_children` /
+`list_file_history` / etc., filter by `item_ids` or date range if
+needed, then call the bulk tool.
+
+| Tool | Container | Cap |
+|------|-----------|-----|
+| `download_ptab_trial_documents(trial_number, …)` | All party filings in one AIA trial (petitions, responses, exhibits, motions) | 100 |
+| `download_ptab_trial_decisions(trial_number, …)` | All board decisions in one AIA trial (institution, scheduling orders, FWD) | 50 |
+| `download_ptab_appeal_decisions(application_number, …)` | All ex parte appeal decisions for one application | 50 |
+| `download_ptab_interference_decisions(interference_number, …)` | All decisions for one pre-AIA interference | 50 |
+
+The former `download_ptab_document` (single trial document) was removed —
+use `download_ptab_trial_documents(trial_number, item_ids=[document_identifier])`
+to fetch one paper, or the general bulk form to grab a set.
 
 ## Python API (raw)
 

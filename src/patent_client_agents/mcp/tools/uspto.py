@@ -198,50 +198,38 @@ async def get_file_history_item(
         str,
         "Content format. 'auto' (default): readable structured text — XML "
         "parsed when available, else PDF text layer, else Tesseract OCR for "
-        "image-only PDFs. 'pdf': returns a signed download_url for the PDF. "
-        "'xml': raw ST.96 XML (raises if XML was not filed for this document).",
+        "image-only PDFs. 'xml': raw ST.96 XML (raises if XML was not filed "
+        "for this document). For PDFs of one or more documents, use "
+        "``download_file_history`` instead (it handles n=1 as a raw PDF).",
     ] = "auto",
 ) -> dict:
-    """Get the content of a file-history document.
+    """Get the text content of a file-history document.
 
-    Default 'auto' mode returns readable text regardless of how USPTO
-    filed the document — agents do not need to pre-check format
-    availability. ``format='pdf'`` returns a signed `download_url` (or
-    `file_path` in local stdio mode) instead of inline PDF bytes. Call
-    ``list_file_history`` first to discover valid ``document_identifier``
-    values for an application.
+    Returns readable text regardless of how USPTO filed the document —
+    agents do not need to pre-check format availability. Focused on
+    *content* (structured text or XML); for PDF bytes, call
+    ``download_file_history`` (with ``item_ids=[document_identifier]``
+    for a single document, or a list for bulk).
+
+    Call ``list_file_history`` first to discover valid
+    ``document_identifier`` values for an application.
     """
-    import base64
-
-    from law_tools_core.exceptions import NotFoundError
+    from law_tools_core.exceptions import NotFoundError, ValidationError
     from law_tools_core.filenames import file_history_item as _fh_name
-    from law_tools_core.mcp.downloads import download_response
     from patent_client_agents.uspto_odp.clients.applications import ApplicationsClient
+
+    if format == "pdf":
+        raise ValidationError(
+            "format='pdf' was removed from get_file_history_item — use "
+            "download_file_history(application_number, item_ids=[document_identifier]) "
+            "to get a PDF download_url."
+        )
 
     async with ApplicationsClient() as client:
         try:
             result = await client.get_document_content(
                 application_number, document_identifier, format=format
             )
-            if result.get("format") == "pdf":
-                pdf_bytes = base64.b64decode(result.pop("content_base64"))
-                result.pop("size_bytes", None)
-                result.pop("content_type", None)
-                return {
-                    **result,
-                    **download_response(
-                        f"uspto/applications/{application_number}/documents/{document_identifier}",
-                        pdf_bytes,
-                        filename=_fh_name(
-                            application_number=application_number,
-                            document_code=None,
-                            mail_date=None,
-                            document_identifier=document_identifier,
-                            extension="pdf",
-                        ),
-                        content_type="application/pdf",
-                    ),
-                }
             if result.get("format") == "xml":
                 result["filename"] = _fh_name(
                     application_number=application_number,
@@ -266,6 +254,166 @@ async def get_file_history_item(
                 f"{application_number}. First {len(sample)} available documents: "
                 f"{sample}. Use list_file_history for the complete list."
             ) from None
+
+
+_FILE_HISTORY_BULK_CAP = 50
+
+
+def _parse_iso_date(value: str | None, *, field_name: str):
+    """Parse ``YYYY-MM-DD`` to a ``date`` or return ``None``. Raises ``ValidationError`` on bad input."""
+    if not value:
+        return None
+    from datetime import date as _date
+
+    from law_tools_core.exceptions import ValidationError
+
+    try:
+        return _date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValidationError(f"{field_name} must be ISO date YYYY-MM-DD; got {value!r}") from exc
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def download_file_history(
+    application_number: Annotated[
+        str,
+        "USPTO application number (8+ digits). Examples: '16123456'.",
+    ],
+    item_ids: Annotated[
+        list[str] | None,
+        "Specific document_identifier values from list_file_history. "
+        "None means 'all documents matching the other filters'.",
+    ] = None,
+    document_codes: Annotated[
+        list[str] | None,
+        "Filter to USPTO document type codes (e.g. ['CTNF', 'IDS', 'NOA']). "
+        "See list_file_history for available codes in this application.",
+    ] = None,
+    after: Annotated[
+        str | None,
+        "Include only documents on or after this date (ISO YYYY-MM-DD).",
+    ] = None,
+    before: Annotated[
+        str | None,
+        "Include only documents on or before this date (ISO YYYY-MM-DD).",
+    ] = None,
+) -> dict:
+    """Bulk-download file-history documents for a USPTO application.
+
+    Returns a single zip of matching PDFs (or the raw PDF if exactly one
+    matches) plus a manifest. Cap: 50 documents per call. Filters AND
+    together; if more than 50 documents match, the call refuses and
+    asks you to narrow.
+
+    Use ``list_file_history`` to discover document_identifier values and
+    document codes for an application.
+    """
+    from datetime import date as _date
+
+    from law_tools_core.exceptions import ValidationError
+    from law_tools_core.filenames import file_history_item as _fh_name
+    from law_tools_core.mcp.downloads import BulkItem, download_bulk_response, fetch_with_cache
+
+    after_d = _parse_iso_date(after, field_name="after")
+    before_d = _parse_iso_date(before, field_name="before")
+
+    async with UsptoOdpClient() as client:
+        response = await client.get_documents(application_number)
+
+    raw_docs = response.model_dump().get("documents") or []
+    item_id_set = set(item_ids) if item_ids else None
+    doc_code_set = set(document_codes) if document_codes else None
+
+    matched: list[dict[str, object]] = []
+    for raw in raw_docs:
+        doc_id = raw.get("documentIdentifier")
+        if not doc_id:
+            continue
+        if item_id_set is not None and doc_id not in item_id_set:
+            continue
+        code = raw.get("documentCode")
+        if doc_code_set is not None and code not in doc_code_set:
+            continue
+        date_str = raw.get("officialDate") or raw.get("documentDate")
+        if after_d or before_d:
+            doc_d: _date | None
+            try:
+                doc_d = _date.fromisoformat((date_str or "")[:10]) if date_str else None
+            except ValueError:
+                doc_d = None
+            if after_d and (doc_d is None or doc_d < after_d):
+                continue
+            if before_d and (doc_d is None or doc_d > before_d):
+                continue
+        matched.append(
+            {
+                "document_identifier": doc_id,
+                "code": code,
+                "date": date_str,
+                "description": raw.get("documentCodeDescriptionText"),
+                "direction": raw.get("directionCategory"),
+                "page_count": raw.get("pageCount"),
+            }
+        )
+
+    if not matched:
+        raise ValidationError(
+            f"No file-history documents in application {application_number} "
+            f"match the given filters."
+        )
+    if len(matched) > _FILE_HISTORY_BULK_CAP:
+        raise ValidationError(
+            f"File history for {application_number} has {len(matched)} documents "
+            f"matching the filters; max {_FILE_HISTORY_BULK_CAP} per call. "
+            f"Narrow with item_ids, document_codes, after, or before — or page "
+            f"manually using list_file_history."
+        )
+
+    bulk_items = [
+        BulkItem(
+            item_id=str(d["document_identifier"]),
+            resource_path=(
+                f"uspto/applications/{application_number}/documents/{d['document_identifier']}"
+            ),
+            metadata={
+                "document_code": d.get("code"),
+                "document_date": d.get("date"),
+                "description": d.get("description"),
+                "direction": d.get("direction"),
+                "page_count": d.get("page_count"),
+            },
+        )
+        for d in matched
+    ]
+
+    async def _fetcher(item: BulkItem) -> tuple[bytes, str]:
+        # Reuse the registered uspto/applications fetcher via cache. Rename the
+        # file with the human-friendly file_history_item convention so the zip
+        # entry is self-describing without consulting the manifest.
+        content, _ = await fetch_with_cache(item.resource_path)
+        nice_name = _fh_name(
+            application_number=application_number,
+            document_code=str(item.metadata.get("document_code"))
+            if item.metadata.get("document_code")
+            else None,
+            mail_date=str(item.metadata.get("document_date"))[:10]
+            if item.metadata.get("document_date")
+            else None,
+            document_identifier=item.item_id,
+            extension="pdf",
+        )
+        return content, nice_name
+
+    return await download_bulk_response(
+        bulk_items,
+        _fetcher,
+        container_label=f"{application_number}_file_history",
+        container_metadata={
+            "container": application_number,
+            "application_number": application_number,
+        },
+        content_type_single="application/pdf",
+    )
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
@@ -448,54 +596,465 @@ async def list_ptab_children(
         )
 
 
-@uspto_mcp.tool(annotations=READ_ONLY)
-async def download_ptab_document(
-    document_identifier: Annotated[str, "PTAB document identifier from the documents list"],
-) -> dict:
-    """Download a PTAB trial document PDF.
+# ---------------------------------------------------------------------------
+# PTAB bulk downloads (container-scoped)
+# ---------------------------------------------------------------------------
+#
+# Single-document PTAB downloads were removed in favor of the container-bulk
+# tools below. The ``ptab/documents/{id}`` fetcher registration above (see
+# ``_fetch_ptab_document``) stays so any signed URLs minted before the
+# removal still resolve from cache, and so the bulk tool's ``fetch_with_cache``
+# path keeps working.
 
-    Returns a signed `download_url` (or `file_path` in local stdio mode) plus
-    `filename`, `content_type`, `size_bytes`, `document_identifier`. Gets
-    the document metadata first to find the correct download URI.
-    """
-    from law_tools_core.filenames import ptab_document as _ptab_name
-    from law_tools_core.mcp.downloads import download_response
 
+_PTAB_TRIAL_DOCUMENTS_CAP = 100
+_PTAB_TRIAL_DECISIONS_CAP = 50
+_PTAB_APPEAL_DECISIONS_CAP = 50
+_PTAB_INTERFERENCE_DECISIONS_CAP = 50
+
+
+def _ptab_parse_date(value: str | None, *, field_name: str):
+    if not value:
+        return None
+    from datetime import date as _date
+
+    from law_tools_core.exceptions import ValidationError
+
+    try:
+        return _date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValidationError(f"{field_name} must be ISO date YYYY-MM-DD; got {value!r}") from exc
+
+
+async def _ptab_download_pdf(file_download_uri: str) -> bytes:
+    """Download a PTAB PDF given a ``fileDownloadURI`` from any list/get response."""
     async with PtabTrialsClient() as client:
-        response = await client.get_document(document_identifier)
-        download_uri = None
-        proceeding_number: str | None = None
-        filing_date: str | None = None
-        document_code: str | None = None
-        bag = getattr(response, "patentTrialDocumentDataBag", None) or []
-        for entry in bag:
-            dd = getattr(entry, "documentData", None)
-            if dd and getattr(dd, "fileDownloadURI", None):
-                download_uri = dd.fileDownloadURI
-                proceeding_number = getattr(dd, "proceedingNumber", None) or proceeding_number
-                filing_date = getattr(dd, "documentFilingDate", None) or getattr(
-                    dd, "officialDate", None
-                )
-                document_code = getattr(dd, "documentCode", None) or getattr(
-                    dd, "documentTypeName", None
-                )
-                break
-        if not download_uri:
-            raise ValueError(f"No download URI found for PTAB document {document_identifier}")
-        uri_path = urlparse(str(download_uri)).path
-        pdf_bytes = await client.download_document_pdf(uri_path)
-        return download_response(
-            f"ptab/documents/{document_identifier}",
-            pdf_bytes,
-            filename=_ptab_name(
-                proceeding_number=proceeding_number,
-                filing_date=str(filing_date) if filing_date else None,
-                document_code=document_code,
-                document_identifier=document_identifier,
-            ),
-            content_type="application/pdf",
-            document_identifier=document_identifier,
+        uri_path = urlparse(str(file_download_uri)).path
+        return await client.download_document_pdf(uri_path)
+
+
+async def _run_ptab_bulk(
+    *,
+    candidates: list[dict],
+    container_label: str,
+    container_metadata: dict,
+    cap: int,
+    container_kind: str,
+) -> dict:
+    """Shared bulk-download pipeline for the 4 PTAB tools.
+
+    Each candidate dict must carry: ``item_id``, ``resource_path``,
+    ``file_download_uri``, ``filename``, and any extra metadata for the
+    manifest. Filtering (by item_ids / date) is done by the caller before
+    this runs.
+    """
+    from law_tools_core.exceptions import ValidationError
+    from law_tools_core.mcp.downloads import BulkItem, download_bulk_response, fetch_with_cache
+
+    if not candidates:
+        raise ValidationError(
+            f"No PTAB {container_kind} match the given filters for {container_label!r}."
         )
+    if len(candidates) > cap:
+        raise ValidationError(
+            f"PTAB {container_kind} for {container_label!r} has {len(candidates)} items "
+            f"matching the filters; max {cap} per call. Narrow with item_ids or "
+            f"date filters (after/before)."
+        )
+
+    # Fetch-internal hints (URI + target filename) live in a side dict keyed
+    # by item_id so they don't pollute the BulkItem.metadata surfaced in the
+    # manifest, and so they can't shadow kwargs like ``filename`` when the
+    # n=1 short-circuit splats metadata into ``download_response``.
+    _fetch_plan: dict[str, tuple[str, str]] = {}
+    bulk_items = []
+    _INTERNAL_KEYS = {"resource_path", "item_id", "filename", "file_download_uri"}
+    for cand in candidates:
+        manifest_metadata = {k: v for k, v in cand.items() if k not in _INTERNAL_KEYS}
+        bulk_items.append(
+            BulkItem(
+                item_id=cand["item_id"],
+                resource_path=cand["resource_path"],
+                metadata=manifest_metadata,
+            )
+        )
+        _fetch_plan[cand["item_id"]] = (cand["file_download_uri"], cand["filename"])
+
+    async def _fetcher(item: BulkItem) -> tuple[bytes, str]:
+        uri, filename = _fetch_plan[item.item_id]
+
+        async def _inline() -> tuple[bytes, str]:
+            return await _ptab_download_pdf(uri), filename
+
+        return await fetch_with_cache(item.resource_path, fetcher=_inline)
+
+    return await download_bulk_response(
+        bulk_items,
+        _fetcher,
+        container_label=container_label,
+        container_metadata=container_metadata,
+        content_type_single="application/pdf",
+    )
+
+
+def _extract_trial_bag_entry(entry) -> dict | None:
+    """Pull (doc_id, URI, metadata) out of a PtabTrialDocument or PtabTrialDecision entry."""
+    dd = getattr(entry, "documentData", None)
+    if not dd:
+        return None
+    doc_id = getattr(dd, "documentIdentifier", None)
+    uri = getattr(dd, "fileDownloadURI", None) or getattr(dd, "downloadURI", None)
+    if not doc_id or not uri:
+        return None
+    filing_date = getattr(dd, "documentFilingDate", None)
+    decision = getattr(entry, "decisionData", None)
+    if decision is not None and not filing_date:
+        filing_date = getattr(decision, "decisionIssueDate", None)
+    return {
+        "item_id": str(doc_id),
+        "file_download_uri": str(uri),
+        "document_filing_date": filing_date,
+        "document_title": getattr(dd, "documentTitleText", None)
+        or getattr(dd, "documentName", None),
+        "document_type": getattr(dd, "documentTypeDescriptionText", None),
+        "document_number": getattr(dd, "documentNumber", None),
+        "filing_party_category": getattr(dd, "filingPartyCategory", None),
+        "decision_type": getattr(decision, "decisionTypeCategory", None) if decision else None,
+    }
+
+
+def _filter_by_date(
+    candidates: list[dict],
+    *,
+    date_key: str,
+    after,
+    before,
+) -> list[dict]:
+    """Keep only candidates whose ``date_key`` value is within [after, before]."""
+    if after is None and before is None:
+        return candidates
+    from datetime import date as _date
+
+    out = []
+    for c in candidates:
+        raw = c.get(date_key)
+        parsed: _date | None
+        try:
+            parsed = _date.fromisoformat((raw or "")[:10]) if raw else None
+        except ValueError:
+            parsed = None
+        if after and (parsed is None or parsed < after):
+            continue
+        if before and (parsed is None or parsed > before):
+            continue
+        out.append(c)
+    return out
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def download_ptab_trial_documents(
+    trial_number: Annotated[
+        str,
+        "AIA trial number (e.g. 'IPR2024-00001', 'PGR2023-00012', 'CBM2019-00001'). "
+        "Every document filed by the parties in this trial is a candidate.",
+    ],
+    item_ids: Annotated[
+        list[str] | None,
+        "Specific document_identifier values from list_ptab_children(parent_type='trial', "
+        "include='documents'). None means 'all documents matching the other filters'.",
+    ] = None,
+    after: Annotated[
+        str | None,
+        "Include only documents filed on or after this date (ISO YYYY-MM-DD).",
+    ] = None,
+    before: Annotated[
+        str | None,
+        "Include only documents filed on or before this date (ISO YYYY-MM-DD).",
+    ] = None,
+) -> dict:
+    """Bulk-download party filings for one AIA trial as a single zip.
+
+    Fetches everything the parties filed in the trial — petitions,
+    responses, motions, replies, exhibits, depositions, notices — all of
+    it. Cap: 100 documents per call. Big IPRs with many exhibits may
+    need narrowing via ``item_ids`` (use ``list_ptab_children`` to
+    enumerate) or date filters.
+
+    For board-issued papers (institution decisions, FWDs, orders), use
+    ``download_ptab_trial_decisions`` instead.
+    """
+    after_d = _ptab_parse_date(after, field_name="after")
+    before_d = _ptab_parse_date(before, field_name="before")
+
+    async with UsptoOdpClient() as client:
+        response = await client.get_trial_documents_by_trial(trial_number)
+    bag = getattr(response, "patentTrialDocumentDataBag", None) or []
+
+    id_set = set(item_ids) if item_ids else None
+    candidates: list[dict] = []
+    for entry in bag:
+        extracted = _extract_trial_bag_entry(entry)
+        if extracted is None:
+            continue
+        if id_set and extracted["item_id"] not in id_set:
+            continue
+        extracted["resource_path"] = f"ptab/documents/{extracted['item_id']}"
+        extracted["filename"] = _ptab_document_filename(
+            proceeding_number=trial_number,
+            entry=extracted,
+        )
+        candidates.append(extracted)
+
+    candidates = _filter_by_date(
+        candidates, date_key="document_filing_date", after=after_d, before=before_d
+    )
+
+    return await _run_ptab_bulk(
+        candidates=candidates,
+        container_label=f"{trial_number}_trial_documents",
+        container_metadata={"container": trial_number, "trial_number": trial_number},
+        cap=_PTAB_TRIAL_DOCUMENTS_CAP,
+        container_kind="trial documents",
+    )
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def download_ptab_trial_decisions(
+    trial_number: Annotated[
+        str,
+        "AIA trial number (e.g. 'IPR2024-00001'). Every decision issued "
+        "by the board in this trial is a candidate.",
+    ],
+    item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
+    after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
+    before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
+) -> dict:
+    """Bulk-download board decisions for one AIA trial as a single zip.
+
+    Institution decisions, scheduling orders, FWDs, board orders — papers
+    issued by the board itself. Cap: 50 per call. For party filings
+    (petitions, responses, exhibits) use ``download_ptab_trial_documents``.
+    """
+    after_d = _ptab_parse_date(after, field_name="after")
+    before_d = _ptab_parse_date(before, field_name="before")
+
+    async with UsptoOdpClient() as client:
+        response = await client.get_trial_decisions_by_trial(trial_number)
+    bag = getattr(response, "patentTrialDocumentDataBag", None) or []
+
+    id_set = set(item_ids) if item_ids else None
+    candidates: list[dict] = []
+    for entry in bag:
+        extracted = _extract_trial_bag_entry(entry)
+        if extracted is None:
+            continue
+        if id_set and extracted["item_id"] not in id_set:
+            continue
+        extracted["resource_path"] = f"ptab/trial-decisions/{extracted['item_id']}"
+        extracted["filename"] = _ptab_document_filename(
+            proceeding_number=trial_number,
+            entry=extracted,
+            fallback_code=extracted.get("decision_type"),
+        )
+        candidates.append(extracted)
+
+    candidates = _filter_by_date(
+        candidates, date_key="document_filing_date", after=after_d, before=before_d
+    )
+
+    return await _run_ptab_bulk(
+        candidates=candidates,
+        container_label=f"{trial_number}_trial_decisions",
+        container_metadata={"container": trial_number, "trial_number": trial_number},
+        cap=_PTAB_TRIAL_DECISIONS_CAP,
+        container_kind="trial decisions",
+    )
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def download_ptab_appeal_decisions(
+    application_number: Annotated[
+        str,
+        "USPTO application number (8+ digits; appeals attach to applications, not trial "
+        "numbers). Examples: '16123456'. Every ex parte appeal decision issued for this "
+        "application is a candidate.",
+    ],
+    item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
+    after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
+    before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
+) -> dict:
+    """Bulk-download ex parte appeal decisions for one USPTO application.
+
+    Appeals are a distinct vehicle from AIA trials. Cap: 50 per call.
+    Use ``list_ptab_children(parent_type='application')`` to preview
+    what's available.
+    """
+    after_d = _ptab_parse_date(after, field_name="after")
+    before_d = _ptab_parse_date(before, field_name="before")
+
+    async with UsptoOdpClient() as client:
+        response = await client.get_appeal_decisions_by_number(application_number)
+    bag = getattr(response, "patentAppealDataBag", None) or []
+
+    id_set = set(item_ids) if item_ids else None
+    candidates: list[dict] = []
+    for entry in bag:
+        dd = getattr(entry, "documentData", None)
+        if not dd:
+            continue
+        doc_id = getattr(dd, "documentIdentifier", None)
+        uri = getattr(dd, "fileDownloadURI", None) or getattr(dd, "downloadURI", None)
+        if not doc_id or not uri:
+            continue
+        if id_set and doc_id not in id_set:
+            continue
+        decision = getattr(entry, "decisionData", None)
+        candidates.append(
+            {
+                "item_id": str(doc_id),
+                "file_download_uri": str(uri),
+                "document_filing_date": getattr(dd, "documentFilingDate", None),
+                "decision_issue_date": getattr(decision, "decisionIssueDate", None)
+                if decision
+                else None,
+                "decision_type": getattr(decision, "decisionTypeCategory", None)
+                if decision
+                else None,
+                "appeal_outcome": getattr(decision, "appealOutcomeCategory", None)
+                if decision
+                else None,
+                "document_type": getattr(dd, "documentTypeDescriptionText", None),
+                "document_name": getattr(dd, "documentName", None),
+                "resource_path": f"ptab/appeal-decisions/{doc_id}",
+                "filename": _ptab_decision_filename(
+                    container=application_number,
+                    doc_id=str(doc_id),
+                    code=getattr(decision, "decisionTypeCategory", None) if decision else None,
+                    date=getattr(decision, "decisionIssueDate", None)
+                    if decision
+                    else getattr(dd, "documentFilingDate", None),
+                ),
+            }
+        )
+
+    candidates = _filter_by_date(
+        candidates, date_key="decision_issue_date", after=after_d, before=before_d
+    )
+
+    return await _run_ptab_bulk(
+        candidates=candidates,
+        container_label=f"{application_number}_appeal_decisions",
+        container_metadata={
+            "container": application_number,
+            "application_number": application_number,
+        },
+        cap=_PTAB_APPEAL_DECISIONS_CAP,
+        container_kind="appeal decisions",
+    )
+
+
+@uspto_mcp.tool(annotations=READ_ONLY)
+async def download_ptab_interference_decisions(
+    interference_number: Annotated[
+        str,
+        "Pre-AIA interference number. Every decision issued in this interference is a candidate.",
+    ],
+    item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
+    after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
+    before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
+) -> dict:
+    """Bulk-download decisions for one pre-AIA interference.
+
+    Interferences are a legacy tribunal distinct from AIA trials and
+    appeals. Cap: 50 per call.
+    """
+    after_d = _ptab_parse_date(after, field_name="after")
+    before_d = _ptab_parse_date(before, field_name="before")
+
+    async with UsptoOdpClient() as client:
+        response = await client.get_interference_decisions_by_number(interference_number)
+    bag = getattr(response, "patentInterferenceDataBag", None) or []
+
+    id_set = set(item_ids) if item_ids else None
+    candidates: list[dict] = []
+    for entry in bag:
+        dd = getattr(entry, "decisionDocumentData", None) or getattr(entry, "documentData", None)
+        if not dd:
+            continue
+        doc_id = getattr(dd, "documentIdentifier", None)
+        uri = getattr(dd, "fileDownloadURI", None)
+        if not doc_id or not uri:
+            continue
+        if id_set and doc_id not in id_set:
+            continue
+        candidates.append(
+            {
+                "item_id": str(doc_id),
+                "file_download_uri": str(uri),
+                "decision_issue_date": getattr(dd, "decisionIssueDate", None),
+                "decision_type": getattr(dd, "decisionTypeCategory", None),
+                "interference_outcome": getattr(dd, "interferenceOutcomeCategory", None),
+                "document_title": getattr(dd, "documentTitleText", None)
+                or getattr(dd, "documentName", None),
+                "resource_path": f"ptab/interference-decisions/{doc_id}",
+                "filename": _ptab_decision_filename(
+                    container=interference_number,
+                    doc_id=str(doc_id),
+                    code=getattr(dd, "decisionTypeCategory", None),
+                    date=getattr(dd, "decisionIssueDate", None),
+                ),
+            }
+        )
+
+    candidates = _filter_by_date(
+        candidates, date_key="decision_issue_date", after=after_d, before=before_d
+    )
+
+    return await _run_ptab_bulk(
+        candidates=candidates,
+        container_label=f"{interference_number}_interference_decisions",
+        container_metadata={
+            "container": interference_number,
+            "interference_number": interference_number,
+        },
+        cap=_PTAB_INTERFERENCE_DECISIONS_CAP,
+        container_kind="interference decisions",
+    )
+
+
+def _ptab_document_filename(
+    *,
+    proceeding_number: str,
+    entry: dict,
+    fallback_code: str | None = None,
+) -> str:
+    """Build a filename for a PTAB trial doc/decision via the shared ptab_document helper."""
+    from law_tools_core.filenames import ptab_document as _ptab_name
+
+    return _ptab_name(
+        proceeding_number=proceeding_number,
+        filing_date=entry.get("document_filing_date"),
+        document_code=entry.get("document_type") or fallback_code,
+        document_identifier=entry["item_id"],
+    )
+
+
+def _ptab_decision_filename(
+    *,
+    container: str,
+    doc_id: str,
+    code: str | None,
+    date: str | None,
+) -> str:
+    """Build a filename for an appeal/interference decision."""
+    from law_tools_core.filenames import ptab_document as _ptab_name
+
+    return _ptab_name(
+        proceeding_number=container,
+        filing_date=date,
+        document_code=code,
+        document_identifier=doc_id,
+    )
 
 
 # ---------------------------------------------------------------------------

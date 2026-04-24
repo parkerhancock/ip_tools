@@ -87,6 +87,16 @@ class ParseError(LawToolsCoreError):
         self.raw_content = raw_content
 
 
+class BulkDownloadError(LawToolsCoreError):
+    """All items in a bulk download request failed to fetch.
+
+    Raised by ``download_bulk_response`` when no successful items are
+    available to assemble into a zip. Per-item failures that leave at
+    least one success do not raise — they go in the manifest with
+    ``status='error'`` instead.
+    """
+
+
 __all__ = [
     "LawToolsCoreError",
     "ApiError",

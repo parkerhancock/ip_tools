@@ -82,14 +82,18 @@ async with UsptoOdpClient() as client:
 | `search_applications` | Search USPTO patent applications by keyword or application number |
 | `get_application` | Get full metadata for a patent application |
 | `list_file_history` | List prosecution file-history documents with available formats per document |
-| `get_file_history_item` | Get a file-history item's content (format="auto" returns readable text via XML → PDF text layer → OCR; "pdf" returns base64; "xml" returns raw ST.96) |
+| `get_file_history_item` | Get a file-history item's **text content** (format="auto" → readable text via XML → PDF text layer → OCR; "xml" → raw ST.96 XML). PDF bytes moved to `download_file_history`. |
+| `download_file_history` | Bulk-download file-history PDFs for one application as a zip (n=1 → raw PDF). Cap: 50. Filters: `item_ids`, `document_codes`, `after`, `before`. |
 | `get_patent_family` | Get patent family relationships (continuations, divisionals) |
 | `get_patent_assignment` | Get assignment and ownership history for an application |
 | `get_patent_claims` | Structured patent claims from USPTO grant XML (falls back to Google Patents for non-US or when XML unavailable) |
 | `search_ptab(type, query, limit, offset)` | Search PTAB records. `type` = `proceeding` (AIA trials: IPR/PGR/CBM/DER), `trial_decision`, `trial_document`, `appeal_decision` (ex parte appeals), or `interference_decision`. |
 | `get_ptab(type, identifier)` | Fetch a single PTAB record. `identifier` is a trial number for `proceeding`; a document identifier for other types. |
 | `list_ptab_children(parent_type, parent_identifier, include)` | List decisions/documents for a parent record. `parent_type` = `trial` (include=decisions\|documents\|both), `application` (ex parte appeals, decisions only), or `interference` (decisions only). |
-| `download_ptab_document` | Download a PTAB trial document PDF |
+| `download_ptab_trial_documents` | Bulk-download party filings for one AIA trial (petitions, responses, exhibits, motions) as a zip. Cap: 100. Filters: `item_ids`, `after`, `before`. |
+| `download_ptab_trial_decisions` | Bulk-download board decisions for one AIA trial (institution, scheduling orders, FWD) as a zip. Cap: 50. |
+| `download_ptab_appeal_decisions` | Bulk-download ex parte appeal decisions for one application as a zip. Cap: 50. |
+| `download_ptab_interference_decisions` | Bulk-download pre-AIA interference decisions as a zip. Cap: 50. |
 | `search_petitions` | Search USPTO petition decisions |
 | `get_petition` | Get details for a specific petition decision |
 | `search_bulk_datasets` | Search available USPTO bulk data products |

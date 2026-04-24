@@ -18,10 +18,14 @@ compatibility with pre-split law-tools deployments.
 from .annotations import DOWNLOAD, READ_ONLY
 from .auth import make_auth, make_domain_gate_middleware
 from .downloads import (
+    BulkItem,
     build_download_url,
     build_download_url_or_fetch,
+    download_bulk_response,
     download_response,
+    fetch_with_cache,
     handle_download,
+    reap_stale_bulk_zips,
     register_source,
     sign_path,
     verify_path,
@@ -31,6 +35,7 @@ from .server_factory import build_server
 
 __all__ = [
     "BearerTokenAuth",
+    "BulkItem",
     "DOWNLOAD",
     "FriendlyErrors",
     "READ_ONLY",
@@ -38,10 +43,13 @@ __all__ = [
     "build_download_url",
     "build_download_url_or_fetch",
     "build_server",
+    "download_bulk_response",
     "download_response",
+    "fetch_with_cache",
     "handle_download",
     "make_auth",
     "make_domain_gate_middleware",
+    "reap_stale_bulk_zips",
     "register_source",
     "sign_path",
     "verify_path",

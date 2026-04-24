@@ -63,14 +63,18 @@ Find records matching a query.
 
 | Tool | Notes |
 |---|---|
-| `get_file_history_item` | Fetch a single prosecution document. `format="auto"` returns readable text (XML → PDF → OCR fallback); `format="pdf"` returns a signed download URL. |
+| `get_file_history_item` | Fetch a single prosecution document's **text content**. `format="auto"` returns readable text (XML → PDF text → OCR fallback); `format="xml"` returns raw ST.96. For PDF bytes use `download_file_history`. |
+| `download_file_history` | Bulk-download file-wrapper PDFs for one application as a zip (n=1 → raw PDF). Cap 50. Filters: `item_ids`, `document_codes`, `after`, `before`. |
 
 ## Downloads ⭑
 
 | Tool | Notes |
 |---|---|
 | `download_patent_pdf(patent_number)` | **Cross-source: Google → PPUBS → EPO cascade**. Response includes `source` field. See [downloads.md](downloads.md). |
-| `download_ptab_document` | PTAB trial document PDF (ODP) |
+| `download_ptab_trial_documents(trial_number, …)` | Bulk-download party filings for one AIA trial. Cap 100. |
+| `download_ptab_trial_decisions(trial_number, …)` | Bulk-download board decisions for one AIA trial. Cap 50. |
+| `download_ptab_appeal_decisions(application_number, …)` | Bulk-download ex parte appeal decisions for one application. Cap 50. |
+| `download_ptab_interference_decisions(interference_number, …)` | Bulk-download decisions for one pre-AIA interference. Cap 50. |
 
 ## Reference & utility
 

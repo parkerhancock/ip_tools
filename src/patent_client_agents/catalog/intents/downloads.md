@@ -60,8 +60,13 @@ OCR is needed before text extraction.
 
 ## Not included
 
-- `download_ptab_document` — stays separate. Different document class
-  (trial filings, not patent PDFs) with its own identifier space.
-- File-history documents — use `get_file_history_item(format="pdf")`
-  instead; that tool returns a signed download URL for the specific
-  prosecution document, not a patent PDF.
+- PTAB trial documents and decisions — use the container-bulk tools
+  (`download_ptab_trial_documents`, `download_ptab_trial_decisions`,
+  `download_ptab_appeal_decisions`, `download_ptab_interference_decisions`).
+  These are a different document class (trial filings, not patent PDFs)
+  with their own identifier space. n=1 is a raw PDF; n>1 is a zip.
+- File-history documents — use `download_file_history(application_number,
+  item_ids=[document_identifier])` for a single PDF (or a list of
+  identifiers for a bulk zip). Use `get_file_history_item` only for text
+  content (XML parsing, PDF text extraction, OCR); its `format='pdf'`
+  mode was removed in favor of `download_file_history`.
