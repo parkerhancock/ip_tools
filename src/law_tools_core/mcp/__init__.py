@@ -16,6 +16,7 @@ compatibility with pre-split law-tools deployments.
 """
 
 from .annotations import DOWNLOAD, READ_ONLY
+from .auth import make_auth, make_domain_gate_middleware
 from .downloads import (
     build_download_url,
     build_download_url_or_fetch,
@@ -39,6 +40,8 @@ __all__ = [
     "build_server",
     "download_response",
     "handle_download",
+    "make_auth",
+    "make_domain_gate_middleware",
     "register_source",
     "sign_path",
     "verify_path",
