@@ -436,20 +436,13 @@ server. Check the JSON config points at the right binary.
 ## 6. Remote MCP
 
 Use this when an MCP client (Claude Code, Claude Desktop, CoWork, Cursor,
-custom agent) should point at a deployed HTTPS endpoint instead of spawning
-a local subprocess.
+custom agent) should point at a hosted endpoint instead of spawning a
+local subprocess.
 
-The server side lives in a separate repo:
-[**parkerhancock/patent-client-agents-deploy**](https://github.com/parkerhancock/patent-client-agents-deploy).
-It packages this library with a FastAPI wrapper that adds Google OAuth
-(via FastMCP's `GoogleProvider`) and Firestore-backed per-user byte-rate
-limits, and ships Terraform + Cloud Build for a one-command GCP Cloud
-Run deployment. The public demo runs at **`https://mcp.patentclient.com`**.
+### Public demo
 
-### Using the hosted demo
-
-No tokens to paste — the MCP client does OAuth 2.1 + PKCE + Dynamic
-Client Registration on first connect. Just the URL:
+A hosted instance runs at **`https://mcp.patentclient.com`**. Add it to
+any MCP client with just the URL — no tokens, no setup:
 
 ```json
 {
@@ -461,28 +454,20 @@ Client Registration on first connect. Just the URL:
 }
 ```
 
-On first use, the client fetches
-`https://mcp.patentclient.com/.well-known/oauth-protected-resource/mcp`,
-registers itself at `/register`, and redirects you through Google
-sign-in. Subsequent requests reuse the granted token. Any verified
-Google account can authenticate; usage is rate-limited per account
-(20 MB/min burst, 100 MB/day by default).
+The first time you connect, you'll be sent to Google sign-in. Approve,
+and you're done. Any verified Google account works. Usage is rate-limited
+per account (100 MB/day, 20 MB/minute).
 
-Smoke-test discovery (no auth required for the metadata docs):
+This is a public demo — don't send confidential material through it.
+See the [Terms of Use](https://mcp.patentclient.com/terms).
 
-```bash
-curl -s https://mcp.patentclient.com/.well-known/oauth-authorization-server | jq .issuer
-# => "https://mcp.patentclient.com/"
+### Running your own
 
-curl -s -I -X POST https://mcp.patentclient.com/mcp \
-  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
-  -d '{}' | grep -i www-authenticate
-# Expect a Bearer challenge referencing /.well-known/oauth-protected-resource/mcp
-```
-
-A full `initialize` round-trip via `curl` isn't practical because the
-protocol requires DCR + an authorization-code exchange first; use an
-MCP-aware client (Claude, CoWork, mcp-inspector) instead.
+If you need higher limits, private data sources, or an internal instance
+with a domain restriction, the server code lives at
+[**parkerhancock/patent-client-agents-deploy**](https://github.com/parkerhancock/patent-client-agents-deploy).
+It deploys to GCP Cloud Run with one `gcloud builds submit`; see the
+deploy repo's README for the full walkthrough.
 
 ### Running your own
 
