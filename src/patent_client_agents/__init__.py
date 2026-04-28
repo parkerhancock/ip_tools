@@ -11,7 +11,7 @@ from .unified import (
     odp_limitations_from_text,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.5.1"
 
 _configure_logging("patent_client_agents")
 

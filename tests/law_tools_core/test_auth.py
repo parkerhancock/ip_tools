@@ -85,6 +85,27 @@ class TestMakeAuth:
         assert isinstance(result, StaticTokenVerifier)
 
 
+class TestDefaultRedirectUris:
+    """Pin the default redirect-URI allowlist used by ``make_auth``.
+
+    The default must cover both the Claude.ai web client and Claude Code's
+    native loopback callback (RFC 8252 §7.3). Regressing either forces
+    callers to override ``allowed_client_redirect_uris`` and reproduces the
+    "Redirect URI does not match allowed patterns" error during DCR.
+    """
+
+    def test_includes_claude_ai_web(self) -> None:
+        assert "https://claude.ai/*" in auth_module._DEFAULT_MCP_REDIRECT_URIS
+        assert "https://*.anthropic.com/*" in auth_module._DEFAULT_MCP_REDIRECT_URIS
+
+    def test_includes_native_loopback_for_claude_code(self) -> None:
+        # Claude Code (and other RFC 8252 native clients) bind a local HTTP
+        # listener on an ephemeral port. The ``:*`` wildcard makes any port
+        # match; userinfo bypass is rejected upstream by FastMCP.
+        assert "http://localhost:*" in auth_module._DEFAULT_MCP_REDIRECT_URIS
+        assert "http://127.0.0.1:*" in auth_module._DEFAULT_MCP_REDIRECT_URIS
+
+
 class TestGoogleHdHint:
     def test_single_domain_sets_hd(self) -> None:
         hint = auth_module._google_hd_hint(["bakerbotts.com"])

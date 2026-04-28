@@ -38,6 +38,13 @@ from . import _env
 _DEFAULT_MCP_REDIRECT_URIS: tuple[str, ...] = (
     "https://claude.ai/*",
     "https://*.anthropic.com/*",
+    # Native OAuth clients (Claude Code CLI, gcloud-style helpers) follow
+    # RFC 8252 §7.3 and bind a loopback listener on an ephemeral port,
+    # registering ``http://localhost:<port>/callback`` as their redirect.
+    # FastMCP rejects userinfo bypasses (``http://localhost@evil.com``)
+    # before pattern matching, so widening the loopback port is safe.
+    "http://localhost:*",
+    "http://127.0.0.1:*",
 )
 
 
