@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Assignor(BaseModel):
@@ -103,6 +103,16 @@ class AssignmentDetail(BaseModel):
     assignees: list[Any] = Field(default_factory=list)
     correspondent: Any | None = None
     documents: list[Any] = Field(default_factory=list)
+
+    @field_validator("assignees", "documents", mode="before")
+    @classmethod
+    def _coerce_empty_string_to_list(cls, v: Any) -> Any:
+        # The Assignment Center API occasionally serialises absent list-valued
+        # fields as the empty string "" rather than []. Normalise so callers
+        # always see a list.
+        if v == "":
+            return []
+        return v
 
     @property
     def reel_frame(self) -> str:
