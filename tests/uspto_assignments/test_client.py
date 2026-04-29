@@ -5,7 +5,9 @@ from __future__ import annotations
 import pytest
 
 from patent_client_agents.uspto_assignments import (
+    ApplicationAssignmentBundle,
     AssignmentCenterClient,
+    AssignmentDetail,
     AssignmentRecord,
     Assignor,
     Property,
@@ -57,6 +59,56 @@ class TestModels:
         assert record.assignors[0].assignor_name == "INVENTOR"
         assert record.assignees == ["COMPANY INC."]
         assert record.number_of_properties == 1
+
+    def test_assignment_detail_model(self) -> None:
+        """Test AssignmentDetail model parsing (search/patent endpoint shape)."""
+        data = {
+            "reelNumber": 58293,
+            "frameNumber": 75,
+            "conveyance": "CHANGE OF NAME",
+            "conveyanceCode": 33,
+            "recordationDate": "12/01/2021",
+            "receiptDate": "12/01/2021",
+            "mailDate": "12/08/2021",
+            "pageCount": 5,
+            "imageURL": "https://assignmentcenter.uspto.gov/.../58293/75",
+            "assignors": [{"assignorName": "LATCH, INC.", "executionDate": "06/01/2021"}],
+            "assignees": [{"assigneeName": "LATCH SYSTEMS, INC."}],
+        }
+        detail = AssignmentDetail.model_validate(data)
+        assert detail.reel_number == 58293
+        assert detail.frame_number == 75
+        assert detail.reel_frame == "58293/75"
+        assert detail.conveyance == "CHANGE OF NAME"
+        assert detail.conveyance_code == 33
+        assert detail.recordation_date == "12/01/2021"
+        assert detail.assignors[0].assignor_name == "LATCH, INC."
+
+    def test_application_assignment_bundle_model(self) -> None:
+        """Test ApplicationAssignmentBundle model parsing."""
+        data = {
+            "properties": {"applicationNumber": "16136935", "patentNumber": "10872483"},
+            "noOfAssignments": 2,
+            "assignment": [
+                {
+                    "reelNumber": 58293,
+                    "frameNumber": 75,
+                    "conveyance": "CHANGE OF NAME",
+                    "conveyanceCode": 33,
+                },
+                {
+                    "reelNumber": 47386,
+                    "frameNumber": 595,
+                    "conveyance": "ASSIGNMENT OF ASSIGNOR'S INTEREST",
+                    "conveyanceCode": 23,
+                },
+            ],
+        }
+        bundle = ApplicationAssignmentBundle.model_validate(data)
+        assert bundle.no_of_assignments == 2
+        assert len(bundle.assignment) == 2
+        assert bundle.assignment[0].conveyance == "CHANGE OF NAME"
+        assert bundle.assignment[1].conveyance == "ASSIGNMENT OF ASSIGNOR'S INTEREST"
 
 
 class TestClient:
@@ -126,6 +178,20 @@ class TestClient:
                 limit=5,
             )
             assert len(records) > 0
+
+    @pytest.mark.asyncio
+    async def test_get_application_assignments(self, vcr_cassette) -> None:
+        """Test fetching per-application assignment detail with conveyance type."""
+        async with AssignmentCenterClient() as client:
+            # Application 16136935 has three recordations, two of which are
+            # CHANGE OF NAME and one ASSIGNMENT OF ASSIGNOR'S INTEREST.
+            bundle = await client.get_application_assignments("16136935")
+            assert bundle.no_of_assignments >= 1
+            assert len(bundle.assignment) >= 1
+            # Conveyance type must be populated by this endpoint.
+            for asgn in bundle.assignment:
+                assert asgn.conveyance is not None
+                assert asgn.conveyance != ""
 
     @pytest.mark.asyncio
     async def test_search_requires_criteria(self) -> None:

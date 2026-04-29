@@ -7,7 +7,11 @@ from typing import Any
 
 from law_tools_core.base_client import BaseAsyncClient
 
-from .models import AssignmentRecord, AssignmentSearchResponse
+from .models import (
+    ApplicationAssignmentBundle,
+    AssignmentRecord,
+    AssignmentSearchResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -259,6 +263,59 @@ class AssignmentCenterClient(BaseAsyncClient):
 
         response = await self._search(criteria, start_row=start_row, limit=limit, timeout=timeout)
         return response.data
+
+    async def get_application_assignments(
+        self,
+        application_number: str,
+        *,
+        timeout: float = 60.0,
+    ) -> ApplicationAssignmentBundle:
+        """Fetch every recordation made against a single application, with conveyance.
+
+        Uses the Assignment Center's per-application detail endpoint
+        (``/ipas/search/api/v2/public/search/patent``) — the same one its
+        web UI calls. Unlike ``search_by_application()``, this endpoint
+        returns the conveyance type for each recordation
+        (e.g. ``"ASSIGNMENT OF ASSIGNOR'S INTEREST"``, ``"CHANGE OF NAME"``,
+        ``"SECURITY AGREEMENT"``) along with recordation date and a link to
+        the cover-sheet image.
+
+        Args:
+            application_number: USPTO application number (no slash, e.g. "16136935").
+            timeout: Request timeout in seconds.
+
+        Returns:
+            ApplicationAssignmentBundle with a ``properties`` block describing
+            the application and an ``assignment`` list of every recordation.
+            ``bundle.assignment`` is empty if the application has no recorded
+            assignments.
+
+        Example:
+            async with AssignmentCenterClient() as client:
+                bundle = await client.get_application_assignments("16136935")
+                for asgn in bundle.assignment:
+                    print(f"{asgn.reel_frame}  {asgn.conveyance}")
+        """
+        payload = {
+            "property": application_number,
+            "searchBy": "applicationNumber",
+            "dataFilter": {},
+        }
+        http_response = await self._request(
+            "POST",
+            "/ipas/search/api/v2/public/search/patent",
+            json=payload,
+            context="Application assignment detail",
+            timeout=timeout,
+        )
+        response_data: Any = http_response.json()
+
+        # Endpoint shape: {status, statusCode, error, successResponse: {data: {...}, ...}}
+        success = response_data.get("successResponse") if isinstance(response_data, dict) else None
+        data_obj = success.get("data") if isinstance(success, dict) else None
+        if not isinstance(data_obj, dict):
+            return ApplicationAssignmentBundle()
+        return ApplicationAssignmentBundle.model_validate(data_obj)
 
     async def search_all(
         self,

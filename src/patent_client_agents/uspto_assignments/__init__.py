@@ -24,6 +24,8 @@ Example:
 
 from .client import AssignmentCenterClient
 from .models import (
+    ApplicationAssignmentBundle,
+    AssignmentDetail,
     AssignmentRecord,
     AssignmentSearchResponse,
     Assignor,
@@ -33,6 +35,8 @@ from .models import (
 
 __all__ = [
     "AssignmentCenterClient",
+    "ApplicationAssignmentBundle",
+    "AssignmentDetail",
     "AssignmentRecord",
     "AssignmentSearchResponse",
     "Assignor",
