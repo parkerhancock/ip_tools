@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 import time
 import traceback
 from logging.handlers import RotatingFileHandler
@@ -133,26 +134,38 @@ _tool_logger.propagate = False
 
 
 def _configure_tool_logger() -> None:
-    """Attach a rotating file handler when LAW_TOOLS_CORE_LOG_DIR is set.
+    """Attach handlers based on env config. Safe to call multiple times.
 
-    Safe to call multiple times — a handler is added at most once.
+    Handlers attached:
+
+    * ``LAW_TOOLS_CORE_LOG_DIR=/path`` → rotating file at
+      ``<dir>/tool_calls.jsonl`` (50 MB × 5 backups). Right for VM-style
+      deploys where the filesystem persists.
+    * ``LAW_TOOLS_CORE_LOG_TO_STDOUT=true`` → stream handler to
+      ``sys.stdout``. Right for Cloud Run / container deploys where the
+      filesystem is ephemeral and stdout is captured by Cloud Logging.
+
+    Either, both, or neither. If neither is set, structured tool-call
+    logging is silently disabled (callers get tool results normally).
     """
     if _tool_logger.handlers:
         return
+    formatter = logging.Formatter("%(message)s")
     log_dir = _env.get("LOG_DIR")
-    if not log_dir:
-        return
-    path = Path(log_dir)
-    if not path.exists() and not log_dir:
-        return
-    path.mkdir(parents=True, exist_ok=True)
-    handler = RotatingFileHandler(
-        path / "tool_calls.jsonl",
-        maxBytes=50 * 1024 * 1024,  # 50 MB
-        backupCount=5,
-    )
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    _tool_logger.addHandler(handler)
+    if log_dir:
+        path = Path(log_dir)
+        path.mkdir(parents=True, exist_ok=True)
+        file_handler = RotatingFileHandler(
+            path / "tool_calls.jsonl",
+            maxBytes=50 * 1024 * 1024,  # 50 MB
+            backupCount=5,
+        )
+        file_handler.setFormatter(formatter)
+        _tool_logger.addHandler(file_handler)
+    if _env.get("LOG_TO_STDOUT").lower() in ("1", "true", "yes", "on"):
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(formatter)
+        _tool_logger.addHandler(stdout_handler)
 
 
 class ToolCallLogger(Middleware):
