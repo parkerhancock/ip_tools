@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from dataclasses import dataclass, field
+
 from pydantic import BaseModel, Field
 
 
@@ -17,7 +20,7 @@ class Property(BaseModel):
 
     sequence_number: int | None = Field(default=None, alias="sequenceNumber")
     application_number: str | None = Field(default=None, alias="applicationNumber")
-    filing_date: str | None = Field(default=None, alias="fillingDate")  # Note: API typo
+    filing_date: str | None = Field(default=None, alias="fillingDate")  # API typo
     patent_number: str | None = Field(default=None, alias="patentNumber")
     publication_number: str | None = Field(default=None, alias="publicationNumber")
     publication_date: str | None = Field(default=None, alias="publicationDate")
@@ -34,7 +37,9 @@ class Property(BaseModel):
 
 
 class AssignmentRecord(BaseModel):
-    """A single assignment record from the USPTO Assignment Center."""
+    """A single assignment recordation from the USPTO Assignment Center."""
+
+    model_config = {"extra": "allow"}
 
     reel_number: int = Field(alias="reelNumber")
     frame_number: int = Field(alias="frameNumber")
@@ -42,7 +47,8 @@ class AssignmentRecord(BaseModel):
     correspondent_name: str | None = Field(default=None, alias="correspondentName")
     assignors: list[Assignor] = Field(default_factory=list)
     assignees: list[str] = Field(default_factory=list)
-    conveyance_text: str | None = Field(default=None, alias="conveyanceText")
+    conveyance: str | None = None
+    conveyance_code: int | None = Field(default=None, alias="conveyanceCode")
     number_of_properties: int = Field(default=0, alias="noOfProperties")
     properties: list[Property] = Field(default_factory=list)
 
@@ -52,29 +58,36 @@ class AssignmentRecord(BaseModel):
         return f"{self.reel_number}/{self.frame_number}"
 
 
-class SearchCriterion(BaseModel):
-    """A search criterion echoed back in the response."""
+@dataclass
+class SearchResults:
+    """Result of :meth:`AssignmentCenterClient.search`.
 
-    property: str
-    search_by: str = Field(alias="searchBy")
+    Behaves as a list of :class:`AssignmentRecord` for the common case
+    (``for r in result``, ``len(result)``, ``result[0]``) while also exposing
+    ``total`` and ``truncated`` so callers know whether the USPTO ~10k cap
+    was hit.
+    """
 
+    records: list[AssignmentRecord] = field(default_factory=list)
+    total: int = 0
+    truncated: bool = False
 
-class AssignmentSearchResponse(BaseModel):
-    """Response from the Assignment Center search API."""
+    def __iter__(self) -> Iterator[AssignmentRecord]:
+        return iter(self.records)
 
-    search_criteria: list[SearchCriterion] = Field(default_factory=list, alias="searchCriteria")
-    data: list[AssignmentRecord] = Field(default_factory=list)
+    def __len__(self) -> int:
+        return len(self.records)
 
-    @property
-    def count(self) -> int:
-        """Number of records in this response."""
-        return len(self.data)
+    def __getitem__(self, index: int) -> AssignmentRecord:
+        return self.records[index]
+
+    def __bool__(self) -> bool:
+        return bool(self.records)
 
 
 __all__ = [
     "Assignor",
     "Property",
     "AssignmentRecord",
-    "SearchCriterion",
-    "AssignmentSearchResponse",
+    "SearchResults",
 ]
