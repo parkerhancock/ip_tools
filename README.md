@@ -1,4 +1,6 @@
-# patent-client-agents
+<p align="center">
+  <img src="docs/_static/patent_client_agents_logo.png" alt="patent-client-agents" width="600">
+</p>
 
 **Give your AI agent access to the world's patent data.**
 
