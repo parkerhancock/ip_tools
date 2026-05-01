@@ -1,7 +1,7 @@
 site_name: patent-client-agents
 site_description: Async Python library and MCP server for patent + IP data — USPTO, EPO, JPO, Google Patents, MPEP, CPC.
 site_author: Parker Hancock
-site_url: https://parkerhancock.github.io/patent-client-agents/
+site_url: https://docs.patentclient.com/
 
 repo_name: parkerhancock/patent-client-agents
 repo_url: https://github.com/parkerhancock/patent-client-agents
