@@ -9,7 +9,7 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
-  logo: _static/patent_client_agents_logo.svg
+  logo: _static/patent_client_agents_logo.png
   favicon: _static/patent_client_agents_icon.svg
   palette:
     - scheme: default

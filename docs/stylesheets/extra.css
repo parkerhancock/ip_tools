@@ -31,10 +31,19 @@
   background-color: var(--md-primary-fg-color);
 }
 
+/* White matte behind the wordmark so it reads against the cobalt header */
+.md-header__button.md-logo {
+  background: #ffffff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-right: 0.4rem;
+}
+
 .md-header__button.md-logo img,
 .md-header__button.md-logo svg {
-  height: 1.6rem;
+  height: 1.4rem;
   width: auto;
+  display: block;
 }
 
 .md-tabs {
