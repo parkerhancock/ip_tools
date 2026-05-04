@@ -181,18 +181,26 @@ def _build_static_verifier(api_key: str) -> StaticTokenVerifier:
     string, each value a dict with at minimum ``client_id`` and
     ``scopes``.
 
-    Scopes match the set GoogleProvider requires
-    (``["openid", "email", "profile"]``) so static-token callers
-    satisfy MultiAuth's scope check when GoogleProvider is also wired
-    up. Without this, cron / S2S callers using the static bearer would
-    get ``insufficient_scope`` 403s on every tool call in any
-    deployment that enables Google OAuth.
+    Scopes match the FULL-URL form GoogleProvider stores after
+    normalization. GoogleProvider's ``_normalize_google_scope`` expands
+    short names (``"email"`` → ``"https://www.googleapis.com/auth/userinfo.email"``)
+    before assigning to ``self.required_scopes``; the subsequent
+    ``issubset`` check is exact-string. So when MultiAuth wraps both
+    GoogleProvider and this static verifier, the static verifier must
+    claim the FULL URL form to satisfy the scope check on every cron /
+    S2S call. Without this, those callers get ``insufficient_scope``
+    403s in any deployment that enables Google OAuth alongside the
+    static bearer (the new Cloud Run deploy is the first such).
     """
     return StaticTokenVerifier(
         tokens={
             api_key: {
                 "client_id": "law-tools-core-service",
-                "scopes": ["openid", "email", "profile"],
+                "scopes": [
+                    "openid",
+                    "https://www.googleapis.com/auth/userinfo.email",
+                    "https://www.googleapis.com/auth/userinfo.profile",
+                ],
             }
         }
     )

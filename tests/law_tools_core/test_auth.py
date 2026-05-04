@@ -140,17 +140,19 @@ class TestMakeAuth:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         # Regression: when GoogleProvider AND static are both wired up
-        # via MultiAuth, GoogleProvider's required_scopes
-        # (["openid", "email", "profile"]) is enforced for ALL incoming
-        # bearer tokens — including static. The static verifier MUST
-        # claim a superset, or every cron call gets `insufficient_scope`.
+        # via MultiAuth, GoogleProvider's required_scopes are normalized
+        # to the FULL Google URL form (e.g. "email" →
+        # "https://www.googleapis.com/auth/userinfo.email") and the
+        # subsequent issubset check is exact-string. So the static
+        # verifier MUST claim the full URL form, or every cron call
+        # gets `insufficient_scope`.
         monkeypatch.setenv("LAW_TOOLS_CORE_API_KEY", "cron-secret")
         verifier = make_auth()
         assert isinstance(verifier, StaticTokenVerifier)
         token_record = verifier.tokens["cron-secret"]
         assert "openid" in token_record["scopes"]
-        assert "email" in token_record["scopes"]
-        assert "profile" in token_record["scopes"]
+        assert "https://www.googleapis.com/auth/userinfo.email" in token_record["scopes"]
+        assert "https://www.googleapis.com/auth/userinfo.profile" in token_record["scopes"]
 
 
 class TestDefaultRedirectUris:
