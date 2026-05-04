@@ -50,8 +50,8 @@ _DEFAULT_MCP_REDIRECT_URIS: tuple[str, ...] = (
 
 def make_auth(
     *,
-    base_url: str,
-    issuer_url: str,
+    base_url: str | None = None,
+    issuer_url: str | None = None,
     allowed_email_domains: Sequence[str] = (),
     allowed_client_redirect_uris: Sequence[str] = _DEFAULT_MCP_REDIRECT_URIS,
 ) -> AuthProvider | None:
@@ -60,11 +60,17 @@ def make_auth(
     Args:
         base_url: Public URL of this server including any mount path
             (e.g. ``https://mcp.bakerbotts.tools/law_tools``). Google's
-            redirect lands at ``{base_url}/auth/callback``.
+            redirect lands at ``{base_url}/auth/callback``. When ``None``,
+            falls back to ``LAW_TOOLS_CORE_PUBLIC_URL`` (or the legacy
+            ``LAW_TOOLS_PUBLIC_URL``) via :mod:`._env`.
         issuer_url: Root-level URL used as the OAuth issuer
             (e.g. ``https://mcp.bakerbotts.tools``). MUST be the host
             root, not a mount path — MCP clients probe
             ``/.well-known/oauth-authorization-server`` at this URL.
+            When ``None``, falls back to ``LAW_TOOLS_CORE_ISSUER_URL``,
+            then to ``base_url`` (after env resolution). Cloud Run-style
+            deployments where the FastMCP app mounts at root can leave
+            both unset and let the env supply a single URL for both.
         allowed_email_domains: If non-empty and exactly one domain,
             injected as Google's ``hd`` hint to pre-filter the account
             picker. This is a soft UX hint — actual enforcement lives in
@@ -76,6 +82,11 @@ def make_auth(
     Returns:
         Configured ``AuthProvider`` or ``None`` if no auth env vars are
         set (stdio / local dev).
+
+    Raises:
+        ValueError: if Google OAuth credentials are configured but
+            ``base_url`` is neither passed nor in env. Static-token-only
+            and stdio modes don't need URLs and don't raise.
     """
     google_client_id = _env.get("GOOGLE_OAUTH_CLIENT_ID")
     google_client_secret = _env.get("GOOGLE_OAUTH_CLIENT_SECRET")
@@ -84,11 +95,18 @@ def make_auth(
     static = _build_static_verifier(api_key) if api_key else None
 
     if google_client_id and google_client_secret:
+        resolved_base = base_url or _env.get("PUBLIC_URL")
+        resolved_issuer = issuer_url or _env.get("ISSUER_URL") or resolved_base
+        if not resolved_base:
+            raise ValueError(
+                "make_auth: Google OAuth requires base_url (pass arg or set "
+                "LAW_TOOLS_CORE_PUBLIC_URL)"
+            )
         google = GoogleProvider(
             client_id=google_client_id,
             client_secret=google_client_secret,
-            base_url=base_url,
-            issuer_url=issuer_url,
+            base_url=resolved_base,
+            issuer_url=resolved_issuer,
             required_scopes=["openid", "email", "profile"],
             allowed_client_redirect_uris=list(allowed_client_redirect_uris),
             extra_authorize_params=_google_hd_hint(allowed_email_domains),

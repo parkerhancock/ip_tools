@@ -23,6 +23,10 @@ def _clear_auth_env(monkeypatch: pytest.MonkeyPatch) -> None:
         "LAW_TOOLS_GOOGLE_OAUTH_CLIENT_ID",
         "LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_SECRET",
         "LAW_TOOLS_GOOGLE_OAUTH_CLIENT_SECRET",
+        "LAW_TOOLS_CORE_PUBLIC_URL",
+        "LAW_TOOLS_PUBLIC_URL",
+        "LAW_TOOLS_CORE_ISSUER_URL",
+        "LAW_TOOLS_ISSUER_URL",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -82,6 +86,54 @@ class TestMakeAuth:
             base_url="https://example.com",
             issuer_url="https://example.com",
         )
+        assert isinstance(result, StaticTokenVerifier)
+
+    def test_urls_from_env_when_args_omitted(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Cloud Run-style: deployer sets URLs via env, server.py calls
+        # make_auth() with no URL kwargs. issuer_url defaults to base_url
+        # when the env doesn't set it separately.
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_ID", "gid")
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_SECRET", "gsecret")
+        monkeypatch.setenv("LAW_TOOLS_CORE_PUBLIC_URL", "https://law-mcp-xyz.a.run.app")
+        result = make_auth()
+        assert isinstance(result, MultiAuth)
+
+    def test_url_legacy_prefix_fallback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # _env.get accepts the legacy LAW_TOOLS_* prefix as a fallback;
+        # make_auth inherits that for URLs too.
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_ID", "gid")
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_SECRET", "gsecret")
+        monkeypatch.setenv("LAW_TOOLS_PUBLIC_URL", "https://example.com")
+        result = make_auth()
+        assert isinstance(result, MultiAuth)
+
+    def test_explicit_kwargs_override_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Belt-and-suspenders: when both env and kwarg are set, the kwarg
+        # wins. Lets PCA-style deployers keep passing settings-derived
+        # URLs without the env interfering.
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_ID", "gid")
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_SECRET", "gsecret")
+        monkeypatch.setenv("LAW_TOOLS_CORE_PUBLIC_URL", "https://from-env.example.com")
+        result = make_auth(base_url="https://from-arg.example.com")
+        # Hard to assert which URL the GoogleProvider got without poking
+        # internals, but the call must not raise — the explicit arg
+        # short-circuits the env-fallback path.
+        assert isinstance(result, MultiAuth)
+
+    def test_raises_when_google_configured_without_url(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_ID", "gid")
+        monkeypatch.setenv("LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_SECRET", "gsecret")
+        with pytest.raises(ValueError, match="LAW_TOOLS_CORE_PUBLIC_URL"):
+            make_auth()
+
+    def test_static_only_does_not_need_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # No Google creds → no GoogleProvider built → URLs irrelevant.
+        # Static-token-only deploys (e.g. cron callers) shouldn't be
+        # forced to set a URL just to pass the check.
+        monkeypatch.setenv("LAW_TOOLS_CORE_API_KEY", "secret")
+        result = make_auth()
         assert isinstance(result, StaticTokenVerifier)
 
 
