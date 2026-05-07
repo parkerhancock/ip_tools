@@ -1,0 +1,135 @@
+interactions:
+- request:
+    body: grant_type=password&username=REDACTED_USERNAME&password=REDACTED_PASSWORD
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '64'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://ip-data.jpo.go.jp/auth/token
+  response:
+    body:
+      string: '{"access_token": "REDACTED_ACCESS_TOKEN", "expires_in": 3600, "refresh_expires_in":
+        28800, "refresh_token": "REDACTED_REFRESH_TOKEN", "token_type": "Bearer",
+        "id_token": "REDACTED_ID_TOKEN", "not-before-policy": 0, "session_state":
+        "REDACTED", "scope": "openid profile"}'
+    headers:
+      Cache-Control:
+      - no-store
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2790'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 07 May 2026 14:19:52 GMT
+      Referrer-Policy:
+      - no-referrer
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Via:
+      - 1.1 8effee3aa40a71b9ac0a963e0f02b7e0.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - FGdmnRhXrbKpJay8rHvn3I1Jm5BNIVdpUENCTX1RwQJiv950SPoDCg==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f88-4b4408db4887a4a001dd8a42
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3dUGY8tjMEiCw=
+      x-amzn-RequestId:
+      - c43fd507-bccf-4d86-b8ca-320e9efefe1f
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - application/json, application/zip
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+      authorization:
+      - REDACTED
+    method: GET
+    uri: https://ip-data.jpo.go.jp/api/patent/v1/jpp_fixed_address/2020123456
+  response:
+    body:
+      string: '{"result":{"statusCode":"100","errorMessage":"","remainAccessCount":"394","data":{"URL":"https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2020-123456/186AE6828C0FA152B99E21C174948495B09F7186518B0AC4DB6CD83E8D3E0ECC/10/ja"}}}'
+    headers:
+      Allow:
+      - GET, HEAD, OPTIONS
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '221'
+      Content-Type:
+      - application/json
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Thu, 07 May 2026 14:19:54 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Cookie
+      Via:
+      - 1.1 434785882f05cb88e488bf5372fd0000.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - 1hqaBYgWOY43L6484uMY5N2sOH3qskqTfDCpJzllsIJTbx6Rp6_WfA==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f88-1ff3d60664637cf46dd34fdb
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3daG27NjMEWyA=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '221'
+      x-amzn-Remapped-Date:
+      - Thu, 07 May 2026 14:19:54 GMT
+      x-amzn-Remapped-Server:
+      - gunicorn
+      x-amzn-RequestId:
+      - 0a9fe1ed-015d-47bb-b527-373c3eb91d7e
+    status:
+      code: 200
+      message: OK
+version: 1

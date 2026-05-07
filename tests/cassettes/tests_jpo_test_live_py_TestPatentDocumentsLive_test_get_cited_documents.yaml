@@ -1,0 +1,148 @@
+interactions:
+- request:
+    body: grant_type=password&username=REDACTED_USERNAME&password=REDACTED_PASSWORD
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '64'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://ip-data.jpo.go.jp/auth/token
+  response:
+    body:
+      string: '{"access_token": "REDACTED_ACCESS_TOKEN", "expires_in": 3600, "refresh_expires_in":
+        28800, "refresh_token": "REDACTED_REFRESH_TOKEN", "token_type": "Bearer",
+        "id_token": "REDACTED_ID_TOKEN", "not-before-policy": 0, "session_state":
+        "REDACTED", "scope": "openid profile"}'
+    headers:
+      Cache-Control:
+      - no-store
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2790'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 07 May 2026 14:19:42 GMT
+      Referrer-Policy:
+      - no-referrer
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Via:
+      - 1.1 33296fd8128d04868ae5ae8907ff3c6c.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - 6Cqp8zzvw90vE2PQKwCmc6MrsbHwsX8UoaT1jyrafUWeRfhEGTkA7g==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f7e-0419ffce71f0dbf731916fa0
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3b1Es0NjMEAsg=
+      x-amzn-RequestId:
+      - dd57eecb-6563-40d0-8787-f097ae93796e
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - application/json, application/zip
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+      authorization:
+      - REDACTED
+    method: GET
+    uri: https://ip-data.jpo.go.jp/api/patent/v1/cite_doc_info/2020123456
+  response:
+    body:
+      string: '{"result":{"statusCode":"100","errorMessage":"","remainAccessCount":"93","data":{"applicationNumber":"2020123456","patentDoc":[{"draftDate":"20240220","citationType":"19","citationOrder":"1","documentNumber":"JPA
+        414233033"},{"draftDate":"20240220","citationType":"19","citationOrder":"2","documentNumber":"JPA
+        416064039"},{"draftDate":"20240220","citationType":"19","citationOrder":"3","documentNumber":"JPA
+        404087383"},{"draftDate":"20240220","citationType":"19","citationOrder":"4","documentNumber":"JPA
+        360046093"},{"draftDate":"20240220","citationType":"19","citationOrder":"5","documentNumber":"JPA
+        408167522"},{"draftDate":"20240220","citationType":"89","citationOrder":"1","documentNumber":"JPA
+        409074283"},{"draftDate":"20240704","citationType":"31","citationOrder":"1","documentNumber":"JPA
+        414233033"},{"draftDate":"20240704","citationType":"31","citationOrder":"2","documentNumber":"JPA
+        416064039"},{"draftDate":"20240704","citationType":"31","citationOrder":"3","documentNumber":"JPA
+        404087383"},{"draftDate":"20240704","citationType":"31","citationOrder":"4","documentNumber":"JPA
+        360046093"},{"draftDate":"20240704","citationType":"31","citationOrder":"5","documentNumber":"JPA
+        408167522"},{"draftDate":"20240704","citationType":"31","citationOrder":"6","documentNumber":"JPA
+        409074283"},{"draftDate":"20240704","citationType":"31","citationOrder":"7","documentNumber":"JPA
+        415248131"}],"nonPatentDoc":[]}}}'
+    headers:
+      Allow:
+      - GET, HEAD, OPTIONS
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1422'
+      Content-Type:
+      - application/json
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Thu, 07 May 2026 14:19:45 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Cookie
+      Via:
+      - 1.1 968842023e92f9868a60ec906f146c2c.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - Q4p5rl8BAkpR9JMfz6tHUQ2ySi3TpeoeQELabLE5p3EmeByNGovirg==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f7f-229dcad90b5cdd046c56f7a4
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3b7GVMNjMEWwg=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '1422'
+      x-amzn-Remapped-Date:
+      - Thu, 07 May 2026 14:19:45 GMT
+      x-amzn-Remapped-Server:
+      - gunicorn
+      x-amzn-RequestId:
+      - 8768412c-c5f0-4be4-a5e7-11d7e8711a7e
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -17,6 +17,7 @@ compatibility with pre-split law-tools deployments.
 
 from .annotations import DOWNLOAD, READ_ONLY
 from .auth import make_auth, make_domain_gate_middleware
+from .conditional import conditional_tool, register_source_if_configured
 from .downloads import (
     BulkItem,
     build_download_url,
@@ -43,6 +44,7 @@ __all__ = [
     "build_download_url",
     "build_download_url_or_fetch",
     "build_server",
+    "conditional_tool",
     "download_bulk_response",
     "download_response",
     "fetch_with_cache",
@@ -51,6 +53,7 @@ __all__ = [
     "make_domain_gate_middleware",
     "reap_stale_bulk_zips",
     "register_source",
+    "register_source_if_configured",
     "sign_path",
     "verify_path",
 ]

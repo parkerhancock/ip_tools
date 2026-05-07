@@ -5,6 +5,42 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — 2026-05-07
+
+### Added
+
+- **Env-gated MCP tool registration** via
+  `law_tools_core.mcp.conditional_tool` and the parallel
+  `register_source_if_configured` helper. Tools registered with
+  `@conditional_tool(mcp, requires_env=[...])` only appear in
+  `tool/list` when every named env var is set and non-empty;
+  otherwise the function is still callable from Python but no
+  MCP-side registration happens. Decorator-time gate (no per-call
+  overhead); restart the process to pick up env changes.
+- All 12 JPO MCP tools (`get_jpo_progress`, `get_jpo_progress_simple`,
+  `get_jpo_priority_info`, `get_jpo_registration_info`,
+  `get_jpo_number_reference`, `get_jpo_jplatpat_url`,
+  `get_jpo_applicant_by_code`, `get_jpo_applicant_by_name`,
+  `get_jpo_documents`, `get_jpo_patent_divisional_info`,
+  `get_jpo_patent_cited_documents`,
+  `get_jpo_pct_national_phase_number`) now auto-register only when
+  both `JPO_API_USERNAME` and `JPO_API_PASSWORD` are set. The
+  `jpo/documents` download fetcher uses
+  `register_source_if_configured` for the same env gate (defense
+  in depth).
+- The hosted public deploy at `mcp.patentclient.com` intentionally
+  does NOT carry these keys per JPO TOS; private deploys (e.g.
+  law-tools on `bb-law-mcp-prod`) flip JPO on by mounting the
+  secrets in their own Cloud Run env.
+
+### Changed
+
+- This is a behavior change for any deployment that previously
+  saw `get_jpo_*` tools advertised without JPO credentials in
+  the env. The tools were already non-functional in that case
+  (every call failed at OAuth2 password-grant time); now they
+  no longer appear in `tool/list`.
+
 ## [0.6.6] — 2026-05-05
 
 ### Fixed

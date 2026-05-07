@@ -1,0 +1,167 @@
+interactions:
+- request:
+    body: grant_type=password&username=REDACTED_USERNAME&password=REDACTED_PASSWORD
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '64'
+      content-type:
+      - application/x-www-form-urlencoded
+      host:
+      - ip-data.jpo.go.jp
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://ip-data.jpo.go.jp/auth/token
+  response:
+    body:
+      string: '{"access_token": "REDACTED_ACCESS_TOKEN", "expires_in": 3600, "refresh_expires_in":
+        28800, "refresh_token": "REDACTED_REFRESH_TOKEN", "token_type": "Bearer",
+        "id_token": "REDACTED_ID_TOKEN", "not-before-policy": 0, "session_state":
+        "REDACTED", "scope": "openid profile"}'
+    headers:
+      Cache-Control:
+      - no-store
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '270'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 07 May 2026 15:22:57 GMT
+      Referrer-Policy:
+      - no-referrer
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Via:
+      - 1.1 cdb593e085c35596a44093f23350a6a2.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - BQ-gaspg81zPjKheZnJ7ZI7Z1snhOiEY5GGAwDJRF4rZvn8xv_foqw==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fcae51-092f0da531eec2804e9ab7bd
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - dAAsyGfptjMENCQ=
+      x-amzn-RequestId:
+      - ec152080-0b66-4cf8-bda3-2b3a5de6d3b9
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/json, application/zip
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - REDACTED
+      connection:
+      - keep-alive
+      host:
+      - ip-data.jpo.go.jp
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://ip-data.jpo.go.jp/api/design/v1/app_doc_cont_refusal_reason/2021019500
+  response:
+    body:
+      string: !!binary |
+        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
+        VE1QSwUGAAAAAAEAAQA+AAAAOQYAAAAA
+    headers:
+      Allow:
+      - GET, HEAD, OPTIONS
+      Connection:
+      - keep-alive
+      Content-Disposition:
+      - attachment;filename=docContRefusalReason_2021019500.zip
+      Content-Length:
+      - '1677'
+      Content-Type:
+      - application/zip
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Thu, 07 May 2026 15:23:00 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Cookie
+      Via:
+      - 1.1 aca99b28083d8a34e20c40dbd89ecfce.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - UCPrOK4odPwu2r1Ko-zhIjWcuG38bHIddQJuspFlPz4PSLJwtJ4pFw==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fcae51-27b3c3bb4d872ee071a24e27
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - dAAs3GPMtjMEp-A=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '1677'
+      x-amzn-Remapped-Date:
+      - Thu, 07 May 2026 15:23:00 GMT
+      x-amzn-Remapped-Server:
+      - gunicorn
+      x-amzn-RequestId:
+      - 5d5c1def-9f83-40be-b844-d41831434cbf
+    status:
+      code: 200
+      message: OK
+version: 1

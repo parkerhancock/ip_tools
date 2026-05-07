@@ -1,49 +1,56 @@
-"""Tests for JPO models."""
+"""Tests for JPO models — built from real production payloads (2026-05-07)."""
 
 from __future__ import annotations
 
 from patent_client_agents.jpo.models import (
+    EMPTY_STATUS_CODES,
     ApiResult,
     ApplicantAttorney,
     ApplicantAttorneyClass,
-    ApplicantCodeResponse,
-    ApplicantNameResponse,
-    ApplicationDocumentsData,
-    CitedDocumentInfo,
+    BibliographyDocument,
+    BibliographyInformation,
+    CaseNumberKind,
+    CitedDocumentsData,
     DesignProgressData,
+    DivisionalAppInfoData,
     DivisionalApplicationInfo,
-    DocumentContent,
+    DocumentBundleResult,
+    DocumentSeparator,
     DocumentType,
-    FiClassification,
-    FTermClassification,
-    IpcClassification,
-    JplatpatFixedAddress,
-    JplatpatUrlResponse,
+    GoodsServiceInformation,
+    NonPatentCitedDocument,
     NumberReference,
-    NumberReferenceResponse,
     NumberType,
+    ParentApplicationInfo,
+    PatentCitedDocument,
     PatentProgressData,
-    PatentProgressResponse,
+    PctKind,
     PctNationalPhaseData,
     PriorityInfo,
-    ProcedureInfo,
-    RefusalReasonInfo,
     RegistrationInfo,
+    RightPersonInfo,
     SimplifiedPatentProgressData,
-    SimplifiedPatentProgressResponse,
     StatusCode,
     TrademarkProgressData,
 )
 
+# =============================================================================
+# Enum tests
+# =============================================================================
+
 
 class TestStatusCode:
-    """Tests for StatusCode enum."""
-
     def test_success_value(self) -> None:
         assert StatusCode.SUCCESS.value == "100"
 
     def test_no_data_value(self) -> None:
         assert StatusCode.NO_DATA.value == "107"
+
+    def test_no_document_value(self) -> None:
+        assert StatusCode.NO_DOCUMENT.value == "108"
+
+    def test_unavailable_number_value(self) -> None:
+        assert StatusCode.UNAVAILABLE_NUMBER.value == "111"
 
     def test_daily_limit_value(self) -> None:
         assert StatusCode.DAILY_LIMIT_EXCEEDED.value == "203"
@@ -51,13 +58,21 @@ class TestStatusCode:
     def test_invalid_token_value(self) -> None:
         assert StatusCode.INVALID_TOKEN.value == "210"
 
+    def test_concentrated_access_value(self) -> None:
+        assert StatusCode.CONCENTRATED_ACCESS.value == "303"
+
     def test_all_codes_are_strings(self) -> None:
         for code in StatusCode:
             assert isinstance(code.value, str)
 
+    def test_empty_status_codes_includes_111(self) -> None:
+        assert StatusCode.UNAVAILABLE_NUMBER.value in EMPTY_STATUS_CODES
+        assert StatusCode.NO_DATA.value in EMPTY_STATUS_CODES
+        assert StatusCode.NO_DOCUMENT.value in EMPTY_STATUS_CODES
+
 
 class TestNumberType:
-    """Tests for NumberType enum."""
+    """The numeric numberType codes used inside bibliographyInformation."""
 
     def test_application_value(self) -> None:
         assert NumberType.APPLICATION.value == "01"
@@ -72,9 +87,26 @@ class TestNumberType:
         assert NumberType.PCT_APPLICATION.value == "10"
 
 
-class TestApplicantAttorneyClass:
-    """Tests for ApplicantAttorneyClass enum."""
+class TestCaseNumberKind:
+    def test_application_value(self) -> None:
+        assert CaseNumberKind.APPLICATION.value == "application"
 
+    def test_publication_value(self) -> None:
+        assert CaseNumberKind.PUBLICATION.value == "publication"
+
+    def test_registration_value(self) -> None:
+        assert CaseNumberKind.REGISTRATION.value == "registration"
+
+
+class TestPctKind:
+    def test_international_application_value(self) -> None:
+        assert PctKind.INTERNATIONAL_APPLICATION.value == "international_application"
+
+    def test_international_publication_value(self) -> None:
+        assert PctKind.INTERNATIONAL_PUBLICATION.value == "international_publication"
+
+
+class TestApplicantAttorneyClass:
     def test_applicant_value(self) -> None:
         assert ApplicantAttorneyClass.APPLICANT.value == "1"
 
@@ -82,22 +114,27 @@ class TestApplicantAttorneyClass:
         assert ApplicantAttorneyClass.ATTORNEY.value == "2"
 
 
-class TestDocumentType:
-    """Tests for DocumentType enum."""
-
+class TestDocumentSeparator:
     def test_biblio_value(self) -> None:
-        assert DocumentType.BIBLIO.value == "S"
+        assert DocumentSeparator.BIBLIO.value == "S"
 
     def test_claims_value(self) -> None:
-        assert DocumentType.CLAIMS.value == "L"
+        assert DocumentSeparator.CLAIMS.value == "L"
 
     def test_drawings_value(self) -> None:
-        assert DocumentType.DRAWINGS.value == "Z"
+        assert DocumentSeparator.DRAWINGS.value == "Z"
+
+    def test_document_type_alias(self) -> None:
+        # DocumentType retained as a backwards-compat alias.
+        assert DocumentType is DocumentSeparator
+
+
+# =============================================================================
+# ApiResult
+# =============================================================================
 
 
 class TestApiResult:
-    """Tests for ApiResult model."""
-
     def test_creates_from_alias(self) -> None:
         result = ApiResult(
             statusCode="100",
@@ -119,24 +156,24 @@ class TestApiResult:
         assert result.status_code == "100"
 
     def test_is_success_true(self) -> None:
-        result = ApiResult(statusCode="100")
-        assert result.is_success is True
+        assert ApiResult(statusCode="100").is_success is True
 
     def test_is_success_false(self) -> None:
-        result = ApiResult(statusCode="107")
-        assert result.is_success is False
+        assert ApiResult(statusCode="107").is_success is False
 
     def test_has_data_true(self) -> None:
-        result = ApiResult(statusCode="100")
-        assert result.has_data is True
+        assert ApiResult(statusCode="100").has_data is True
 
     def test_has_data_false_no_data(self) -> None:
-        result = ApiResult(statusCode="107")
-        assert result.has_data is False
+        assert ApiResult(statusCode="107").has_data is False
 
     def test_has_data_false_no_document(self) -> None:
-        result = ApiResult(statusCode="108")
-        assert result.has_data is False
+        assert ApiResult(statusCode="108").has_data is False
+
+    def test_has_data_false_unavailable_number(self) -> None:
+        # 111 (out of scope) is treated as "no data" so callers don't need
+        # to special-case it.
+        assert ApiResult(statusCode="111").has_data is False
 
     def test_defaults(self) -> None:
         result = ApiResult(statusCode="100")
@@ -145,9 +182,12 @@ class TestApiResult:
         assert result.data is None
 
 
-class TestApplicantAttorney:
-    """Tests for ApplicantAttorney model."""
+# =============================================================================
+# Component models
+# =============================================================================
 
+
+class TestApplicantAttorney:
     def test_creates_from_alias(self) -> None:
         applicant = ApplicantAttorney(
             applicantAttorneyCd="123456789",
@@ -165,114 +205,121 @@ class TestApplicantAttorney:
 
 
 class TestPriorityInfo:
-    """Tests for PriorityInfo model."""
+    """PriorityInfo now mirrors the live priorityRightInformation rows."""
 
-    def test_creates_from_alias(self) -> None:
+    def test_paris_priority(self) -> None:
         priority = PriorityInfo(
-            priorityNumber="US12345",
-            priorityDate="2020-01-01",
-            priorityCountryCd="US",
+            parisPriorityApplicationNumber="US63/123456",
+            parisPriorityDate="20200115",
+            parisPriorityCountryCd="US",
         )
-        assert priority.priority_number == "US12345"
-        assert priority.priority_country_cd == "US"
+        assert priority.paris_priority_application_number == "US63/123456"
+        assert priority.paris_priority_country_cd == "US"
+
+    def test_national_priority(self) -> None:
+        priority = PriorityInfo.model_validate(
+            {
+                "nationalPriorityLawCd": "1",
+                "nationalPriorityApplicationNumber": "2019210418",
+                "nationalPriorityDate": "20191121",
+            }
+        )
+        assert priority.national_priority_law_cd == "1"
+        assert priority.national_priority_application_number == "2019210418"
+        assert priority.national_priority_date == "20191121"
+
+    def test_defaults_blank(self) -> None:
+        priority = PriorityInfo()
+        assert priority.paris_priority_application_number == ""
+        assert priority.national_priority_application_number == ""
+
+
+class TestParentApplicationInfo:
+    def test_full(self) -> None:
+        parent = ParentApplicationInfo(
+            parentApplicationNumber="2018005678",
+            filingDate="20180101",
+            parentApplicationCategory="01",
+            parentApplicationLawCode="1",
+        )
+        assert parent.parent_application_number == "2018005678"
+        assert parent.filing_date == "20180101"
 
 
 class TestDivisionalApplicationInfo:
-    """Tests for DivisionalApplicationInfo model."""
-
-    def test_creates_from_alias(self) -> None:
-        div = DivisionalApplicationInfo(
-            applicationNumber="2020123456",
-            filingDate="2020-05-01",
-            relationship="child",
+    def test_full_row(self) -> None:
+        div = DivisionalApplicationInfo.model_validate(
+            {
+                "applicationNumber": "2021100000",
+                "publicationNumber": "JP-2022-1",
+                "ADPublicationNumber": "2022-001",
+                "registrationNumber": "7000001",
+                "divisionalGeneration": "1",
+                "erasureIdentifier": "00",
+            }
         )
-        assert div.application_number == "2020123456"
-        assert div.relationship == "child"
+        assert div.application_number == "2021100000"
+        assert div.divisional_generation == "1"
+        assert div.ad_publication_number == "2022-001"
 
 
-class TestClassificationModels:
-    """Tests for classification models."""
-
-    def test_ipc_classification(self) -> None:
-        ipc = IpcClassification(ipcCode="H01L21/00", ipcVersion="2020.01")
-        assert ipc.ipc_code == "H01L21/00"
-        assert ipc.ipc_version == "2020.01"
-
-    def test_fi_classification(self) -> None:
-        fi = FiClassification(fiCode="5F110AA01")
-        assert fi.fi_code == "5F110AA01"
-
-    def test_fterm_classification(self) -> None:
-        fterm = FTermClassification(fTermTheme="5B035", fTerm="AA01")
-        assert fterm.f_term_theme == "5B035"
-        assert fterm.f_term == "AA01"
-
-
-class TestProcedureInfo:
-    """Tests for ProcedureInfo model."""
-
-    def test_creates_from_alias(self) -> None:
-        proc = ProcedureInfo(
-            documentCd="A00",
-            documentName="Request for Examination",
-            receiptDate="2020-06-01",
-            sendingDate="",
-            documentNumber="12345",
+class TestBibliographyInformation:
+    def test_with_documents(self) -> None:
+        bib = BibliographyInformation.model_validate(
+            {
+                "numberType": "01",
+                "number": "2020123456",
+                "documentList": [
+                    {
+                        "legalDate": "20200720",
+                        "irirFlg": "0",
+                        "availabilityFlag": "1",
+                        "documentCode": "A63",
+                        "documentDescription": "要約書",
+                        "documentNumber": "52001475960",
+                        "versionNumber": "0001",
+                        "documentSeparator": "Y",
+                        "numberOfPages": "0",
+                        "sizeOfDocument": "1208",
+                    },
+                ],
+            }
         )
-        assert proc.document_cd == "A00"
-        assert proc.document_name == "Request for Examination"
+        assert bib.number_type == "01"
+        assert len(bib.document_list) == 1
+        assert bib.document_list[0].document_description == "要約書"
+        assert isinstance(bib.document_list[0], BibliographyDocument)
 
 
-class TestRefusalReasonInfo:
-    """Tests for RefusalReasonInfo model."""
+class TestRightPersonInfo:
+    def test_basic(self) -> None:
+        rp = RightPersonInfo(rightPersonCd="000114400", rightPersonName="Test Co")
+        assert rp.right_person_cd == "000114400"
+        assert rp.right_person_name == "Test Co"
 
-    def test_creates_from_alias(self) -> None:
-        reason = RefusalReasonInfo(
-            documentNumber="12345",
-            sendingDate="2021-01-15",
-            refusalReasonCd="29-1",
+
+class TestGoodsServiceInformation:
+    def test_basic(self) -> None:
+        gs = GoodsServiceInformation(
+            goodsServiceClass="36",
+            goodsServiceName="建物の管理",
+            similarCode="36D01",
         )
-        assert reason.refusal_reason_cd == "29-1"
+        assert gs.goods_service_class == "36"
+        assert gs.similar_code == "36D01"
 
 
-class TestCitedDocumentInfo:
-    """Tests for CitedDocumentInfo model."""
-
-    def test_creates_from_alias(self) -> None:
-        cite = CitedDocumentInfo(
-            documentNumber="12345",
-            citationCategory="X",
-            citationDocument="JP2019-123456A",
-        )
-        assert cite.citation_category == "X"
-        assert cite.citation_document == "JP2019-123456A"
-
-
-class TestRegistrationInfo:
-    """Tests for RegistrationInfo model."""
-
-    def test_creates_from_alias(self) -> None:
-        reg = RegistrationInfo(
-            registrationNumber="7000001",
-            registrationDate="2022-01-01",
-            expirationDate="2042-01-01",
-        )
-        assert reg.registration_number == "7000001"
-        assert reg.expiration_date == "2042-01-01"
+# =============================================================================
+# Patent progress
+# =============================================================================
 
 
 class TestPatentProgressData:
-    """Tests for PatentProgressData model."""
-
     def test_creates_full_model(self) -> None:
         data = PatentProgressData(
             applicationNumber="2020123456",
             inventionTitle="Test Invention",
-            filingDate="2020-01-15",
-            publicationNumber="2021-123456",
-            publicationDate="2021-07-15",
-            registrationNumber="7000001",
-            registrationDate="2022-03-01",
+            filingDate="20200115",
         )
         assert data.application_number == "2020123456"
         assert data.invention_title == "Test Invention"
@@ -280,248 +327,317 @@ class TestPatentProgressData:
     def test_nested_lists_default_empty(self) -> None:
         data = PatentProgressData(applicationNumber="2020123456")
         assert data.applicant_attorney == []
-        assert data.priority_info == []
-        assert data.ipc_classification == []
-        assert data.procedure_info == []
+        assert data.priority_right_information == []
+        assert data.divisional_application_information == []
+        assert data.bibliography_information == []
+        assert data.parent_application_information is None
 
-    def test_with_nested_objects(self) -> None:
+    def test_with_real_priority_payload(self) -> None:
         data = PatentProgressData.model_validate(
             {
                 "applicationNumber": "2020123456",
-                "inventionTitle": "Test",
-                "applicantAttorney": [{"applicantAttorneyCd": "123", "name": "Test Corp"}],
-                "ipcClassification": [{"ipcCode": "H01L21/00", "ipcVersion": "2020"}],
+                "inventionTitle": "立体配線構造体の製造方法",
+                "applicantAttorney": [
+                    {
+                        "applicantAttorneyCd": "000114400",
+                        "name": "メイショウ株式会社",
+                        "applicantAttorneyClass": "1",
+                    }
+                ],
+                "priorityRightInformation": [
+                    {
+                        "nationalPriorityLawCd": "1",
+                        "nationalPriorityApplicationNumber": "2019210418",
+                        "nationalPriorityDate": "20191121",
+                    }
+                ],
+                "bibliographyInformation": [
+                    {
+                        "numberType": "01",
+                        "number": "2020123456",
+                        "documentList": [],
+                    }
+                ],
+                "parentApplicationInformation": {},
+                "divisionalApplicationInformation": [],
             }
         )
         assert len(data.applicant_attorney) == 1
-        assert data.applicant_attorney[0].name == "Test Corp"
-        assert len(data.ipc_classification) == 1
+        assert data.applicant_attorney[0].name == "メイショウ株式会社"
+        assert len(data.priority_right_information) == 1
+        assert (
+            data.priority_right_information[0].national_priority_application_number == "2019210418"
+        )
+        assert len(data.bibliography_information) == 1
+        # Empty parentApplicationInformation object materialises to a stub
+        # ParentApplicationInfo (not None) — that's acceptable.
+        assert data.parent_application_information is not None
+        assert data.parent_application_information.parent_application_number == ""
 
 
 class TestSimplifiedPatentProgressData:
-    """Tests for SimplifiedPatentProgressData model."""
+    """SimplifiedPatentProgressData inherits from PatentProgressData."""
 
     def test_creates_model(self) -> None:
         data = SimplifiedPatentProgressData(
             applicationNumber="2020123456",
-            inventionTitle="Test Invention",
+            inventionTitle="Test",
         )
         assert data.application_number == "2020123456"
+        assert isinstance(data, PatentProgressData)
 
-    def test_has_procedure_info(self) -> None:
+    def test_no_priority_field_in_simple(self) -> None:
         data = SimplifiedPatentProgressData.model_validate(
             {
                 "applicationNumber": "2020123456",
-                "procedureInfo": [{"documentCd": "A00", "documentName": "Test"}],
+                "inventionTitle": "Test",
+                "bibliographyInformation": [],
             }
         )
-        assert len(data.procedure_info) == 1
+        # priority field present but empty by default
+        assert data.priority_right_information == []
+
+
+# =============================================================================
+# Divisional info (top-level wrapper)
+# =============================================================================
+
+
+class TestDivisionalAppInfoData:
+    def test_empty(self) -> None:
+        data = DivisionalAppInfoData.model_validate(
+            {
+                "applicationNumber": "2020123456",
+                "parentApplicationInformation": {},
+                "divisionalApplicationInformation": [],
+            }
+        )
+        assert data.application_number == "2020123456"
+        assert data.divisional_application_information == []
+        assert data.parent_application_information is not None
+
+    def test_with_descendants(self) -> None:
+        data = DivisionalAppInfoData.model_validate(
+            {
+                "applicationNumber": "2020123456",
+                "divisionalApplicationInformation": [
+                    {"applicationNumber": "2021100000", "divisionalGeneration": "1"},
+                    {"applicationNumber": "2022200000", "divisionalGeneration": "2"},
+                ],
+            }
+        )
+        assert len(data.divisional_application_information) == 2
+
+
+# =============================================================================
+# Number reference
+# =============================================================================
 
 
 class TestNumberReference:
-    """Tests for NumberReference model."""
+    """NumberReference is now a single object, not wrapped in caseNumberReference."""
 
     def test_creates_from_alias(self) -> None:
         ref = NumberReference(
             applicationNumber="2020123456",
-            publicationNumber="2021-123456",
-            registrationNumber="7000001",
+            publicationNumber="2021090037",
+            registrationNumber="7533889",
         )
         assert ref.application_number == "2020123456"
-        assert ref.publication_number == "2021-123456"
+        assert ref.publication_number == "2021090037"
+        assert ref.registration_number == "7533889"
 
-
-class TestDocumentContent:
-    """Tests for DocumentContent model."""
-
-    def test_creates_from_alias(self) -> None:
-        doc = DocumentContent(
-            documentCd="A00",
-            documentName="Application",
-            receiptDate="2020-01-15",
-            documentNumber="12345",
-            documentType="S",
-            contentUrl="https://example.com/doc",
-            fileSize="12345",
+    def test_design_fields(self) -> None:
+        # Design endpoint has internationalRegistrationNumber + designNumber
+        ref = NumberReference(
+            applicationNumber="2020012345",
+            internationalRegistrationNumber="DM/123",
+            designNumber="D1",
         )
-        assert doc.document_type == "S"
-        assert doc.content_url == "https://example.com/doc"
+        assert ref.international_registration_number == "DM/123"
+        assert ref.design_number == "D1"
 
 
-class TestApplicationDocumentsData:
-    """Tests for ApplicationDocumentsData model."""
+# =============================================================================
+# Citations
+# =============================================================================
 
-    def test_creates_model(self) -> None:
-        data = ApplicationDocumentsData.model_validate(
+
+class TestPatentCitedDocument:
+    def test_basic(self) -> None:
+        cite = PatentCitedDocument(
+            draftDate="20240220",
+            citationType="19",
+            citationOrder="1",
+            documentNumber="JPA 414233033",
+        )
+        assert cite.citation_type == "19"
+        assert cite.document_number == "JPA 414233033"
+
+
+class TestNonPatentCitedDocument:
+    def test_basic(self) -> None:
+        cite = NonPatentCitedDocument(
+            draftDate="20240220",
+            citationType="35",
+            citationOrder="1",
+            authorName="John Doe",
+            paperTitle="Title",
+            publicationName="Pub",
+        )
+        assert cite.author_name == "John Doe"
+        assert cite.paper_title == "Title"
+
+
+class TestCitedDocumentsData:
+    def test_with_arrays(self) -> None:
+        # Real API returns arrays under patentDoc / nonPatentDoc.
+        data = CitedDocumentsData.model_validate(
             {
                 "applicationNumber": "2020123456",
-                "documents": [{"documentCd": "A00", "documentName": "Test"}],
-                "zipUrl": "https://example.com/docs.zip",
+                "patentDoc": [
+                    {"draftDate": "20240220", "citationType": "19", "documentNumber": "JPA 1"}
+                ],
+                "nonPatentDoc": [],
             }
         )
-        assert data.application_number == "2020123456"
-        assert len(data.documents) == 1
-        assert data.zip_url == "https://example.com/docs.zip"
+        assert len(data.patent_doc) == 1
+        assert data.patent_doc[0].document_number == "JPA 1"
+        assert data.non_patent_doc == []
 
 
-class TestJplatpatFixedAddress:
-    """Tests for JplatpatFixedAddress model."""
+# =============================================================================
+# Registration
+# =============================================================================
 
-    def test_creates_from_alias(self) -> None:
-        addr = JplatpatFixedAddress(
-            applicationNumber="2020123456",
-            jplatpatUrl="https://www.j-platpat.inpit.go.jp/c1801/...",
+
+class TestRegistrationInfo:
+    def test_patent_shape(self) -> None:
+        reg = RegistrationInfo.model_validate(
+            {
+                "applicationNumber": "2020123456",
+                "filingDate": "20200720",
+                "registrationNumber": "7533889",
+                "registrationDate": "20240805",
+                "decisionDate": "20240704",
+                "rightPersonInformation": [
+                    {"rightPersonCd": "000114400", "rightPersonName": "メイショウ株式会社"}
+                ],
+                "inventionTitle": "立体配線構造体の製造方法",
+                "numberOfClaims": "005",
+                "expireDate": "20400720",
+                "nextPensionPaymentDate": "20270805",
+                "lastPaymentYearly": "03",
+                "erasureIdentifier": "00",
+                "updateDate": "20240821",
+            }
         )
-        assert addr.jplatpat_url.startswith("https://")
+        assert reg.registration_number == "7533889"
+        assert reg.number_of_claims == "005"
+        assert len(reg.right_person_information) == 1
+        assert reg.right_person_information[0].right_person_name == "メイショウ株式会社"
+
+    def test_design_shape(self) -> None:
+        reg = RegistrationInfo.model_validate(
+            {
+                "applicationNumber": "2020012345",
+                "registrationNumber": "1680736",
+                "designArticle": "球体転がし用積み木",
+            }
+        )
+        assert reg.design_article == "球体転がし用積み木"
+
+
+# =============================================================================
+# PCT national phase
+# =============================================================================
 
 
 class TestPctNationalPhaseData:
-    """Tests for PctNationalPhaseData model."""
+    def test_minimal(self) -> None:
+        data = PctNationalPhaseData(applicationNumber="2021550001")
+        assert data.application_number == "2021550001"
+        # Backwards-compat alias.
+        assert data.national_application_number == "2021550001"
 
-    def test_creates_from_alias(self) -> None:
-        data = PctNationalPhaseData(
-            internationalApplicationNumber="PCT/JP2020/001234",
-            internationalPublicationNumber="WO2020/123456",
-            nationalApplicationNumber="2021-550001",
+
+# =============================================================================
+# Document bundle
+# =============================================================================
+
+
+class TestDocumentBundleResult:
+    def test_inline_zip(self) -> None:
+        bundle = DocumentBundleResult(
+            application_number="2020123456",
+            zip_bytes=b"PK\x03\x04...",
+            content_type="application/zip",
         )
-        assert data.international_application_number == "PCT/JP2020/001234"
-        assert data.national_application_number == "2021-550001"
+        assert bundle.zip_bytes is not None
+        assert bundle.is_empty is False
+
+    def test_oversize_redirect(self) -> None:
+        bundle = DocumentBundleResult(
+            application_number="2020123456",
+            download_url="https://example.com/big.zip",
+            content_type="application/json",
+        )
+        assert bundle.zip_bytes is None
+        assert bundle.download_url == "https://example.com/big.zip"
+        assert bundle.is_empty is False
+
+    def test_empty(self) -> None:
+        bundle = DocumentBundleResult(application_number="2020123456")
+        assert bundle.is_empty is True
+
+
+# =============================================================================
+# Design / trademark
+# =============================================================================
 
 
 class TestDesignProgressData:
-    """Tests for DesignProgressData model."""
-
-    def test_creates_model(self) -> None:
-        data = DesignProgressData(
-            applicationNumber="2020012345",
-            designTitle="Electronic Device",
-            filingDate="2020-03-01",
+    def test_real_payload(self) -> None:
+        data = DesignProgressData.model_validate(
+            {
+                "applicationNumber": "2020015234",
+                "designArticle": "球体転がし用積み木",
+                "designClass": "E2112",
+                "filingDate": "20200624",
+                "registrationNumber": "1680736",
+                "registrationDate": "20210219",
+                "principalDesignApplicationNumber": "",
+            }
         )
-        assert data.application_number == "2020012345"
-        assert data.design_title == "Electronic Device"
+        assert data.application_number == "2020015234"
+        assert data.design_article == "球体転がし用積み木"
+        assert data.design_class == "E2112"
+        # Backwards-compat alias.
+        assert data.design_title == "球体転がし用積み木"
 
 
 class TestTrademarkProgressData:
-    """Tests for TrademarkProgressData model."""
-
-    def test_creates_model(self) -> None:
-        data = TrademarkProgressData(
-            applicationNumber="2020054321",
-            trademarkName="TEST MARK",
-            filingDate="2020-04-01",
-            goodsServices=["Class 9: Computers", "Class 42: Software services"],
+    def test_real_payload(self) -> None:
+        data = TrademarkProgressData.model_validate(
+            {
+                "applicationNumber": "2024123456",
+                "trademarkForDisplay": "メタンレス和牛",
+                "transliteration": {"0": "メタンレス", "1": "メタンレスワギュー"},
+                "viennaClass": {},
+                "goodsServiceInformation": [
+                    {
+                        "goodsServiceClass": "29",
+                        "goodsServiceName": "牛肉",
+                        "similarCode": "32A01",
+                    }
+                ],
+                "filingDate": "20241118",
+            }
         )
-        assert data.application_number == "2020054321"
-        assert data.trademark_name == "TEST MARK"
-        assert len(data.goods_services) == 2
-
-
-class TestPatentProgressResponse:
-    """Tests for PatentProgressResponse wrapper."""
-
-    def test_data_property_with_data(self) -> None:
-        response = PatentProgressResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={
-                    "applicationNumber": "2020123456",
-                    "inventionTitle": "Test",
-                },
-            )
-        )
-        assert response.data is not None
-        assert response.data.application_number == "2020123456"
-
-    def test_data_property_without_data(self) -> None:
-        response = PatentProgressResponse(result=ApiResult(statusCode="107", data=None))
-        assert response.data is None
-
-
-class TestSimplifiedPatentProgressResponse:
-    """Tests for SimplifiedPatentProgressResponse wrapper."""
-
-    def test_data_property_with_data(self) -> None:
-        response = SimplifiedPatentProgressResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={"applicationNumber": "2020123456"},
-            )
-        )
-        assert response.data is not None
-
-    def test_data_property_without_data(self) -> None:
-        response = SimplifiedPatentProgressResponse(result=ApiResult(statusCode="107"))
-        assert response.data is None
-
-
-class TestApplicantNameResponse:
-    """Tests for ApplicantNameResponse wrapper."""
-
-    def test_applicants_property_with_data(self) -> None:
-        response = ApplicantNameResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={"applicantAttorney": [{"applicantAttorneyCd": "123", "name": "Test"}]},
-            )
-        )
-        assert len(response.applicants) == 1
-        assert response.applicants[0].name == "Test"
-
-    def test_applicants_property_empty(self) -> None:
-        response = ApplicantNameResponse(result=ApiResult(statusCode="107"))
-        assert response.applicants == []
-
-
-class TestApplicantCodeResponse:
-    """Tests for ApplicantCodeResponse wrapper."""
-
-    def test_applicants_property_with_data(self) -> None:
-        response = ApplicantCodeResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={"applicantAttorney": [{"applicantAttorneyCd": "123456789", "name": "Test"}]},
-            )
-        )
-        assert len(response.applicants) == 1
-
-
-class TestNumberReferenceResponse:
-    """Tests for NumberReferenceResponse wrapper."""
-
-    def test_references_property_with_data(self) -> None:
-        response = NumberReferenceResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={
-                    "caseNumberReference": [
-                        {
-                            "applicationNumber": "2020123456",
-                            "publicationNumber": "2021-123456",
-                        }
-                    ]
-                },
-            )
-        )
-        assert len(response.references) == 1
-        assert response.references[0].application_number == "2020123456"
-
-    def test_references_property_empty(self) -> None:
-        response = NumberReferenceResponse(result=ApiResult(statusCode="107"))
-        assert response.references == []
-
-
-class TestJplatpatUrlResponse:
-    """Tests for JplatpatUrlResponse wrapper."""
-
-    def test_url_property_with_data(self) -> None:
-        response = JplatpatUrlResponse(
-            result=ApiResult(
-                statusCode="100",
-                data={"jplatpatUrl": "https://www.j-platpat.inpit.go.jp/..."},
-            )
-        )
-        assert response.url == "https://www.j-platpat.inpit.go.jp/..."
-
-    def test_url_property_without_data(self) -> None:
-        response = JplatpatUrlResponse(result=ApiResult(statusCode="107"))
-        assert response.url is None
+        assert data.trademark_for_display == "メタンレス和牛"
+        # Backwards-compat alias.
+        assert data.trademark_name == "メタンレス和牛"
+        assert data.transliteration == {"0": "メタンレス", "1": "メタンレスワギュー"}
+        assert len(data.goods_service_information) == 1
+        # Flat backwards-compat list.
+        assert data.goods_services == ["牛肉"]

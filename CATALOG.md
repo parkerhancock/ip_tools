@@ -19,11 +19,12 @@ Two-layer documentation for `patent-client-agents`:
 | [USPTO Bulk Data](src/patent_client_agents/catalog/sources/uspto-bulkdata.md) | Bulk data product catalog + download manifests | `USPTO_ODP_API_KEY` | (inherits ODP) |
 | [EPO OPS](src/patent_client_agents/catalog/sources/epo-ops.md) | European patents — biblio, fulltext, families, legal events | `EPO_OPS_API_KEY` + `EPO_OPS_API_SECRET` | 4 GB/week free tier |
 | [CPC](src/patent_client_agents/catalog/sources/cpc.md) | Cooperative Patent Classification lookup / search / IPC mapping (via EPO OPS) | `EPO_OPS_API_KEY` + `EPO_OPS_API_SECRET` | (inherits EPO OPS) |
+| [JPO](src/patent_client_agents/catalog/sources/jpo.md) | Japan Patent Office — patent / design / trademark progress, registration, priorities, applicant lookup, document bundles, J-PlatPat permalinks. 12 MCP tools dispatched by `ip_type`; document parser handles XML (patents) and HTM (design/trademark). MCP tools auto-register only when `JPO_API_USERNAME` AND `JPO_API_PASSWORD` are both set; intentionally absent on the hosted public server `mcp.patentclient.com` per JPO TOS. | `JPO_API_USERNAME` + `JPO_API_PASSWORD` (OAuth2 password grant) | 10 req/min + per-endpoint daily caps |
 | [MPEP](src/patent_client_agents/catalog/sources/mpep.md) | Manual of Patent Examining Procedure search and section lookup | None | Unpublished (scraped) |
 
 ## MCP tools
 
-The MCP surface (~40 tools) is grouped by intent rather than by backend —
+The MCP surface (54 tools) is grouped by intent rather than by backend —
 see [intents/README.md](src/patent_client_agents/catalog/intents/README.md)
 for the master table. Cross-source fused tools have dedicated pages:
 
@@ -37,7 +38,6 @@ for the master table. Cross-source fused tools have dedicated pages:
 
 | Source | Status | Notes |
 |---|---|---|
-| [JPO](src/patent_client_agents/catalog/sources/jpo.md) | Library only | JPO MCP tools are not available. The Python library still exposes `JpoClient` and the `jpo` submodule for users with their own `JPO_API_USERNAME` + `JPO_API_PASSWORD`. The MCP tool wrappers in `src/patent_client_agents/mcp/tools/international.py` are commented out, so the hosted demo at `mcp.patentclient.com`, the stdio MCP server, and the Claude Code plugin all omit JPO tools. |
 | [patentsview](archive/patentsview/) | Deprecated | USPTO retired the PatentsView API (search.patentsview.org no longer resolves); module kept in `archive/` for reference only. |
 
 ## By auth type
@@ -46,4 +46,4 @@ for the master table. Cross-source fused tools have dedicated pages:
 
 **Free API key:** USPTO ODP (and wrappers — Applications, Office Actions, Petitions, Bulk Data) via `USPTO_ODP_API_KEY`; EPO OPS and CPC via `EPO_OPS_API_KEY` + `EPO_OPS_API_SECRET`.
 
-**Credentialed / disabled:** JPO via `JPO_API_USERNAME` + `JPO_API_PASSWORD`.
+**Credentialed (registration required):** JPO via `JPO_API_USERNAME` + `JPO_API_PASSWORD` (OAuth2 password grant; corporate registration recommended for higher daily quotas). JPO MCP tools are env-gated — they only register when both vars are set, so the public `mcp.patentclient.com` deploy doesn't advertise them at all. Private deploys flip the surface on by mounting both secrets in their own Cloud Run env.

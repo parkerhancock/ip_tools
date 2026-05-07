@@ -18,6 +18,17 @@ from pathlib import Path
 import pytest
 import vcr
 
+# JPO MCP tools are env-gated (see law_tools_core.mcp.conditional_tool).
+# We need them registered during the test process so the JPO unit and
+# dispatcher tests can call into them. Setting placeholder credentials
+# at top-level conftest — before pytest collects test modules and before
+# patent_client_agents.mcp.tools.international gets imported — flips
+# registration on. Cassettes scrub real auth, so placeholders are fine.
+# Tests that need to verify the *unset* path use monkeypatch.delenv +
+# importlib.reload (see tests/jpo/test_env_gating.py).
+os.environ.setdefault("JPO_API_USERNAME", "test_jpo_user")
+os.environ.setdefault("JPO_API_PASSWORD", "test_jpo_pass")
+
 USPTO_LIVE_ENV_VAR = "USPTO_LIVE_TESTS"
 JPO_LIVE_ENV_VAR = "JPO_LIVE_TESTS"
 
@@ -89,20 +100,156 @@ def require_live_jpo(request: pytest.FixtureRequest) -> None:
         pytest.skip("Live JPO test skipped. Set JPO_LIVE_TESTS=1 or pass --run-live-jpo to enable.")
 
 
+def _scrub_jpo_token_request(request):
+    """JPO OAuth2 password-grant: scrub username/password from request body.
+
+    Cassettes that hit ``ip-data.jpo.go.jp/auth/token`` carry the JPO
+    user's password in the form-encoded request body. We rewrite it to
+    placeholders so committed cassettes never carry real credentials.
+    """
+    import re as _re
+
+    if "ip-data.jpo.go.jp" in request.host and request.path == "/auth/token" and request.body:
+        body = request.body
+        if isinstance(body, bytes):
+            body = body.decode("utf-8", "ignore")
+        body = _re.sub(r"username=[^&]*", "username=REDACTED_USERNAME", body)
+        body = _re.sub(r"password=[^&]*", "password=REDACTED_PASSWORD", body)
+        request.body = body.encode("utf-8") if isinstance(request.body, bytes) else body
+    return request
+
+
+def _scrub_jpo_token_response(response):
+    """JPO OAuth2 token-endpoint response carries a JWT and refresh token.
+
+    Replace the body with deterministic placeholders so JWTs never land
+    on disk. Update Content-Length so httpx replay doesn't reject the
+    rewritten body.
+    """
+    body = response.get("body", {})
+    raw = body.get("string", "") if isinstance(body, dict) else ""
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", "ignore")
+    if isinstance(raw, str) and "access_token" in raw and "ip-data" not in raw:
+        # Heuristic: only rewrite Keycloak-shaped token responses (they
+        # have access_token + token_type + (id_token or refresh_token)).
+        if "token_type" in raw and ("id_token" in raw or "refresh_token" in raw):
+            new_body = (
+                '{"access_token": "REDACTED_ACCESS_TOKEN", '
+                '"expires_in": 3600, '
+                '"refresh_expires_in": 28800, '
+                '"refresh_token": "REDACTED_REFRESH_TOKEN", '
+                '"token_type": "Bearer", '
+                '"id_token": "REDACTED_ID_TOKEN", '
+                '"not-before-policy": 0, '
+                '"session_state": "REDACTED", '
+                '"scope": "openid profile"}'
+            )
+            body["string"] = new_body
+            headers = response.get("headers", {})
+            if isinstance(headers, dict):
+                new_len = str(len(new_body.encode("utf-8")))
+                for key in list(headers.keys()):
+                    if key.lower() == "content-length":
+                        headers[key] = [new_len]
+    return response
+
+
+def _match_body_unless_oauth(r1, r2) -> bool:
+    """VCR body matcher that ignores the body for OAuth2 token requests.
+
+    JPO's ``/auth/token`` endpoint receives the user's password in the
+    form body. We scrub that body to ``REDACTED_PASSWORD`` before
+    recording, so the recorded body never matches the placeholder body
+    that gets sent at replay time. This matcher trivially passes for
+    token requests and falls back to byte-equality everywhere else.
+    """
+    if r1.path == "/auth/token" and r2.path == "/auth/token":
+        return True
+    return r1.body == r2.body
+
+
+def _patch_vcr_httpcore_for_str_bodies() -> None:
+    """Coerce vcr-deserialized response bodies to bytes for httpcore.
+
+    vcrpy 8.x stores YAML responses as Python strings (not bytes) when the
+    body is ASCII. It then passes that ``str`` straight to
+    ``httpcore.Response(content=...)``. With httpx 0.28, the
+    ``AsyncHTTPTransport`` asserts that the response stream is
+    ``AsyncIterable``; a ``str`` is iterable but not async-iterable, so
+    the assertion fires and the request looks like it returned a
+    non-streaming response. The fix is to encode the str to bytes
+    before httpcore wraps it.
+
+    We monkey-patch once at import time. This is idempotent and only
+    affects the deserialization path — recording is untouched.
+    """
+    import vcr.stubs.httpcore_stubs as h
+
+    if getattr(h._deserialize_response, "_patched_for_str_bodies", False):
+        return
+
+    original = h._deserialize_response
+
+    def _patched(vcr_response):
+        body = vcr_response.get("body", {})
+        s = body.get("string", "") if isinstance(body, dict) else ""
+        if isinstance(s, str):
+            body["string"] = s.encode("utf-8")
+        return original(vcr_response)
+
+    _patched._patched_for_str_bodies = True  # type: ignore[attr-defined]
+    h._deserialize_response = _patched
+
+
+_patch_vcr_httpcore_for_str_bodies()
+
+
 def _create_vcr() -> vcr.VCR:
-    return vcr.VCR(
+    v = vcr.VCR(
         cassette_library_dir=str(CASSETTES_DIR),
         record_mode=_record_mode,  # type: ignore[arg-type]
         filter_headers=[
             ("authorization", "REDACTED"),
             ("x-api-key", "REDACTED"),
+            ("cookie", "REDACTED"),
+            ("set-cookie", "REDACTED"),
         ],
         filter_query_parameters=[
             ("api_key", "REDACTED"),
             ("apiKey", "REDACTED"),
         ],
+        before_record_request=_scrub_jpo_token_request,
+        before_record_response=_scrub_jpo_token_response,
         decode_compressed_response=True,
-        match_on=["method", "scheme", "host", "port", "path", "query", "body"],
+        match_on=["method", "scheme", "host", "port", "path", "query", "oauth_safe_body"],
+    )
+    v.register_matcher("oauth_safe_body", _match_body_unless_oauth)
+    return v
+
+
+@pytest.fixture(scope="session")
+def jpo_tools_registered() -> None:
+    """Assert that the env-gated JPO MCP tools registered during test setup.
+
+    Guards the conftest setup at the top of this file: if the placeholder
+    JPO_API_USERNAME / JPO_API_PASSWORD vars aren't set BEFORE
+    ``patent_client_agents.mcp.tools.international`` is imported, the
+    ``@conditional_tool`` decorator skips registration and every JPO
+    dispatcher test fails with a confusing AttributeError. Asserting at
+    least one ``get_jpo_*`` tool is on ``international_mcp`` here turns
+    that failure mode into a clear, single-line error.
+    """
+    import asyncio
+
+    from patent_client_agents.mcp.tools.international import international_mcp
+
+    tools = asyncio.run(international_mcp.list_tools())
+    jpo_names = [t.name for t in tools if t.name.startswith("get_jpo_")]
+    assert jpo_names, (
+        "No get_jpo_* tools registered on international_mcp. "
+        "Check that conftest.py sets JPO_API_USERNAME and JPO_API_PASSWORD "
+        "before patent_client_agents.mcp imports occur."
     )
 
 

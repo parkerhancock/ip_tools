@@ -1,0 +1,139 @@
+interactions:
+- request:
+    body: grant_type=password&username=REDACTED_USERNAME&password=REDACTED_PASSWORD
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '64'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://ip-data.jpo.go.jp/auth/token
+  response:
+    body:
+      string: '{"access_token": "REDACTED_ACCESS_TOKEN", "expires_in": 3600, "refresh_expires_in":
+        28800, "refresh_token": "REDACTED_REFRESH_TOKEN", "token_type": "Bearer",
+        "id_token": "REDACTED_ID_TOKEN", "not-before-policy": 0, "session_state":
+        "REDACTED", "scope": "openid profile"}'
+    headers:
+      Cache-Control:
+      - no-store
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2790'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 07 May 2026 14:19:26 GMT
+      Referrer-Policy:
+      - no-referrer
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Via:
+      - 1.1 6ee3eecd683392286f206a7ea6e9ac0c.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - KE-MYcnk1UZTLM5yMlH1OZvm-EPMLHXFuzgIwhXq31XjMnR5voikNA==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f6e-0c46c2512e7a21f67d41b654
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3ZYG0iNjMEMzQ=
+      x-amzn-RequestId:
+      - 4e61cf60-c79d-40d6-a4be-2186c767109c
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      Accept:
+      - application/json, application/zip
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Host:
+      - ip-data.jpo.go.jp
+      User-Agent:
+      - python-httpx/0.28.1
+      authorization:
+      - REDACTED
+    method: GET
+    uri: https://ip-data.jpo.go.jp/api/patent/v1/app_progress_simple/2020123456
+  response:
+    body:
+      string: "{\"result\":{\"statusCode\":\"100\",\"errorMessage\":\"\",\"remainAccessCount\":\"793\",\"data\":{\"applicationNumber\":\"2020123456\",\"inventionTitle\":\"\u7ACB\u4F53\u914D\u7DDA\u69CB\u9020\u4F53\u306E\u88FD\u9020\u65B9\u6CD5\",\"applicantAttorney\":[{\"applicantAttorneyCd\":\"000114400\",\"repeatNumber\":\"1\",\"name\":\"\u30E1\u30A4\u30B7\u30E7\u30A6\u682A\u5F0F\u4F1A\u793E\",\"applicantAttorneyClass\":\"1\"},{\"applicantAttorneyCd\":\"100076598\",\"repeatNumber\":\"2\",\"name\":\"\u6E21\u8FBA\u3000\u4E00\u8C4A\",\"applicantAttorneyClass\":\"2\"},{\"applicantAttorneyCd\":\"100165607\",\"repeatNumber\":\"3\",\"name\":\"\u6E21\u8FBA\u3000\u4E00\u6210\",\"applicantAttorneyClass\":\"2\"},{\"applicantAttorneyCd\":\"100196690\",\"repeatNumber\":\"4\",\"name\":\"\u68EE\u5408\u3000\u900F\",\"applicantAttorneyClass\":\"2\"}],\"filingDate\":\"20200720\",\"publicationNumber\":\"503090037\",\"ADPublicationNumber\":\"2021090037\",\"nationalPublicationNumber\":\"\",\"ADNationalPublicationNumber\":\"\",\"publicationDate\":\"20210610\",\"registrationNumber\":\"7533889\",\"registrationDate\":\"20240805\",\"internationalApplicationNumber\":\"\",\"internationalPublicationNumber\":\"\",\"internationalPublicationDate\":\"\",\"erasureIdentifier\":\"00\",\"expireDate\":\"20400720\",\"disappearanceDate\":\"\",\"bibliographyInformation\":[{\"numberType\":\"01\",\"number\":\"2020123456\",\"documentList\":[{\"legalDate\":\"20200720\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u8981\u7D04\u66F8\",\"documentNumber\":\"52001475960\",\"versionNumber\":\"0001\",\"documentSeparator\":\"Y\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1208\"},{\"legalDate\":\"20200720\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u7279\u8A31\u9858\",\"documentNumber\":\"52001475960\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1427\"},{\"legalDate\":\"20200720\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u8ACB\u6C42\u306E\u7BC4\u56F2\",\"documentNumber\":\"52001475960\",\"versionNumber\":\"0001\",\"documentSeparator\":\"L\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"2578\"},{\"legalDate\":\"20200720\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u660E\u7D30\u66F8\",\"documentNumber\":\"52001475960\",\"versionNumber\":\"0001\",\"documentSeparator\":\"M\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"10011\"},{\"legalDate\":\"20200720\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u56F3\u9762\",\"documentNumber\":\"52001475960\",\"versionNumber\":\"0001\",\"documentSeparator\":\"Z\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"3497183\"},{\"legalDate\":\"20230419\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A621\",\"documentDescription\":\"\u51FA\u9858\u5BE9\u67FB\u8ACB\u6C42\u66F8\",\"documentNumber\":\"52300838571\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1267\"},{\"legalDate\":\"20240117\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A971007\",\"documentDescription\":\"\u691C\u7D22\u5831\u544A\u66F8\",\"documentNumber\":\"96824003767\",\"versionNumber\":\"0001\",\"documentSeparator\":\"C\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"10955\"},{\"legalDate\":\"20240227\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A131\",\"documentDescription\":\"\u62D2\u7D76\u7406\u7531\u901A\u77E5\u66F8\",\"documentNumber\":\"06124084096\",\"versionNumber\":\"0001\",\"documentSeparator\":\"K\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"5006\"},{\"legalDate\":\"20240424\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A53\",\"documentDescription\":\"\u610F\u898B\u66F8\",\"documentNumber\":\"52400900476\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"4223\"},{\"legalDate\":\"20240424\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A523\",\"documentDescription\":\"\u624B\u7D9A\u88DC\u6B63\u66F8\uFF08\u81EA\u767A\u30FB\u5185\u5BB9\uFF09\",\"documentNumber\":\"52400900473\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"3151\"},{\"legalDate\":\"20240709\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A01\",\"documentDescription\":\"\u7279\u8A31\u67FB\u5B9A\",\"documentNumber\":\"06124327784\",\"versionNumber\":\"0001\",\"documentSeparator\":\"K\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1542\"},{\"legalDate\":\"20240724\",\"irirFlg\":\"0\",\"availabilityFlag\":\"0\",\"documentCode\":\"A61\",\"documentDescription\":\"\u767B\u9332\u6599\u7D0D\u4ED8\",\"documentNumber\":\"BBBBBBBBBBB\",\"versionNumber\":\"0000\",\"documentSeparator\":\"
+        \",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"0\"}]},{\"numberType\":\"02\",\"number\":\"503090037\",\"documentList\":[]},{\"numberType\":\"06\",\"number\":\"7533889\",\"documentList\":[{\"legalDate\":\"20240709\",\"irirFlg\":\"0\",\"availabilityFlag\":\"0\",\"documentCode\":\"A01\",\"documentDescription\":\"\u7279\u8A31\u67FB\u5B9A\",\"documentNumber\":\"99999999999\",\"versionNumber\":\"0000\",\"documentSeparator\":\"
+        \",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"0\"},{\"legalDate\":\"20240724\",\"irirFlg\":\"0\",\"availabilityFlag\":\"0\",\"documentCode\":\"R100\",\"documentDescription\":\"\u7279\u8A31\u6599\u7D0D\u4ED8\u66F8\",\"documentNumber\":\"99999999999\",\"versionNumber\":\"0000\",\"documentSeparator\":\"
+        \",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"0\"},{\"legalDate\":\"20240820\",\"irirFlg\":\"0\",\"availabilityFlag\":\"0\",\"documentCode\":\"R150\",\"documentDescription\":\"\u7279\u8A31\u8A3C\",\"documentNumber\":\"99999999999\",\"versionNumber\":\"0000\",\"documentSeparator\":\"
+        \",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"0\"}]}]}}}"
+    headers:
+      Allow:
+      - GET, HEAD, OPTIONS
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '4933'
+      Content-Type:
+      - application/json
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Thu, 07 May 2026 14:19:29 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Cookie
+      Via:
+      - 1.1 fd35f1fff2f9fd0955b7c73222980a2c.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - _5JZWiDshKW0Ov-MnrZAC4DcgxkUtnTWECcVoYt_3vgSbrWU4mOBag==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fc9f6f-05be8d2b499ae0af01956405
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c_3ZeGuMNjMEooQ=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '4933'
+      x-amzn-Remapped-Date:
+      - Thu, 07 May 2026 14:19:29 GMT
+      x-amzn-Remapped-Server:
+      - gunicorn
+      x-amzn-RequestId:
+      - 581d104b-4ae5-49b5-9bfe-46649f413a92
+    status:
+      code: 200
+      message: OK
+version: 1

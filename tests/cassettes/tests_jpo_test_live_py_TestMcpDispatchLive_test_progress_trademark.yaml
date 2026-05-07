@@ -1,0 +1,136 @@
+interactions:
+- request:
+    body: grant_type=password&username=REDACTED_USERNAME&password=REDACTED_PASSWORD
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '64'
+      content-type:
+      - application/x-www-form-urlencoded
+      host:
+      - ip-data.jpo.go.jp
+      user-agent:
+      - python-httpx/0.28.1
+    method: POST
+    uri: https://ip-data.jpo.go.jp/auth/token
+  response:
+    body:
+      string: '{"access_token": "REDACTED_ACCESS_TOKEN", "expires_in": 3600, "refresh_expires_in":
+        28800, "refresh_token": "REDACTED_REFRESH_TOKEN", "token_type": "Bearer",
+        "id_token": "REDACTED_ID_TOKEN", "not-before-policy": 0, "session_state":
+        "REDACTED", "scope": "openid profile"}'
+    headers:
+      Cache-Control:
+      - no-store
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '270'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 07 May 2026 15:16:38 GMT
+      Referrer-Policy:
+      - no-referrer
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Via:
+      - 1.1 922f380ce54182257be92d6c0111acb4.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - FFypiCdOWBmdH0VyEgQz1kCNJ0FHaHzjyWe6J6DG6nziTJTXpbteuA==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fcacd6-37c206bd23347bfb7e4901d3
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c__xjHx7tjMErCw=
+      x-amzn-RequestId:
+      - 8407062f-84b3-4e17-908e-b66a9548a6cc
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/json, application/zip
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - REDACTED
+      connection:
+      - keep-alive
+      host:
+      - ip-data.jpo.go.jp
+      user-agent:
+      - python-httpx/0.28.1
+    method: GET
+    uri: https://ip-data.jpo.go.jp/api/trademark/v1/app_progress/2024123456
+  response:
+    body:
+      string: "{\"result\":{\"statusCode\":\"100\",\"errorMessage\":\"\",\"remainAccessCount\":\"799\",\"data\":{\"applicationNumber\":\"2024123456\",\"applicantAttorney\":[{\"applicantAttorneyCd\":\"523086714\",\"name\":\"\uFF2D\uFF34\uFF2A\u30B0\u30EB\u30FC\u30D7\u682A\u5F0F\u4F1A\u793E\",\"applicantAttorneyClass\":\"1\"},{\"applicantAttorneyCd\":\"100099634\",\"name\":\"\u5E73\u4E95\u3000\u5B89\u96C4\",\"applicantAttorneyClass\":\"2\"}],\"filingDate\":\"20241118\",\"publicationDate\":\"20241126\",\"registrationNumber\":\"\",\"registrationDate\":\"\",\"erasureIdentifier\":\"\",\"expireDate\":\"\",\"disappearanceDate\":\"\",\"trademarkForDisplay\":\"\u30E1\u30BF\u30F3\u30EC\u30B9\u548C\u725B\",\"transliteration\":{\"0\":\"\u30E1\u30BF\u30F3\u30EC\u30B9\",\"1\":\"\u30E1\u30BF\u30F3\u30EC\u30B9\u30EF\u30AE\u30E5\u30FC\"},\"viennaClass\":{},\"goodsServiceInformation\":[{\"goodsServiceClass\":\"29\",\"goodsServiceName\":\"\u725B\u8089\",\"similarCode\":\"32A01\"},{\"goodsServiceClass\":\"35\",\"goodsServiceName\":\"\u5546\u696D\u30A4\u30D9\u30F3\u30C8\u306E\u4F01\u753B\u30FB\u904B\u55B6\uFF0C\u725B\u8089\u306E\u5C0F\u58F2\u53C8\u306F\u5378\u58F2\u306E\u696D\u52D9\u306B\u304A\u3044\u3066\u884C\u308F\u308C\u308B\u9867\u5BA2\u306B\u5BFE\u3059\u308B\u4FBF\u76CA\u306E\u63D0\u4F9B\",\"similarCode\":\"32A01
+        35A01 35K03\"}],\"priorityRightInformation\":[],\"parentApplicationInformation\":{},\"bibliographyInformation\":[{\"numberType\":\"01\",\"number\":\"2024123456\",\"documentList\":[{\"legalDate\":\"20241118\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A63\",\"documentDescription\":\"\u5546\u6A19\u767B\u9332\u9858\",\"documentNumber\":\"52402525374\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1567\"},{\"legalDate\":\"20250610\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A131\",\"documentDescription\":\"\u62D2\u7D76\u7406\u7531\u901A\u77E5\u66F8\",\"documentNumber\":\"06425090392\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"6173\"},{\"legalDate\":\"20260113\",\"irirFlg\":\"0\",\"availabilityFlag\":\"1\",\"documentCode\":\"A02\",\"documentDescription\":\"\u62D2\u7D76\u67FB\u5B9A\",\"documentNumber\":\"06426003498\",\"versionNumber\":\"0001\",\"documentSeparator\":\"S\",\"numberOfPages\":\"0\",\"sizeOfDocument\":\"1234\"}]}]}}}"
+    headers:
+      Allow:
+      - GET, HEAD, OPTIONS
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1847'
+      Content-Type:
+      - application/json
+      Cross-Origin-Opener-Policy:
+      - same-origin
+      Date:
+      - Thu, 07 May 2026 15:16:40 GMT
+      Referrer-Policy:
+      - same-origin
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Cookie
+      Via:
+      - 1.1 fd35f1fff2f9fd0955b7c73222980a2c.cloudfront.net (CloudFront)
+      X-Amz-Cf-Id:
+      - riRCuvZA3Yk6VkNyPz569NuRzu5xVKMwwU--MZbHkgk-t8w_xvPGdA==
+      X-Amz-Cf-Pop:
+      - SFO53-P2
+      X-Amzn-Trace-Id:
+      - Root=1-69fcacd6-226ec8e20dad82260ff4c751
+      X-Cache:
+      - Miss from cloudfront
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - DENY
+      X-XSS-Protection:
+      - 1; mode=block
+      x-amz-apigw-id:
+      - c__xpFIetjMEtaw=
+      x-amzn-Remapped-Connection:
+      - keep-alive
+      x-amzn-Remapped-Content-Length:
+      - '1847'
+      x-amzn-Remapped-Date:
+      - Thu, 07 May 2026 15:16:40 GMT
+      x-amzn-Remapped-Server:
+      - gunicorn
+      x-amzn-RequestId:
+      - dd5a6b9f-1eb7-428d-8cc0-7052fd40dc74
+    status:
+      code: 200
+      message: OK
+version: 1

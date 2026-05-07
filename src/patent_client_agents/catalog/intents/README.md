@@ -1,6 +1,6 @@
 # MCP Tools by Intent
 
-~40 read-only MCP tools, grouped by what an agent wants to do. Cross-source
+54 read-only MCP tools, grouped by what an agent wants to do. Cross-source
 fused tools are marked ⭑ and have dedicated pages in this folder; the rest
 are single-source wrappers documented by their backend in
 [../sources/](../sources/).
@@ -38,6 +38,17 @@ Find records matching a query.
 | `get_petition` | ODP petition decision |
 | `get_bulk_dataset` | ODP bulk product detail |
 | `get_mpep_section` | MPEP section by number |
+| `get_jpo_progress(application_number, ip_type)` | JPO full prosecution status (patent/design/trademark) |
+| `get_jpo_progress_simple(application_number, ip_type)` | JPO simplified status (no priority/family) |
+| `get_jpo_registration_info(application_number, ip_type)` | JPO granted-rights record |
+| `get_jpo_priority_info(application_number, ip_type)` | JPO Paris + domestic priority claims |
+| `get_jpo_number_reference(number, kind, ip_type)` | JPO cross-reference application/publication/registration |
+| `get_jpo_jplatpat_url(application_number, ip_type)` | JPO J-PlatPat permalink |
+| `get_jpo_applicant_by_code(applicant_code, ip_type)` | JPO 9-digit applicant/attorney code → name |
+| `get_jpo_applicant_by_name(applicant_name, ip_type)` | JPO exact-name → applicant/attorney codes |
+| `get_jpo_patent_divisional_info(application_number)` | JPO patent-only — divisional family |
+| `get_jpo_patent_cited_documents(application_number)` | JPO patent-only — patent + non-patent citations |
+| `get_jpo_pct_national_phase_number(number, kind)` | JPO patent-only — PCT → JP national-phase lookup |
 
 ## Claims ⭑
 
@@ -75,6 +86,7 @@ Find records matching a query.
 | `download_ptab_trial_decisions(trial_number, …)` | Bulk-download board decisions for one AIA trial. Cap 50. |
 | `download_ptab_appeal_decisions(application_number, …)` | Bulk-download ex parte appeal decisions for one application. Cap 50. |
 | `download_ptab_interference_decisions(interference_number, …)` | Bulk-download decisions for one pre-AIA interference. Cap 50. |
+| `get_jpo_documents(application_number, doc_kind, ip_type, parse=True)` | JPO file-history bundle (XML for patents, HTM for design/trademark; both Shift-JIS). With `parse=True` (default), returns parsed entries with body text inline plus a signed `download_url` for the raw ZIP. With `parse=False`, returns just the bundle metadata + signed `download_url` (no parsing). See [downloads.md](downloads.md). |
 
 ## Reference & utility
 

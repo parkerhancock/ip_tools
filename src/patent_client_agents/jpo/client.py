@@ -29,19 +29,22 @@ from law_tools_core.exceptions import (
     ApiError,
     AuthenticationError,
     ConfigurationError,
+    NotFoundError,
     RateLimitError,
 )
 
 from .models import (
     ApiResult,
     ApplicantAttorney,
-    ApplicationDocumentsData,
-    CitedDocumentInfo,
+    CaseNumberKind,
+    CitedDocumentsData,
     DesignProgressData,
-    DivisionalApplicationInfo,
+    DivisionalAppInfoData,
+    DocumentBundleResult,
     NumberReference,
     NumberType,
     PatentProgressData,
+    PctKind,
     PctNationalPhaseData,
     PriorityInfo,
     RegistrationInfo,
@@ -53,17 +56,42 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://ip-data.jpo.go.jp"
-TOKEN_PATH = "/auth/token"  # Token endpoint path (exact path provided upon registration)
+TOKEN_PATH = "/auth/token"  # OAuth2 password-grant endpoint
 
 # Rate limiting: 10 requests per minute for Patent/Design/Trademark APIs
+# (handbook v14 §3 — "adjust the total number of accesses per minute to 10
+# or less mechanically"). Daily caps are enforced server-side per endpoint.
 RATE_LIMIT_REQUESTS = 10
 RATE_LIMIT_WINDOW = 60  # seconds
+
+
+# Status codes that mean "no result for this query"; we return None / [].
+_EMPTY_STATUS_CODES = frozenset(
+    {
+        StatusCode.NO_DATA.value,
+        StatusCode.NO_DOCUMENT.value,
+        StatusCode.UNAVAILABLE_NUMBER.value,
+    }
+)
+
+
+def _kind_value(kind: NumberType | CaseNumberKind | PctKind | str) -> str:
+    """Normalize a kind argument to its string value.
+
+    Accepts any of the three kind enums or a raw string.
+    """
+    if isinstance(kind, NumberType | CaseNumberKind | PctKind):
+        return kind.value
+    return kind
 
 
 class TokenManager:
     """Manages OAuth2 token lifecycle for JPO API.
 
-    Handles token acquisition and automatic refresh on expiry.
+    The JPO token endpoint is a Keycloak password-grant flow returning
+    a JWT access token plus refresh token. We don't use the refresh token
+    here — getting a fresh access token via password grant is cheap and
+    avoids storing refresh tokens at rest.
     """
 
     def __init__(
@@ -86,7 +114,7 @@ class TokenManager:
         """Get a valid access token, refreshing if needed.
 
         Args:
-            client: HTTP client to use for token request.
+            client: HTTP client to use for the token request.
 
         Returns:
             Valid access token string.
@@ -95,11 +123,10 @@ class TokenManager:
             AuthenticationError: If token acquisition fails.
         """
         async with self._lock:
-            # Check if current token is still valid (with 60s buffer)
+            # Reuse if still valid (with 60s safety buffer).
             if self._token and time.time() < self._token_expiry - 60:
                 return self._token
 
-            # Acquire new token
             token_url = f"{self.base_url}{self.token_path}"
             logger.debug("Acquiring new JPO API token")
 
@@ -126,10 +153,8 @@ class TokenManager:
 
                 data = response.json()
                 self._token = data["access_token"]
-                # Default to 1 hour if expires_in not provided
                 expires_in = data.get("expires_in", 3600)
                 self._token_expiry = time.time() + expires_in
-
                 logger.debug("Successfully acquired JPO API token (expires in %ds)", expires_in)
                 if self._token is None:
                     raise RuntimeError("Token acquisition failed")
@@ -143,16 +168,16 @@ class TokenManager:
                 ) from e
 
     def invalidate(self) -> None:
-        """Invalidate the current token, forcing refresh on next request."""
+        """Drop the cached token, forcing refresh on next request."""
         self._token = None
         self._token_expiry = 0
 
 
 class RateLimiter:
-    """Simple sliding window rate limiter.
+    """Simple sliding-window rate limiter.
 
-    Enforces rate limits to comply with JPO API restrictions:
-    - 10 requests per minute for Patent/Design/Trademark APIs
+    Enforces JPO's documented 10 requests/minute cap on Patent/Design/
+    Trademark APIs.
     """
 
     def __init__(
@@ -166,21 +191,18 @@ class RateLimiter:
         self._lock = asyncio.Lock()
 
     async def acquire(self) -> None:
-        """Wait until a request can be made within rate limits."""
+        """Wait until a request can be made within the rate limit."""
         async with self._lock:
             now = time.time()
 
-            # Remove timestamps outside the window
             while self._timestamps and self._timestamps[0] < now - self.window_seconds:
                 self._timestamps.popleft()
 
-            # If at limit, wait until oldest request exits the window
             if len(self._timestamps) >= self.max_requests:
                 wait_time = self._timestamps[0] + self.window_seconds - now
                 if wait_time > 0:
                     logger.debug("Rate limit reached, waiting %.2fs", wait_time)
                     await asyncio.sleep(wait_time)
-                    # Re-check after waiting
                     now = time.time()
                     while self._timestamps and self._timestamps[0] < now - self.window_seconds:
                         self._timestamps.popleft()
@@ -191,18 +213,18 @@ class RateLimiter:
 class JpoClient(BaseAsyncClient):
     """Async client for JPO Patent Information Retrieval API.
 
-    Handles OAuth2 authentication, rate limiting, and provides methods
-    for all Patent, Design, and Trademark API endpoints.
+    Handles OAuth2 authentication, in-process rate limiting, and exposes
+    typed methods for all 36 patent/design/trademark endpoints in handbook
+    v14. Document-download endpoints (``app_doc_cont_*``) return a
+    :class:`DocumentBundleResult` because they yield raw ZIP bytes (or a
+    download URL when the archive exceeds 10 MB), not JSON.
 
     Example:
         async with JpoClient() as client:
-            # Get patent status
             progress = await client.get_patent_progress("2020123456")
-
-            # Look up applicant by code
-            applicants = await client.get_patent_applicant_by_code("123456789")
-
-            # Get J-PlatPat URL
+            applicant_name = await client.get_patent_applicant_by_code(
+                "000003207"
+            )
             url = await client.get_patent_jplatpat_url("2020123456")
     """
 
@@ -222,8 +244,8 @@ class JpoClient(BaseAsyncClient):
         """Initialize the JPO API client.
 
         Args:
-            username: JPO-issued username. Falls back to JPO_API_USERNAME env var.
-            password: JPO-issued password. Falls back to JPO_API_PASSWORD env var.
+            username: JPO-issued username. Falls back to ``JPO_API_USERNAME``.
+            password: JPO-issued password. Falls back to ``JPO_API_PASSWORD``.
             base_url: Override the default API base URL.
             token_path: Override the token endpoint path.
             client: Existing httpx.AsyncClient to use (for testing).
@@ -241,10 +263,14 @@ class JpoClient(BaseAsyncClient):
                 "or pass username and password parameters."
             )
 
+        # Enable hishel caching: the JPO API includes Cache-Control headers
+        # so legitimate cache use saves quota. Tokens carry ``Cache-Control:
+        # no-store`` so they're never cached. The cache also routes us
+        # through httpcore directly, which vcrpy can intercept reliably.
         super().__init__(
             base_url=base_url,
             client=client,
-            use_cache=False,
+            use_cache=True,
             headers={"Accept": "application/json"},
             timeout=self.DEFAULT_TIMEOUT,
         )
@@ -257,44 +283,39 @@ class JpoClient(BaseAsyncClient):
         )
         self._rate_limiter = RateLimiter()
 
+    # ------------------------------------------------------------------
+    # Low-level transport
+    # ------------------------------------------------------------------
+
     def _build_url(self, path: str) -> str:
-        """Build full URL from API path, prepending /api."""
+        """Build full URL from API path, prepending ``/api``."""
         return f"{self.base_url}/api{path}"
 
-    async def _request(
+    async def _raw_request(
         self,
         method: str,
         path: str,
         *,
         params: dict[str, Any] | None = None,
         retry_auth: bool = True,
-    ) -> dict[str, Any]:
-        """Make an authenticated API request.
+    ) -> httpx.Response:
+        """Make an authenticated raw request and return the httpx response.
 
-        Args:
-            method: HTTP method.
-            path: API path (e.g., "/patent/v1/app_progress/2020123456").
-            params: Query parameters.
-            retry_auth: Whether to retry once on auth failure.
-
-        Returns:
-            Parsed JSON response.
+        This is the path used by document-download endpoints that may return
+        non-JSON (ZIP) bodies. JSON endpoints use :meth:`_request` which
+        wraps this and decodes the body.
 
         Raises:
-            ApiError: On API errors.
-            AuthenticationError: On authentication failures.
-            RateLimitError: When rate limited by the API.
+            AuthenticationError: On 401/403 after one retry.
+            RateLimitError: On HTTP 429.
+            ApiError: On any other non-success status.
         """
-        # Apply rate limiting
         await self._rate_limiter.acquire()
-
-        # Get auth token
         token = await self._token_manager.get_token(self._client)
-
         url = self._build_url(path)
         headers = {
             "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
+            "Accept": "application/json, application/zip",
         }
 
         async for attempt in AsyncRetrying(
@@ -305,72 +326,179 @@ class JpoClient(BaseAsyncClient):
             with attempt:
                 response = await self._client.request(method, url, params=params, headers=headers)
 
-                # Handle auth errors with token refresh
                 if response.status_code in (401, 403) and retry_auth:
                     self._token_manager.invalidate()
-                    return await self._request(method, path, params=params, retry_auth=False)
+                    return await self._raw_request(method, path, params=params, retry_auth=False)
 
-                # Handle rate limiting
                 if response.status_code == 429:
                     raise RateLimitError(
                         "JPO API rate limit exceeded",
                         response.status_code,
-                        response.text,
+                        response.text[:500],
                     )
 
-                # Handle other errors
                 if not response.is_success:
                     raise ApiError(
                         f"JPO API error: {response.status_code}",
                         response.status_code,
-                        response.text,
+                        response.text[:500],
                     )
 
-                return response.json()
+                return response
 
         raise RuntimeError("Unexpected retry exhaustion")
 
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        retry_auth: bool = True,
+    ) -> dict[str, Any]:
+        """Make an authenticated JSON API request and return the parsed body.
+
+        Raises:
+            ApiError: On non-success HTTP status or non-JSON body.
+            AuthenticationError: On authentication failures.
+            RateLimitError: When rate limited by the API.
+        """
+        response = await self._raw_request(method, path, params=params, retry_auth=retry_auth)
+        try:
+            return response.json()
+        except ValueError as e:
+            raise ApiError(
+                f"JPO API returned non-JSON body: {e}",
+                response.status_code,
+                response.text[:500],
+            ) from e
+
     def _parse_result(self, data: dict[str, Any]) -> ApiResult:
-        """Parse the result wrapper from API response."""
+        """Extract the ``result`` envelope from a JPO API response."""
         return ApiResult.model_validate(data.get("result", data))
 
     def _check_result(self, result: ApiResult, context: str = "") -> None:
-        """Check API result for errors.
+        """Map status-code errors to the appropriate exception.
 
-        Raises:
-            RateLimitError: If daily limit exceeded.
-            ApiError: If API returned an error status.
+        ``107`` / ``108`` / ``111`` are *not* errors — callers handle empty
+        results via :meth:`ApiResult.has_data`.
+
+        ``303`` (concentrated access) is mapped to :class:`RateLimitError`
+        — it's transient and the API itself recommends back-off.
         """
-        if result.status_code == StatusCode.DAILY_LIMIT_EXCEEDED.value:
+        sc = result.status_code
+
+        if sc == StatusCode.DAILY_LIMIT_EXCEEDED.value:
             raise RateLimitError(
                 f"JPO daily access limit exceeded{f' for {context}' if context else ''}",
-                203,
+                int(sc),
                 result.error_message,
             )
 
-        if result.status_code == StatusCode.INVALID_TOKEN.value:
-            raise AuthenticationError("Invalid JPO API token", 210, result.error_message)
+        if sc == StatusCode.CONCENTRATED_ACCESS.value:
+            raise RateLimitError(
+                f"JPO API access concentrated{f' for {context}' if context else ''}; retry later",
+                int(sc),
+                result.error_message,
+            )
 
-        # Note: NO_DATA and NO_DOCUMENT are not errors, just empty results
+        if sc == StatusCode.INVALID_TOKEN.value:
+            raise AuthenticationError("Invalid JPO API token", int(sc), result.error_message)
 
-    # =========================================================================
+        if sc == StatusCode.INVALID_AUTH.value:
+            raise AuthenticationError(
+                "Invalid JPO API authentication", int(sc), result.error_message
+            )
+
+        if sc in (
+            StatusCode.INVALID_PARAMETER.value,
+            StatusCode.INVALID_CHARACTERS.value,
+            StatusCode.INVALID_REQUEST.value,
+        ):
+            raise ApiError(
+                f"JPO API invalid request{f' for {context}' if context else ''}: "
+                f"{result.error_message}",
+                int(sc),
+                result.error_message,
+            )
+
+        if sc == StatusCode.URL_NOT_FOUND.value:
+            raise NotFoundError(
+                f"JPO API URL not found{f' for {context}' if context else ''}",
+                int(sc),
+                result.error_message,
+            )
+
+        if sc in (StatusCode.TIMEOUT.value, StatusCode.UNEXPECTED_ERROR.value):
+            raise ApiError(
+                f"JPO API server error{f' for {context}' if context else ''}: "
+                f"{result.error_message}",
+                int(sc),
+                result.error_message,
+            )
+
+    async def _fetch_document_bundle(
+        self, application_number: str, path: str
+    ) -> DocumentBundleResult:
+        """Fetch a document-download endpoint that returns ZIP-or-JSON.
+
+        ``app_doc_cont_*`` endpoints return one of three things:
+
+        1. ``Content-Type: application/zip`` with the archive body inline
+           (when the ZIP is < 10 MB);
+        2. ``Content-Type: application/json`` with ``data.URL`` pointing at
+           a hosted ZIP (when the archive is > 10 MB);
+        3. ``Content-Type: application/json`` with an empty ``data`` object
+           and an error status code (107 / 108) when there are no
+           documents.
+        """
+        response = await self._raw_request("GET", path)
+        content_type = response.headers.get("content-type", "").lower()
+
+        if "zip" in content_type:
+            return DocumentBundleResult(
+                application_number=application_number,
+                zip_bytes=response.content,
+                content_type=content_type,
+            )
+
+        # JSON path — either oversize redirect or empty result.
+        body = response.json()
+        result = self._parse_result(body)
+        self._check_result(result, "document bundle")
+
+        if not result.has_data or not result.data:
+            return DocumentBundleResult(
+                application_number=application_number,
+                content_type=content_type,
+            )
+
+        # JPO returns "URL" (uppercase) for the oversize redirect.
+        url = result.data.get("URL", "")
+        return DocumentBundleResult(
+            application_number=application_number,
+            download_url=url,
+            content_type=content_type,
+        )
+
+    # ==================================================================
     # Patent APIs
-    # =========================================================================
+    # ==================================================================
 
     async def get_patent_progress(self, application_number: str) -> PatentProgressData | None:
-        """Get full patent progress/status information.
+        """``GET /patent/v1/app_progress/{n}`` — full patent progress.
 
         Args:
-            application_number: 10-digit application number (e.g., "2020123456").
+            application_number: 10-digit application number (e.g. ``2020123456``).
 
         Returns:
-            Patent progress data or None if not found.
+            Parsed progress data, or ``None`` when the API has no data
+            for this number.
         """
         path = f"/patent/v1/app_progress/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "patent progress")
-
         if not result.has_data or not result.data:
             return None
         return PatentProgressData.model_validate(result.data)
@@ -378,281 +506,213 @@ class JpoClient(BaseAsyncClient):
     async def get_patent_progress_simple(
         self, application_number: str
     ) -> SimplifiedPatentProgressData | None:
-        """Get simplified patent progress information (without priority/classification).
+        """``GET /patent/v1/app_progress_simple/{n}`` — simplified progress.
 
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Simplified progress data or None if not found.
+        Same shape as :meth:`get_patent_progress` minus priority,
+        parent-application, and divisional information.
         """
         path = f"/patent/v1/app_progress_simple/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "simplified patent progress")
-
         if not result.has_data or not result.data:
             return None
         return SimplifiedPatentProgressData.model_validate(result.data)
 
     async def get_patent_divisional_info(
         self, application_number: str
-    ) -> list[DivisionalApplicationInfo]:
-        """Get divisional application information.
+    ) -> DivisionalAppInfoData | None:
+        """``GET /patent/v1/divisional_app_info/{n}`` — divisional family.
 
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            List of divisional application information.
+        Returns parent application info + the list of divisional descendants.
+        Returns ``None`` when no data is available.
         """
         path = f"/patent/v1/divisional_app_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "divisional info")
-
         if not result.has_data or not result.data:
-            return []
-        divisionals = result.data.get("divisionalApplicationInfo", [])
-        return [DivisionalApplicationInfo.model_validate(d) for d in divisionals]
+            return None
+        return DivisionalAppInfoData.model_validate(result.data)
 
     async def get_patent_priority_info(self, application_number: str) -> list[PriorityInfo]:
-        """Get priority basic application information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            List of priority claim information.
-        """
+        """``GET /patent/v1/priority_right_app_info/{n}`` — priority basis."""
         path = f"/patent/v1/priority_right_app_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "priority info")
-
         if not result.has_data or not result.data:
             return []
-        priorities = result.data.get("priorityInfo", [])
+        priorities = result.data.get("priorityRightInformation", [])
         return [PriorityInfo.model_validate(p) for p in priorities]
 
-    async def get_patent_applicant_by_code(self, applicant_code: str) -> list[ApplicantAttorney]:
-        """Get applicant name by applicant code.
+    async def get_patent_applicant_by_code(self, applicant_code: str) -> str | None:
+        """``GET /patent/v1/applicant_attorney_cd/{code}`` — name from code.
 
-        Args:
-            applicant_code: 9-digit applicant code.
-
-        Returns:
-            List of applicant information.
+        Returns the applicant's name (a single string), or ``None`` if not
+        found. Matches the live API which returns
+        ``{"applicantAttorneyName": "<name>"}`` — *not* a list.
         """
         path = f"/patent/v1/applicant_attorney_cd/{applicant_code}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "applicant by code")
-
         if not result.has_data or not result.data:
-            return []
-        applicants = result.data.get("applicantAttorney", [])
-        return [ApplicantAttorney.model_validate(a) for a in applicants]
+            return None
+        return result.data.get("applicantAttorneyName") or None
 
     async def get_patent_applicant_by_name(self, applicant_name: str) -> list[ApplicantAttorney]:
-        """Get applicant code by applicant name.
+        """``GET /patent/v1/applicant_attorney/{name}`` — code from exact name.
 
-        Args:
-            applicant_name: Applicant name to search.
-
-        Returns:
-            List of applicant information with codes.
+        The endpoint requires an *exact* match; partial / fuzzy matches
+        return ``107`` (no data). Returns the matching codes.
         """
         path = f"/patent/v1/applicant_attorney/{applicant_name}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "applicant by name")
-
         if not result.has_data or not result.data:
             return []
         applicants = result.data.get("applicantAttorney", [])
         return [ApplicantAttorney.model_validate(a) for a in applicants]
 
     async def get_patent_number_reference(
-        self, kind: NumberType | str, number: str
-    ) -> list[NumberReference]:
-        """Get cross-reference of application, publication, and registration numbers.
+        self,
+        kind: CaseNumberKind | str,
+        number: str,
+    ) -> NumberReference | None:
+        """``GET /patent/v1/case_number_reference/{kind}/{n}`` — number cross-ref.
 
         Args:
-            kind: Number type code (e.g., NumberType.APPLICATION or "01").
-            number: The number to look up.
+            kind: One of :class:`CaseNumberKind` (``application`` /
+                ``publication`` / ``registration``) or its string value.
+                The numeric :class:`NumberType` codes do **not** apply here
+                — the endpoint requires the descriptive strings.
+            number: The number to look up. Format depends on ``kind``.
 
         Returns:
-            List of number references.
+            A single cross-reference object (the endpoint returns one
+            row, not a list), or ``None`` if not found.
         """
-        kind_code = kind.value if isinstance(kind, NumberType) else kind
-        path = f"/patent/v1/case_number_reference/{kind_code}/{number}"
+        kind_value = _kind_value(kind)
+        path = f"/patent/v1/case_number_reference/{kind_value}/{number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "number reference")
-
         if not result.has_data or not result.data:
-            return []
-        refs = result.data.get("caseNumberReference", [])
-        return [NumberReference.model_validate(r) for r in refs]
+            return None
+        return NumberReference.model_validate(result.data)
 
     async def get_patent_application_documents(
         self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get patent application documents (filed by applicant).
+    ) -> DocumentBundleResult:
+        """``GET /patent/v1/app_doc_cont_opinion_amendment/{n}``.
 
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Application documents data or None if not found.
+        Returns the applicant-filed documents (opinions and amendments)
+        as a ZIP archive of XML files. See :class:`DocumentBundleResult`
+        for the bytes-vs-URL fallback semantics.
         """
         path = f"/patent/v1/app_doc_cont_opinion_amendment/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "application documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
+    async def get_patent_mailed_documents(self, application_number: str) -> DocumentBundleResult:
+        """``GET /patent/v1/app_doc_cont_refusal_reason_decision/{n}``.
 
-    async def get_patent_mailed_documents(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get mailed patent documents (office actions, decisions).
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Mailed documents data or None if not found.
+        Returns mailed JPO documents (notices of reasons for refusal,
+        decisions of refusal, decisions of grant) as a ZIP of XML files.
         """
         path = f"/patent/v1/app_doc_cont_refusal_reason_decision/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "mailed documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
+    async def get_patent_refusal_notices(self, application_number: str) -> DocumentBundleResult:
+        """``GET /patent/v1/app_doc_cont_refusal_reason/{n}``.
 
-    async def get_patent_refusal_notices(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get notices of reasons for refusal.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Refusal notice documents or None if not found.
+        Returns notices of reasons for refusal (rejections only — no
+        grants) as a ZIP of XML files.
         """
         path = f"/patent/v1/app_doc_cont_refusal_reason/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "refusal notices")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
+    async def get_patent_cited_documents(
+        self, application_number: str
+    ) -> CitedDocumentsData | None:
+        """``GET /patent/v1/cite_doc_info/{n}`` — patent + non-patent citations.
 
-    async def get_patent_cited_documents(self, application_number: str) -> list[CitedDocumentInfo]:
-        """Get cited documents information.
+        Returns the combined citations bundle (patent and non-patent)
+        or ``None`` if the API has no citation data.
 
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            List of cited document information.
+        Note: the live API returns ``patentDoc`` and ``nonPatentDoc`` as
+        *arrays*, not the singleton objects the OpenAPI spec describes.
         """
         path = f"/patent/v1/cite_doc_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "cited documents")
-
         if not result.has_data or not result.data:
-            return []
-        cites = result.data.get("citedDocumentInfo", [])
-        return [CitedDocumentInfo.model_validate(c) for c in cites]
+            return None
+        return CitedDocumentsData.model_validate(result.data)
 
     async def get_patent_registration_info(
         self, application_number: str
     ) -> RegistrationInfo | None:
-        """Get patent registration information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Registration information or None if not registered.
-        """
+        """``GET /patent/v1/registration_info/{n}`` — registration record."""
         path = f"/patent/v1/registration_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "registration info")
-
         if not result.has_data or not result.data:
             return None
         return RegistrationInfo.model_validate(result.data)
 
     async def get_patent_jplatpat_url(self, application_number: str) -> str | None:
-        """Get the J-PlatPat fixed URL for a patent application.
+        """``GET /patent/v1/jpp_fixed_address/{n}`` — J-PlatPat permalink.
 
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            J-PlatPat URL or None if not available.
+        The live response uses ``URL`` (uppercase) — the OpenAPI spec is
+        wrong about the field name being ``jplatpatUrl``.
         """
         path = f"/patent/v1/jpp_fixed_address/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "J-PlatPat URL")
-
         if not result.has_data or not result.data:
             return None
-        return result.data.get("jplatpatUrl")
+        return result.data.get("URL") or result.data.get("jplatpatUrl") or None
 
     async def get_patent_pct_national_number(
-        self, kind: NumberType | str, number: str
+        self,
+        kind: PctKind | str,
+        number: str,
     ) -> PctNationalPhaseData | None:
-        """Get national phase application number from PCT number.
+        """``GET /patent/v1/pct_national_phase_application_number/{kind}/{n}``.
 
         Args:
-            kind: Number type (PCT_APPLICATION or PCT_PUBLICATION).
-            number: PCT application or publication number.
+            kind: One of :class:`PctKind` (``international_application`` /
+                ``international_publication``) or its string value.
+            number: PCT international application or publication number.
 
         Returns:
-            PCT national phase data or None if not found.
+            National-phase application number wrapper, or ``None`` if not
+            found.
         """
-        kind_code = kind.value if isinstance(kind, NumberType) else kind
-        path = f"/patent/v1/pct_national_phase_application_number/{kind_code}/{number}"
+        kind_value = _kind_value(kind)
+        path = f"/patent/v1/pct_national_phase_application_number/{kind_value}/{number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "PCT national phase")
-
         if not result.has_data or not result.data:
             return None
         return PctNationalPhaseData.model_validate(result.data)
 
-    # =========================================================================
+    # ==================================================================
     # Design APIs
-    # =========================================================================
+    # ==================================================================
 
     async def get_design_progress(self, application_number: str) -> DesignProgressData | None:
-        """Get design application progress information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Design progress data or None if not found.
-        """
+        """``GET /design/v1/app_progress/{n}`` — full design progress."""
         path = f"/design/v1/app_progress/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design progress")
-
         if not result.has_data or not result.data:
             return None
         return DesignProgressData.model_validate(result.data)
@@ -660,162 +720,111 @@ class JpoClient(BaseAsyncClient):
     async def get_design_progress_simple(
         self, application_number: str
     ) -> DesignProgressData | None:
-        """Get simplified design progress information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Simplified design progress data or None if not found.
-        """
+        """``GET /design/v1/app_progress_simple/{n}``."""
         path = f"/design/v1/app_progress_simple/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "simplified design progress")
-
         if not result.has_data or not result.data:
             return None
         return DesignProgressData.model_validate(result.data)
 
     async def get_design_priority_info(self, application_number: str) -> list[PriorityInfo]:
-        """Get design priority information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            List of priority information.
-        """
+        """``GET /design/v1/priority_right_app_info/{n}``."""
         path = f"/design/v1/priority_right_app_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design priority")
-
         if not result.has_data or not result.data:
             return []
-        priorities = result.data.get("priorityInfo", [])
+        priorities = result.data.get("priorityRightInformation", [])
         return [PriorityInfo.model_validate(p) for p in priorities]
 
-    async def get_design_applicant_by_code(self, applicant_code: str) -> list[ApplicantAttorney]:
-        """Get design applicant name by code."""
+    async def get_design_applicant_by_code(self, applicant_code: str) -> str | None:
+        """``GET /design/v1/applicant_attorney_cd/{code}`` — name from code."""
         path = f"/design/v1/applicant_attorney_cd/{applicant_code}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design applicant by code")
-
         if not result.has_data or not result.data:
-            return []
-        applicants = result.data.get("applicantAttorney", [])
-        return [ApplicantAttorney.model_validate(a) for a in applicants]
+            return None
+        return result.data.get("applicantAttorneyName") or None
 
     async def get_design_applicant_by_name(self, applicant_name: str) -> list[ApplicantAttorney]:
-        """Get design applicant code by name."""
+        """``GET /design/v1/applicant_attorney/{name}`` — code from exact name."""
         path = f"/design/v1/applicant_attorney/{applicant_name}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design applicant by name")
-
         if not result.has_data or not result.data:
             return []
         applicants = result.data.get("applicantAttorney", [])
         return [ApplicantAttorney.model_validate(a) for a in applicants]
 
     async def get_design_number_reference(
-        self, kind: NumberType | str, number: str
-    ) -> list[NumberReference]:
-        """Get design number cross-reference."""
-        kind_code = kind.value if isinstance(kind, NumberType) else kind
-        path = f"/design/v1/case_number_reference/{kind_code}/{number}"
+        self,
+        kind: CaseNumberKind | str,
+        number: str,
+    ) -> NumberReference | None:
+        """``GET /design/v1/case_number_reference/{kind}/{n}``."""
+        kind_value = _kind_value(kind)
+        path = f"/design/v1/case_number_reference/{kind_value}/{number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design number reference")
-
         if not result.has_data or not result.data:
-            return []
-        refs = result.data.get("caseNumberReference", [])
-        return [NumberReference.model_validate(r) for r in refs]
+            return None
+        return NumberReference.model_validate(result.data)
 
     async def get_design_application_documents(
         self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get design application documents."""
+    ) -> DocumentBundleResult:
+        """``GET /design/v1/app_doc_cont_opinion_amendment/{n}``."""
         path = f"/design/v1/app_doc_cont_opinion_amendment/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "design application documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
-
-    async def get_design_mailed_documents(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get mailed design documents."""
+    async def get_design_mailed_documents(self, application_number: str) -> DocumentBundleResult:
+        """``GET /design/v1/app_doc_cont_refusal_reason_decision/{n}``."""
         path = f"/design/v1/app_doc_cont_refusal_reason_decision/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "design mailed documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
-
-    async def get_design_refusal_notices(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get design refusal notices."""
+    async def get_design_refusal_notices(self, application_number: str) -> DocumentBundleResult:
+        """``GET /design/v1/app_doc_cont_refusal_reason/{n}``."""
         path = f"/design/v1/app_doc_cont_refusal_reason/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "design refusal notices")
-
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
+        return await self._fetch_document_bundle(application_number, path)
 
     async def get_design_registration_info(
         self, application_number: str
     ) -> RegistrationInfo | None:
-        """Get design registration information."""
+        """``GET /design/v1/registration_info/{n}``."""
         path = f"/design/v1/registration_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design registration")
-
         if not result.has_data or not result.data:
             return None
         return RegistrationInfo.model_validate(result.data)
 
     async def get_design_jplatpat_url(self, application_number: str) -> str | None:
-        """Get J-PlatPat URL for a design application."""
+        """``GET /design/v1/jpp_fixed_address/{n}``."""
         path = f"/design/v1/jpp_fixed_address/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "design J-PlatPat URL")
-
         if not result.has_data or not result.data:
             return None
-        return result.data.get("jplatpatUrl")
+        return result.data.get("URL") or result.data.get("jplatpatUrl") or None
 
-    # =========================================================================
+    # ==================================================================
     # Trademark APIs
-    # =========================================================================
+    # ==================================================================
 
     async def get_trademark_progress(self, application_number: str) -> TrademarkProgressData | None:
-        """Get trademark application progress information.
-
-        Args:
-            application_number: 10-digit application number.
-
-        Returns:
-            Trademark progress data or None if not found.
-        """
+        """``GET /trademark/v1/app_progress/{n}``."""
         path = f"/trademark/v1/app_progress/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark progress")
-
         if not result.has_data or not result.data:
             return None
         return TrademarkProgressData.model_validate(result.data)
@@ -823,129 +832,100 @@ class JpoClient(BaseAsyncClient):
     async def get_trademark_progress_simple(
         self, application_number: str
     ) -> TrademarkProgressData | None:
-        """Get simplified trademark progress information."""
+        """``GET /trademark/v1/app_progress_simple/{n}``."""
         path = f"/trademark/v1/app_progress_simple/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "simplified trademark progress")
-
         if not result.has_data or not result.data:
             return None
         return TrademarkProgressData.model_validate(result.data)
 
     async def get_trademark_priority_info(self, application_number: str) -> list[PriorityInfo]:
-        """Get trademark priority information."""
+        """``GET /trademark/v1/priority_right_app_info/{n}``."""
         path = f"/trademark/v1/priority_right_app_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark priority")
-
         if not result.has_data or not result.data:
             return []
-        priorities = result.data.get("priorityInfo", [])
+        priorities = result.data.get("priorityRightInformation", [])
         return [PriorityInfo.model_validate(p) for p in priorities]
 
-    async def get_trademark_applicant_by_code(self, applicant_code: str) -> list[ApplicantAttorney]:
-        """Get trademark applicant name by code."""
+    async def get_trademark_applicant_by_code(self, applicant_code: str) -> str | None:
+        """``GET /trademark/v1/applicant_attorney_cd/{code}``."""
         path = f"/trademark/v1/applicant_attorney_cd/{applicant_code}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark applicant by code")
-
         if not result.has_data or not result.data:
-            return []
-        applicants = result.data.get("applicantAttorney", [])
-        return [ApplicantAttorney.model_validate(a) for a in applicants]
+            return None
+        return result.data.get("applicantAttorneyName") or None
 
     async def get_trademark_applicant_by_name(self, applicant_name: str) -> list[ApplicantAttorney]:
-        """Get trademark applicant code by name."""
+        """``GET /trademark/v1/applicant_attorney/{name}``."""
         path = f"/trademark/v1/applicant_attorney/{applicant_name}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark applicant by name")
-
         if not result.has_data or not result.data:
             return []
         applicants = result.data.get("applicantAttorney", [])
         return [ApplicantAttorney.model_validate(a) for a in applicants]
 
     async def get_trademark_number_reference(
-        self, kind: NumberType | str, number: str
-    ) -> list[NumberReference]:
-        """Get trademark number cross-reference."""
-        kind_code = kind.value if isinstance(kind, NumberType) else kind
-        path = f"/trademark/v1/case_number_reference/{kind_code}/{number}"
+        self,
+        kind: CaseNumberKind | str,
+        number: str,
+    ) -> NumberReference | None:
+        """``GET /trademark/v1/case_number_reference/{kind}/{n}``."""
+        kind_value = _kind_value(kind)
+        path = f"/trademark/v1/case_number_reference/{kind_value}/{number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark number reference")
-
         if not result.has_data or not result.data:
-            return []
-        refs = result.data.get("caseNumberReference", [])
-        return [NumberReference.model_validate(r) for r in refs]
+            return None
+        return NumberReference.model_validate(result.data)
 
     async def get_trademark_application_documents(
         self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get trademark application documents."""
+    ) -> DocumentBundleResult:
+        """``GET /trademark/v1/app_doc_cont_opinion_amendment/{n}``."""
         path = f"/trademark/v1/app_doc_cont_opinion_amendment/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "trademark application documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
-
-    async def get_trademark_mailed_documents(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get mailed trademark documents."""
+    async def get_trademark_mailed_documents(self, application_number: str) -> DocumentBundleResult:
+        """``GET /trademark/v1/app_doc_cont_refusal_reason_decision/{n}``."""
         path = f"/trademark/v1/app_doc_cont_refusal_reason_decision/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "trademark mailed documents")
+        return await self._fetch_document_bundle(application_number, path)
 
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
-
-    async def get_trademark_refusal_notices(
-        self, application_number: str
-    ) -> ApplicationDocumentsData | None:
-        """Get trademark refusal notices."""
+    async def get_trademark_refusal_notices(self, application_number: str) -> DocumentBundleResult:
+        """``GET /trademark/v1/app_doc_cont_refusal_reason/{n}``."""
         path = f"/trademark/v1/app_doc_cont_refusal_reason/{application_number}"
-        data = await self._request("GET", path)
-        result = self._parse_result(data)
-        self._check_result(result, "trademark refusal notices")
-
-        if not result.has_data or not result.data:
-            return None
-        return ApplicationDocumentsData.model_validate(result.data)
+        return await self._fetch_document_bundle(application_number, path)
 
     async def get_trademark_registration_info(
         self, application_number: str
     ) -> RegistrationInfo | None:
-        """Get trademark registration information."""
+        """``GET /trademark/v1/registration_info/{n}``."""
         path = f"/trademark/v1/registration_info/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark registration")
-
         if not result.has_data or not result.data:
             return None
         return RegistrationInfo.model_validate(result.data)
 
     async def get_trademark_jplatpat_url(self, application_number: str) -> str | None:
-        """Get J-PlatPat URL for a trademark application."""
+        """``GET /trademark/v1/jpp_fixed_address/{n}``."""
         path = f"/trademark/v1/jpp_fixed_address/{application_number}"
         data = await self._request("GET", path)
         result = self._parse_result(data)
         self._check_result(result, "trademark J-PlatPat URL")
-
         if not result.has_data or not result.data:
             return None
-        return result.data.get("jplatpatUrl")
+        return result.data.get("URL") or result.data.get("jplatpatUrl") or None
 
 
 __all__ = [
@@ -953,4 +933,6 @@ __all__ = [
     "TokenManager",
     "RateLimiter",
     "BASE_URL",
+    "RATE_LIMIT_REQUESTS",
+    "RATE_LIMIT_WINDOW",
 ]

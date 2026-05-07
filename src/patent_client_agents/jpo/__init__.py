@@ -20,16 +20,19 @@ Note: This API requires user registration with JPO. See:
 from .api import (  # noqa: F401
     # Models
     ApplicantAttorney,
-    ApplicationDocumentsData,
-    CitedDocumentInfo,
+    CaseNumberKind,
+    CitedDocumentsData,
     DesignProgressData,
-    DivisionalApplicationInfo,
+    DivisionalAppInfoData,
+    DocumentBundleResult,
     # Client
     JpoClient,
     NumberReference,
     # Enums
     NumberType,
+    ParentApplicationInfo,
     PatentProgressData,
+    PctKind,
     PctNationalPhaseData,
     PriorityInfo,
     RegistrationInfo,
@@ -76,6 +79,13 @@ from .api import (  # noqa: F401
     get_trademark_refusal_notices,
     get_trademark_registration_info,
 )
+from .documents import parse_document_bundle  # noqa: F401
+from .models_documents import (  # noqa: F401
+    DocumentBundle,
+    DocumentEntry,
+    DocumentKind,
+    IpType,
+)
 
 __all__ = [
     # Client
@@ -83,6 +93,8 @@ __all__ = [
     # Enums
     "StatusCode",
     "NumberType",
+    "CaseNumberKind",
+    "PctKind",
     # Models
     "PatentProgressData",
     "SimplifiedPatentProgressData",
@@ -90,12 +102,19 @@ __all__ = [
     "TrademarkProgressData",
     "ApplicantAttorney",
     "PriorityInfo",
-    "DivisionalApplicationInfo",
+    "ParentApplicationInfo",
+    "DivisionalAppInfoData",
     "NumberReference",
-    "ApplicationDocumentsData",
-    "CitedDocumentInfo",
+    "DocumentBundleResult",
+    "CitedDocumentsData",
     "RegistrationInfo",
     "PctNationalPhaseData",
+    # Document parsing
+    "DocumentBundle",
+    "DocumentEntry",
+    "DocumentKind",
+    "IpType",
+    "parse_document_bundle",
     # Patent functions
     "get_patent_progress",
     "get_patent_progress_simple",
