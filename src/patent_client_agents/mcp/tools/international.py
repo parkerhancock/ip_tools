@@ -11,8 +11,17 @@ from fastmcp import FastMCP
 from law_tools_core.exceptions import ValidationError
 from law_tools_core.filenames import epo_pdf as _epo_pdf_name
 from law_tools_core.mcp.annotations import READ_ONLY
-from law_tools_core.mcp.conditional import conditional_tool, register_source_if_configured
-from law_tools_core.mcp.downloads import build_download_url, download_response, register_source
+from law_tools_core.mcp.conditional import (
+    conditional_resource,
+    conditional_tool,
+    register_source_if_configured,
+)
+from law_tools_core.mcp.downloads import (
+    build_download_url,
+    download_response,
+    read_resource,
+    register_source,
+)
 from patent_client_agents.cpc import map_classification
 from patent_client_agents.epo_ops.client import client_from_env
 
@@ -48,6 +57,19 @@ async def _fetch_epo_pdf(path: str) -> tuple[bytes, str]:
 
 
 register_source("epo/patents", _fetch_epo_pdf, "application/pdf")
+
+
+@international_mcp.resource(
+    "pca://epo/patents/{publication_number}",
+    mime_type="application/pdf",
+    name="EPO patent PDF",
+    description=(
+        "Patent PDF resolved through EPO Open Patent Services. URI parameter is "
+        "the publication number with country and kind code (e.g. 'EP3456789A1')."
+    ),
+)
+async def _epo_patent_pdf_resource(publication_number: str):
+    return await read_resource(f"epo/patents/{publication_number}")
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +159,23 @@ register_source_if_configured(
     "application/zip",
     requires_env=_JPO_REQUIRED_ENV,
 )
+
+
+@conditional_resource(
+    international_mcp,
+    "pca://jpo/documents/{ip_type}/{application_number}/{doc_kind}",
+    mime_type="application/zip",
+    name="JPO document bundle",
+    description=(
+        "Zip archive of JPO documents for one application/kind combination. "
+        "ip_type ∈ {patent, design, trademark}; doc_kind ∈ {application, mailed, refusal}."
+    ),
+    requires_env=_JPO_REQUIRED_ENV,
+)
+async def _jpo_document_bundle_resource(
+    ip_type: str, application_number: str, doc_kind: str
+):
+    return await read_resource(f"jpo/documents/{ip_type}/{application_number}/{doc_kind}")
 
 
 # ---------------------------------------------------------------------------

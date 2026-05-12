@@ -112,3 +112,33 @@ def register_source_if_configured(
     """
     if _env_satisfied(requires_env):
         register_source(path_prefix, fetch, mime_type)
+
+
+def conditional_resource(
+    mcp: FastMCP,
+    uri_template: str,
+    *,
+    requires_env: list[str],
+    **resource_kwargs: Any,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Register an MCP resource only when all required env vars are set.
+
+    Companion to :func:`conditional_tool` for the resource side. Same
+    rationale: env-gated connectors should not expose their resource
+    templates on deployments that lack the required credentials.
+
+    Args:
+        mcp: The FastMCP instance to register on (or not).
+        uri_template: URI template (e.g. ``"pca://jpo/{ip_type}/..."``).
+        requires_env: All of these env vars must be set AND non-empty
+            for registration to happen.
+        **resource_kwargs: Forwarded to ``mcp.resource(...)`` when
+            registering (e.g. ``mime_type``, ``name``, ``description``).
+    """
+
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        if _env_satisfied(requires_env):
+            return mcp.resource(uri_template, **resource_kwargs)(func)
+        return func
+
+    return decorator

@@ -33,6 +33,19 @@ def _isolated_cache(monkeypatch, tmp_path):
     monkeypatch.setenv("LAW_TOOLS_CORE_DOWNLOAD_CACHE", str(tmp_path / "cache"))
 
 
+def _run(coro):
+    """Run the coroutine and unwrap ``ToolResult.structured_content``.
+
+    PTAB bulk tools now return ``ToolResult`` (per-item ResourceLinks
+    alongside the existing dict payload). These tests assert on the
+    dict shape, so we unwrap here.
+    """
+    result = asyncio.run(coro)
+    if hasattr(result, "structured_content"):
+        return result.structured_content
+    return result
+
+
 def _stub_pdf_downloader(monkeypatch, content_by_uri: dict[str, bytes]) -> dict[str, int]:
     """Replace _ptab_download_pdf so tests don't need a real HTTP client."""
     calls: dict[str, int] = {}
@@ -171,7 +184,7 @@ class TestTrialDocuments:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/A.pdf": b"a", "/p/B.pdf": b"b", "/p/C.pdf": b"c"})
 
-        result = asyncio.run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
+        result = _run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
         assert result["ok_count"] == 3
         assert result["container"] == "IPR2024-00001"
         assert result["trial_number"] == "IPR2024-00001"
@@ -193,7 +206,7 @@ class TestTrialDocuments:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/D0.pdf": b"0", "/p/D2.pdf": b"2"})
 
-        result = asyncio.run(
+        result = _run(
             uspto_tools.download_ptab_trial_documents("IPR2024-00001", item_ids=["D0", "D2"])
         )
         ids = sorted(m["item_id"] for m in result["manifest"])
@@ -213,7 +226,7 @@ class TestTrialDocuments:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/m1.pdf": b"m1", "/p/m2.pdf": b"m2"})
 
-        result = asyncio.run(
+        result = _run(
             uspto_tools.download_ptab_trial_documents(
                 "IPR2024-00001", after="2024-01-01", before="2024-03-01"
             )
@@ -230,13 +243,13 @@ class TestTrialDocuments:
         _patch_client(monkeypatch, _FakeOdpClient(trial_documents=docs))
 
         with pytest.raises(ValidationError, match="max 100 per call"):
-            asyncio.run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
+            _run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
 
     def test_no_match_raises(self, _stdio_mode, _isolated_cache, monkeypatch) -> None:
         _patch_client(monkeypatch, _FakeOdpClient(trial_documents=[]))
 
         with pytest.raises(ValidationError, match="No PTAB trial documents"):
-            asyncio.run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
+            _run(uspto_tools.download_ptab_trial_documents("IPR2024-00001"))
 
 
 class TestTrialDecisions:
@@ -251,7 +264,7 @@ class TestTrialDecisions:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/D1.pdf": b"decision"})
 
-        result = asyncio.run(uspto_tools.download_ptab_trial_decisions("IPR2024-00001"))
+        result = _run(uspto_tools.download_ptab_trial_decisions("IPR2024-00001"))
         # n=1 short-circuits; confirm it uses the new trial-decisions cache prefix
         # (not ptab/documents).
         from law_tools_core.mcp.downloads import _cache_get
@@ -268,7 +281,7 @@ class TestTrialDecisions:
         _patch_client(monkeypatch, _FakeOdpClient(trial_decisions=decisions))
 
         with pytest.raises(ValidationError, match="max 50 per call"):
-            asyncio.run(uspto_tools.download_ptab_trial_decisions("IPR2024-00001"))
+            _run(uspto_tools.download_ptab_trial_decisions("IPR2024-00001"))
 
 
 class TestAppealDecisions:
@@ -284,7 +297,7 @@ class TestAppealDecisions:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/A1.pdf": b"a1", "/p/A2.pdf": b"a2"})
 
-        result = asyncio.run(uspto_tools.download_ptab_appeal_decisions("16123456"))
+        result = _run(uspto_tools.download_ptab_appeal_decisions("16123456"))
         assert result["ok_count"] == 2
         assert result["application_number"] == "16123456"
 
@@ -302,7 +315,7 @@ class TestAppealDecisions:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/m1.pdf": b"m1", "/p/m2.pdf": b"m2"})
 
-        result = asyncio.run(
+        result = _run(
             uspto_tools.download_ptab_appeal_decisions(
                 "16123456", after="2024-01-01", before="2024-12-31"
             )
@@ -324,7 +337,7 @@ class TestInterferenceDecisions:
         )
         _stub_pdf_downloader(monkeypatch, {"/p/I1.pdf": b"i1", "/p/I2.pdf": b"i2"})
 
-        result = asyncio.run(uspto_tools.download_ptab_interference_decisions("105,123"))
+        result = _run(uspto_tools.download_ptab_interference_decisions("105,123"))
         assert result["ok_count"] == 2
         assert result["interference_number"] == "105,123"
 
@@ -333,4 +346,4 @@ class TestInvalidInput:
     def test_bad_date_raises(self, _stdio_mode, _isolated_cache, monkeypatch) -> None:
         _patch_client(monkeypatch, _FakeOdpClient(trial_documents=[]))
         with pytest.raises(ValidationError, match="ISO date"):
-            asyncio.run(uspto_tools.download_ptab_trial_documents("IPR2024-00001", after="bogus"))
+            _run(uspto_tools.download_ptab_trial_documents("IPR2024-00001", after="bogus"))

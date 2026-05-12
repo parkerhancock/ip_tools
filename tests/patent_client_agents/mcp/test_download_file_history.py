@@ -102,6 +102,20 @@ def _install_fake_fetcher(content_by_path: dict[str, bytes]) -> dict[str, int]:
     return calls
 
 
+def _run(coro):
+    """Run the coroutine and unwrap ``ToolResult.structured_content``.
+
+    Bulk tools return ``ToolResult`` now (so resource-aware clients get
+    a ``ResourceLink`` per item alongside the existing dict payload).
+    These tests pre-date that switch and assert on the dict shape, so
+    we unwrap here rather than rewrite every assertion.
+    """
+    result = asyncio.run(coro)
+    if hasattr(result, "structured_content"):
+        return result.structured_content
+    return result
+
+
 def _patch_client(monkeypatch, documents: list[dict]) -> None:
     monkeypatch.setattr(uspto_tools, "UsptoOdpClient", lambda: _FakeUsptoClient(documents))
 
@@ -112,7 +126,7 @@ class TestDownloadFileHistoryFiltering:
         _install_fake_fetcher({})
 
         with pytest.raises(ValidationError, match="No file-history documents"):
-            asyncio.run(uspto_tools.download_file_history("16123456", document_codes=["IDS"]))
+            _run(uspto_tools.download_file_history("16123456", document_codes=["IDS"]))
 
     def test_cap_exceeded_raises(self, _stdio_mode, _isolated_cache, monkeypatch) -> None:
         # 51 documents matches; cap is 50.
@@ -121,7 +135,7 @@ class TestDownloadFileHistoryFiltering:
         _install_fake_fetcher({})
 
         with pytest.raises(ValidationError, match="max 50 per call"):
-            asyncio.run(uspto_tools.download_file_history("16123456"))
+            _run(uspto_tools.download_file_history("16123456"))
 
     def test_item_ids_filter(self, _stdio_mode, _isolated_cache, monkeypatch) -> None:
         docs = [_doc(doc_id=f"D{n}") for n in range(5)]
@@ -133,7 +147,7 @@ class TestDownloadFileHistoryFiltering:
             }
         )
 
-        result = asyncio.run(uspto_tools.download_file_history("16123456", item_ids=["D0", "D2"]))
+        result = _run(uspto_tools.download_file_history("16123456", item_ids=["D0", "D2"]))
         assert result["item_count"] == 2
         assert result["ok_count"] == 2
         ids = sorted(m["item_id"] for m in result["manifest"])
@@ -154,7 +168,7 @@ class TestDownloadFileHistoryFiltering:
                 "16123456/documents/D": b"pdf-D",
             }
         )
-        result = asyncio.run(
+        result = _run(
             uspto_tools.download_file_history("16123456", document_codes=["CTNF", "IDS"])
         )
         ids = sorted(m["item_id"] for m in result["manifest"])
@@ -175,7 +189,7 @@ class TestDownloadFileHistoryFiltering:
             }
         )
 
-        result = asyncio.run(
+        result = _run(
             uspto_tools.download_file_history("16123456", after="2024-01-01", before="2024-03-01")
         )
         ids = sorted(m["item_id"] for m in result["manifest"])
@@ -186,7 +200,7 @@ class TestDownloadFileHistoryFiltering:
         _install_fake_fetcher({})
 
         with pytest.raises(ValidationError, match="ISO date YYYY-MM-DD"):
-            asyncio.run(uspto_tools.download_file_history("16123456", after="not-a-date"))
+            _run(uspto_tools.download_file_history("16123456", after="not-a-date"))
 
 
 class TestDownloadFileHistoryShape:
@@ -194,7 +208,7 @@ class TestDownloadFileHistoryShape:
         _patch_client(monkeypatch, [_doc(doc_id="OA1", code="CTNF", date="2024-01-15")])
         _install_fake_fetcher({"16123456/documents/OA1": b"pdf-bytes"})
 
-        result = asyncio.run(uspto_tools.download_file_history("16123456"))
+        result = _run(uspto_tools.download_file_history("16123456"))
         assert "manifest" not in result  # n=1 short-circuit
         assert result["content_type"] == "application/pdf"
         assert result["filename"] == "16123456-CTNF-2024-01-15-OA1.pdf"
@@ -221,7 +235,7 @@ class TestDownloadFileHistoryShape:
             }
         )
 
-        result = asyncio.run(uspto_tools.download_file_history("16123456"))
+        result = _run(uspto_tools.download_file_history("16123456"))
         assert result["content_type"] == "application/zip"
         assert result["item_count"] == 3
         assert result["ok_count"] == 3
@@ -253,7 +267,7 @@ class TestDownloadFileHistoryShape:
             }
         )
 
-        result = asyncio.run(uspto_tools.download_file_history("16123456"))
+        result = _run(uspto_tools.download_file_history("16123456"))
         assert result["item_count"] == 3
         assert result["ok_count"] == 2
         assert result["error_count"] == 1
@@ -277,11 +291,11 @@ class TestDownloadFileHistoryCacheReuse:
             }
         )
 
-        first = asyncio.run(uspto_tools.download_file_history("16123456"))
+        first = _run(uspto_tools.download_file_history("16123456"))
         assert first["ok_count"] == 2
         assert calls == {"16123456/documents/A": 1, "16123456/documents/B": 1}
 
-        second = asyncio.run(uspto_tools.download_file_history("16123456"))
+        second = _run(uspto_tools.download_file_history("16123456"))
         assert second["ok_count"] == 2
         # Second call hit the per-doc cache for both docs — fetcher not re-called.
         assert calls == {"16123456/documents/A": 1, "16123456/documents/B": 1}

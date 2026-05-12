@@ -13,7 +13,11 @@ from fastmcp import FastMCP
 
 from law_tools_core.filenames import patent_pdf as _patent_pdf_name
 from law_tools_core.mcp.annotations import READ_ONLY
-from law_tools_core.mcp.downloads import download_response, register_source
+from law_tools_core.mcp.downloads import (
+    download_tool_result,
+    read_resource,
+    register_source,
+)
 from patent_client_agents import unified
 from patent_client_agents.google_patents import GooglePatentsClient
 
@@ -34,6 +38,19 @@ async def _fetch_patent_pdf(path: str) -> tuple[bytes, str]:
 
 
 register_source("patents", _fetch_patent_pdf, "application/pdf")
+
+
+@patents_mcp.resource(
+    "pca://patents/{publication_number}",
+    mime_type="application/pdf",
+    name="Patent PDF",
+    description=(
+        "Patent publication PDF resolved from Google Patents. URI parameter "
+        "is the publication number with country and kind code (e.g. 'US10123456B2')."
+    ),
+)
+async def _patent_pdf_resource(publication_number: str):
+    return await read_resource(f"patents/{publication_number}")
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +206,7 @@ async def download_patent_pdf(
         "Patent or publication number. Accepts 'US10123456B2', 'US20230012345A1', "
         "'EP3456789A1', etc. The 'US' prefix is added automatically when omitted.",
     ],
-) -> dict:
+):
     """Download a patent or publication PDF.
 
     Cascades three sources until one returns bytes:
@@ -198,10 +215,14 @@ async def download_patent_pdf(
     2. USPTO PPUBS (US patents; clean 404s on non-US numbers, fall through)
     3. EPO OPS (worldwide fallback)
 
-    Returns a signed `download_url` (or `file_path` in local stdio mode) plus
-    `filename`, `content_type`, `size_bytes`, and `source` (which of the three
-    served the bytes). Non-not-found errors (auth, transient HTTP failures)
-    surface immediately rather than being masked by silent fallback.
+    Returns a ResourceLink pointing at ``pca://patent/{publication_number}``
+    (or the matching publication / EPO scheme) alongside `download_url`,
+    `filename`, `content_type`, `size_bytes`, `resource_uri`, and `source`.
+    Resource-aware MCP clients (e.g. Claude CoWork) can fetch the bytes
+    via ``resources/read`` over the MCP session; clients without that
+    affordance fetch ``download_url`` directly. Non-not-found errors
+    (auth, transient HTTP failures) surface immediately rather than
+    being masked by silent fallback.
     """
     pdf = await unified.download_patent_pdf(patent_number)
     signed_path_prefix = {
@@ -209,19 +230,17 @@ async def download_patent_pdf(
         "ppubs": "publications",
         "epo": "epo/patents",
     }[pdf.source]
-    extra: dict[str, object] = {"patent_number": pdf.patent_number}
+    extra: dict[str, object] = {"patent_number": pdf.patent_number, "source": pdf.source}
     if pdf.patent_title is not None:
         extra["patent_title"] = pdf.patent_title
-    return {
-        **download_response(
-            f"{signed_path_prefix}/{pdf.patent_number}",
-            pdf.pdf_bytes,
-            filename=pdf.filename,
-            content_type="application/pdf",
-            **extra,
-        ),
-        "source": pdf.source,
-    }
+    return download_tool_result(
+        f"{signed_path_prefix}/{pdf.patent_number}",
+        pdf.pdf_bytes,
+        filename=pdf.filename,
+        content_type="application/pdf",
+        description=pdf.patent_title,
+        **extra,
+    )
 
 
 @patents_mcp.tool(annotations=READ_ONLY)

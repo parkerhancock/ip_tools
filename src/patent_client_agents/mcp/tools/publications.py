@@ -9,7 +9,7 @@ from fastmcp import FastMCP
 
 from law_tools_core.filenames import publication_pdf as _publication_pdf_name
 from law_tools_core.mcp.annotations import READ_ONLY
-from law_tools_core.mcp.downloads import register_source
+from law_tools_core.mcp.downloads import read_resource, register_source
 from patent_client_agents.uspto_publications import (
     resolve_and_download_pdf,
     resolve_publication,
@@ -41,6 +41,19 @@ async def _fetch_publication_pdf(path: str) -> tuple[bytes, str]:
 
 
 register_source("publications", _fetch_publication_pdf, "application/pdf")
+
+
+@publications_mcp.resource(
+    "pca://publications/{publication_number}",
+    mime_type="application/pdf",
+    name="Patent publication PDF (PPUBS)",
+    description=(
+        "US patent or publication PDF resolved through PPUBS. URI parameter is "
+        "the publication number with country and kind code (e.g. 'US20230012345A1')."
+    ),
+)
+async def _publication_pdf_resource(publication_number: str):
+    return await read_resource(f"publications/{publication_number}")
 
 
 # ---------------------------------------------------------------------------

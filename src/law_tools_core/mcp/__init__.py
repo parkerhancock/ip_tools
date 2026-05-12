@@ -17,15 +17,24 @@ compatibility with pre-split law-tools deployments.
 
 from .annotations import DOWNLOAD, READ_ONLY
 from .auth import make_auth, make_domain_gate_middleware
-from .conditional import conditional_tool, register_source_if_configured
+from .conditional import (
+    conditional_resource,
+    conditional_tool,
+    register_source_if_configured,
+)
 from .downloads import (
+    RESOURCE_SCHEME,
     BulkItem,
     build_download_url,
     build_download_url_or_fetch,
+    build_resource_uri,
     download_bulk_response,
+    download_bulk_tool_result,
     download_response,
+    download_tool_result,
     fetch_with_cache,
     handle_download,
+    read_resource,
     reap_stale_bulk_zips,
     register_source,
     sign_path,
@@ -35,22 +44,28 @@ from .middleware import BearerTokenAuth, FriendlyErrors, ToolCallLogger
 from .server_factory import build_server
 
 __all__ = [
+    "DOWNLOAD",
+    "READ_ONLY",
+    "RESOURCE_SCHEME",
     "BearerTokenAuth",
     "BulkItem",
-    "DOWNLOAD",
     "FriendlyErrors",
-    "READ_ONLY",
     "ToolCallLogger",
     "build_download_url",
     "build_download_url_or_fetch",
+    "build_resource_uri",
     "build_server",
+    "conditional_resource",
     "conditional_tool",
     "download_bulk_response",
+    "download_bulk_tool_result",
     "download_response",
+    "download_tool_result",
     "fetch_with_cache",
     "handle_download",
     "make_auth",
     "make_domain_gate_middleware",
+    "read_resource",
     "reap_stale_bulk_zips",
     "register_source",
     "register_source_if_configured",

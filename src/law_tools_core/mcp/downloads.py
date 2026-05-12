@@ -48,6 +48,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
+from fastmcp.resources import ResourceContent
+from fastmcp.tools.tool import ToolResult
+from mcp.types import Annotations, ResourceLink
 from starlette.requests import Request
 from starlette.responses import Response, StreamingResponse
 
@@ -55,6 +58,13 @@ from ..exceptions import BulkDownloadError
 from . import _env
 
 logger = logging.getLogger(__name__)
+
+
+# URI scheme for MCP resources backed by this download registry. The shared
+# scheme lets every download artifact be addressable as
+# ``pca://{resource_path}`` regardless of whether the bytes ride out through
+# the HTTP /downloads route or through MCP's resources/read.
+RESOURCE_SCHEME = "pca"
 
 
 def _public_url() -> str:
@@ -236,6 +246,18 @@ def _match_source(resource_path: str) -> tuple[DownloadSource, str] | None:
 # ---------------------------------------------------------------------------
 
 
+def build_resource_uri(resource_path: str) -> str:
+    """Canonical MCP resource URI for a registered download.
+
+    Mirrors :func:`build_download_url` but produces a scheme-rooted URI
+    (``pca://{path}``) that resolves through ``resources/read`` rather
+    than the HTTP ``/downloads`` route. The URI is permanent — it does
+    not carry an HMAC signature and never expires, even when the HTTP
+    URL is rotating.
+    """
+    return f"{RESOURCE_SCHEME}://{resource_path.strip('/')}"
+
+
 def build_download_url(
     resource_path: str,
     *,
@@ -344,10 +366,14 @@ def download_response(
         "filename": filename,
         "content_type": content_type,
         "size_bytes": len(content),
+        "resource_uri": build_resource_uri(resource_path),
         **extras,
     }
+    # Cache the bytes in both transport modes — the MCP resources/read
+    # handler reads from the same per-doc cache as the HTTP route, so
+    # we want them warm regardless of which path a client picks.
+    _cache_put(resource_path, content, filename=filename)
     if _public_url():
-        _cache_put(resource_path, content, filename=filename)
         payload["download_url"] = build_download_url(resource_path, permanent=permanent)
         if not permanent:
             expiry = _bucket_expiry_epoch(_current_bucket())
@@ -361,6 +387,114 @@ def download_response(
         tmp.close()
         payload["file_path"] = tmp.name
     return payload
+
+
+def _make_resource_link(
+    *,
+    uri: str,
+    name: str,
+    mime_type: str,
+    size: int | None = None,
+    description: str | None = None,
+    last_modified: str | None = None,
+) -> ResourceLink:
+    """Build a ``ResourceLink`` content block.
+
+    Centralized so every tool that surfaces a downloadable artifact
+    produces the same shape: ``type="resource_link"`` (required by the
+    spec), populated ``size`` when known so clients can decide whether
+    to attempt ``resources/read``, ``annotations.lastModified`` when the
+    source carries that metadata.
+    """
+    annotations = (
+        Annotations(audience=["user"], lastModified=last_modified)
+        if last_modified
+        else Annotations(audience=["user"])
+    )
+    return ResourceLink(
+        type="resource_link",
+        uri=uri,  # type: ignore[arg-type]
+        name=name,
+        mimeType=mime_type,
+        size=size,
+        description=description,
+        annotations=annotations,
+    )
+
+
+def download_tool_result(
+    resource_path: str,
+    content: bytes,
+    *,
+    filename: str,
+    content_type: str = "application/pdf",
+    permanent: bool = False,
+    description: str | None = None,
+    last_modified: str | None = None,
+    **extras: object,
+) -> ToolResult:
+    """Build a dual-transport ``ToolResult`` for a downloadable artifact.
+
+    Returns a ``ToolResult`` carrying:
+
+    - ``content``: a ``ResourceLink`` content block pointing at
+      ``pca://{resource_path}``. Resource-aware MCP clients (e.g. Claude
+      CoWork) follow this via ``resources/read`` over the existing MCP
+      session — no separate HTTP fetch, no domain allowlist.
+    - ``structured_content``: the same dict returned by
+      :func:`download_response`, with ``download_url`` (when
+      ``LAW_TOOLS_CORE_PUBLIC_URL`` is set), ``resource_uri``,
+      ``expires_at`` (rotating URLs), ``filename``, ``content_type``,
+      ``size_bytes``, plus any ``extras``.
+
+    Callers that need to mutate the payload before returning (e.g. add a
+    ``source`` field) can pass it via ``**extras`` or skip this wrapper
+    and use :func:`download_response` directly.
+    """
+    payload = download_response(
+        resource_path,
+        content,
+        filename=filename,
+        content_type=content_type,
+        permanent=permanent,
+        **extras,
+    )
+    link = _make_resource_link(
+        uri=payload["resource_uri"],
+        name=filename,
+        mime_type=content_type,
+        size=len(content),
+        description=description,
+        last_modified=last_modified,
+    )
+    return ToolResult(content=[link], structured_content=payload)
+
+
+async def read_resource(resource_path: str) -> list[ResourceContent]:
+    """Resolve a ``pca://{resource_path}`` resource to MCP content.
+
+    The body of every connector's ``@sub_mcp.resource(...)`` handler.
+    Loads bytes through :func:`fetch_with_cache` (hot from cache,
+    fetched from the registered source on miss) and wraps them in a
+    ``ResourceContent`` with the source's declared MIME type. The MCP
+    layer base64-encodes bytes into ``BlobResourceContents`` on the
+    way out.
+
+    Bulk-zip resources are intentionally not served here — they live
+    behind the HTTP ``/downloads/bulk_zips/{uuid}`` route only.
+    Resource-aware clients should prefer the per-doc URIs surfaced in
+    the bulk tool's manifest.
+    """
+    resource_path = resource_path.strip("/")
+    if resource_path.startswith("bulk_zips/"):
+        raise ValueError(
+            "Bulk-zip resources are HTTP-only — fetch via download_url, or "
+            "follow the per-document resource URIs in the bulk tool's manifest."
+        )
+    match = _match_source(resource_path)
+    mime = match[0].mime_type if match else "application/octet-stream"
+    content, _filename = await fetch_with_cache(resource_path)
+    return [ResourceContent(content, mime_type=mime)]
 
 
 async def fetch_with_cache(
@@ -514,6 +648,15 @@ async def download_bulk_response(
         entry["status"] = "ok"
         entry["filename"] = f"{item.item_id}/{filename}"
         entry["size_bytes"] = len(content)
+        # Only advertise a resource_uri / per-item download_url for items
+        # whose resource_path maps to a registered source. Bulk callers
+        # sometimes mint ad-hoc paths (e.g. ``ptab/trial-decisions/{id}``)
+        # that are used only as cache keys — exposing those as MCP URIs
+        # would dangle because resources/read has no fetcher to call.
+        if _match_source(item.resource_path) is not None:
+            entry["resource_uri"] = build_resource_uri(item.resource_path)
+            if _public_url():
+                entry["download_url"] = build_download_url(item.resource_path)
         async with manifest_lock:
             manifest_entries[item.item_id] = entry
 
@@ -576,6 +719,76 @@ async def download_bulk_response(
         payload["file_path"] = tmp.name
 
     return payload
+
+
+async def download_bulk_tool_result(
+    items: list[BulkItem],
+    fetcher: Callable[[BulkItem], Awaitable[tuple[bytes, str]]],
+    *,
+    container_label: str,
+    container_metadata: dict | None = None,
+    content_type_single: str = "application/pdf",
+    max_concurrency: int = 5,
+) -> ToolResult:
+    """Bulk-download companion to :func:`download_tool_result`.
+
+    Wraps :func:`download_bulk_response` and returns a ``ToolResult`` whose:
+
+    - ``content`` carries per-item ``ResourceLink`` blocks, one per
+      successfully fetched item. Resource-aware clients follow these
+      via ``resources/read`` over MCP — the per-doc transport path
+      that bypasses the bulk-zip cap problem (large archives can blow
+      past JSON-RPC message limits on common clients).
+    - ``structured_content`` carries the same dict
+      :func:`download_bulk_response` returns: ``download_url`` (the zip,
+      for URL-comfortable clients), ``manifest`` (with per-item
+      ``resource_uri`` and ``download_url`` echoes), and the counts.
+
+    n=1 short-circuits to a single-doc ``ToolResult`` (same shape as
+    :func:`download_tool_result`).
+    """
+    payload = await download_bulk_response(
+        items,
+        fetcher,
+        container_label=container_label,
+        container_metadata=container_metadata,
+        content_type_single=content_type_single,
+        max_concurrency=max_concurrency,
+    )
+    blocks: list[ResourceLink] = []
+    manifest = payload.get("manifest")
+    if manifest is None:
+        # n=1 short-circuit — payload is a single-doc download_response
+        # dict. Build a single ResourceLink for it.
+        if payload.get("resource_uri"):
+            blocks.append(
+                _make_resource_link(
+                    uri=payload["resource_uri"],
+                    name=payload["filename"],
+                    mime_type=payload.get("content_type", "application/octet-stream"),
+                    size=payload.get("size_bytes"),
+                )
+            )
+    else:
+        for entry in manifest:
+            if entry.get("status") != "ok":
+                continue
+            uri = entry.get("resource_uri")
+            if not uri:
+                continue
+            # The manifest filename is prefixed with the item_id directory
+            # (e.g. "ABC123/spec.pdf"); strip for the link display name.
+            display_name = entry["filename"].split("/", 1)[-1]
+            blocks.append(
+                _make_resource_link(
+                    uri=uri,
+                    name=display_name,
+                    mime_type=content_type_single,
+                    size=entry.get("size_bytes"),
+                    description=entry.get("description") or entry.get("document_title"),
+                )
+            )
+    return ToolResult(content=blocks, structured_content=payload)
 
 
 class _DeleteOnSuccess:

@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from fastmcp import FastMCP
 
 from law_tools_core.mcp.annotations import READ_ONLY
-from law_tools_core.mcp.downloads import register_source
+from law_tools_core.mcp.downloads import read_resource, register_source
 from patent_client_agents.uspto_odp import PtabTrialsClient, UsptoOdpClient
 
 uspto_mcp = FastMCP("USPTO")
@@ -86,6 +86,37 @@ async def _fetch_ptab_document(path: str) -> tuple[bytes, str]:
 
 register_source("uspto/applications", _fetch_application_document, "application/pdf")
 register_source("ptab/documents", _fetch_ptab_document, "application/pdf")
+
+
+@uspto_mcp.resource(
+    "pca://uspto/applications/{application_number}/documents/{document_identifier}",
+    mime_type="application/pdf",
+    name="USPTO prosecution document",
+    description=(
+        "One file-history document for a USPTO application, as a PDF. "
+        "URI parameters: application_number (8+ digits) and document_identifier "
+        "(from list_file_history)."
+    ),
+)
+async def _application_document_resource(
+    application_number: str, document_identifier: str
+):
+    return await read_resource(
+        f"uspto/applications/{application_number}/documents/{document_identifier}"
+    )
+
+
+@uspto_mcp.resource(
+    "pca://ptab/documents/{document_identifier}",
+    mime_type="application/pdf",
+    name="PTAB document",
+    description=(
+        "PTAB trial document PDF (party filing, board decision, etc.). "
+        "URI parameter is the document_identifier from search_ptab or list_ptab_children."
+    ),
+)
+async def _ptab_document_resource(document_identifier: str):
+    return await read_resource(f"ptab/documents/{document_identifier}")
 
 
 # ---------------------------------------------------------------------------
@@ -297,13 +328,17 @@ async def download_file_history(
         str | None,
         "Include only documents on or before this date (ISO YYYY-MM-DD).",
     ] = None,
-) -> dict:
+):
     """Bulk-download file-history documents for a USPTO application.
 
-    Returns a single zip of matching PDFs (or the raw PDF if exactly one
-    matches) plus a manifest. Cap: 50 documents per call. Filters AND
-    together; if more than 50 documents match, the call refuses and
-    asks you to narrow.
+    Returns one ``ResourceLink`` per matching PDF (or a single ResourceLink
+    if exactly one matches) alongside a structured manifest with the same
+    per-document URIs. Resource-aware MCP clients (e.g. Claude CoWork)
+    fetch the per-doc bytes through ``resources/read``; the manifest also
+    carries a zip ``download_url`` for clients that can hit the HTTP
+    fallback domain. Cap: 50 documents per call. Filters AND together;
+    if more than 50 documents match, the call refuses and asks you to
+    narrow.
 
     Use ``list_file_history`` to discover document_identifier values and
     document codes for an application.
@@ -312,7 +347,11 @@ async def download_file_history(
 
     from law_tools_core.exceptions import ValidationError
     from law_tools_core.filenames import file_history_item as _fh_name
-    from law_tools_core.mcp.downloads import BulkItem, download_bulk_response, fetch_with_cache
+    from law_tools_core.mcp.downloads import (
+        BulkItem,
+        download_bulk_tool_result,
+        fetch_with_cache,
+    )
 
     after_d = _parse_iso_date(after, field_name="after")
     before_d = _parse_iso_date(before, field_name="before")
@@ -404,7 +443,7 @@ async def download_file_history(
         )
         return content, nice_name
 
-    return await download_bulk_response(
+    return await download_bulk_tool_result(
         bulk_items,
         _fetcher,
         container_label=f"{application_number}_file_history",
@@ -649,7 +688,11 @@ async def _run_ptab_bulk(
     this runs.
     """
     from law_tools_core.exceptions import ValidationError
-    from law_tools_core.mcp.downloads import BulkItem, download_bulk_response, fetch_with_cache
+    from law_tools_core.mcp.downloads import (
+        BulkItem,
+        download_bulk_tool_result,
+        fetch_with_cache,
+    )
 
     if not candidates:
         raise ValidationError(
@@ -688,7 +731,7 @@ async def _run_ptab_bulk(
 
         return await fetch_with_cache(item.resource_path, fetcher=_inline)
 
-    return await download_bulk_response(
+    return await download_bulk_tool_result(
         bulk_items,
         _fetcher,
         container_label=container_label,
@@ -771,14 +814,18 @@ async def download_ptab_trial_documents(
         str | None,
         "Include only documents filed on or before this date (ISO YYYY-MM-DD).",
     ] = None,
-) -> dict:
-    """Bulk-download party filings for one AIA trial as a single zip.
+):
+    """Bulk-download party filings for one AIA trial.
 
-    Fetches everything the parties filed in the trial — petitions,
-    responses, motions, replies, exhibits, depositions, notices — all of
-    it. Cap: 100 documents per call. Big IPRs with many exhibits may
-    need narrowing via ``item_ids`` (use ``list_ptab_children`` to
-    enumerate) or date filters.
+    Returns per-document ``ResourceLink``s (one per matching paper)
+    plus a structured manifest. Resource-aware MCP clients fetch the
+    per-doc bytes via ``resources/read``; the response also includes a
+    zip ``download_url`` for HTTP-fallback clients. Fetches everything
+    the parties filed in the trial — petitions, responses, motions,
+    replies, exhibits, depositions, notices — all of it. Cap: 100
+    documents per call. Big IPRs with many exhibits may need narrowing
+    via ``item_ids`` (use ``list_ptab_children`` to enumerate) or date
+    filters.
 
     For board-issued papers (institution decisions, FWDs, orders), use
     ``download_ptab_trial_decisions`` instead.
@@ -828,12 +875,21 @@ async def download_ptab_trial_decisions(
     item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
     after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
     before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
-) -> dict:
-    """Bulk-download board decisions for one AIA trial as a single zip.
+):
+    """Bulk-download board decisions for one AIA trial.
 
-    Institution decisions, scheduling orders, FWDs, board orders — papers
-    issued by the board itself. Cap: 50 per call. For party filings
-    (petitions, responses, exhibits) use ``download_ptab_trial_documents``.
+    Returns a structured manifest plus a zip ``download_url`` for
+    HTTP-fallback clients. Institution decisions, scheduling orders,
+    FWDs, board orders — papers issued by the board itself. Cap: 50
+    per call. For party filings (petitions, responses, exhibits) use
+    ``download_ptab_trial_documents``.
+
+    Note: PTAB decision PDFs are reachable only through the zip
+    ``download_url`` — per-decision MCP resource URIs are not exposed
+    for this category (no registered single-doc fetcher). Use this in
+    URL-comfortable clients; in CoWork-style allowlist-gated setups,
+    fall back to ``download_ptab_trial_documents`` for the party
+    filings, which do surface per-doc resource links.
     """
     after_d = _ptab_parse_date(after, field_name="after")
     before_d = _ptab_parse_date(before, field_name="before")
@@ -882,12 +938,17 @@ async def download_ptab_appeal_decisions(
     item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
     after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
     before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
-) -> dict:
+):
     """Bulk-download ex parte appeal decisions for one USPTO application.
 
-    Appeals are a distinct vehicle from AIA trials. Cap: 50 per call.
-    Use ``list_ptab_children(parent_type='application')`` to preview
-    what's available.
+    Returns a structured manifest plus a zip ``download_url`` for
+    HTTP-fallback clients. Appeals are a distinct vehicle from AIA
+    trials. Cap: 50 per call. Use
+    ``list_ptab_children(parent_type='application')`` to preview what's
+    available.
+
+    Note: per-decision MCP resource URIs are not exposed for this
+    category — fetch the zip via ``download_url``.
     """
     after_d = _ptab_parse_date(after, field_name="after")
     before_d = _ptab_parse_date(before, field_name="before")
@@ -962,11 +1023,15 @@ async def download_ptab_interference_decisions(
     item_ids: Annotated[list[str] | None, "Specific document_identifier values."] = None,
     after: Annotated[str | None, "Only decisions issued on or after (ISO YYYY-MM-DD)."] = None,
     before: Annotated[str | None, "Only decisions issued on or before (ISO YYYY-MM-DD)."] = None,
-) -> dict:
+):
     """Bulk-download decisions for one pre-AIA interference.
 
-    Interferences are a legacy tribunal distinct from AIA trials and
-    appeals. Cap: 50 per call.
+    Returns a structured manifest plus a zip ``download_url`` for
+    HTTP-fallback clients. Interferences are a legacy tribunal distinct
+    from AIA trials and appeals. Cap: 50 per call.
+
+    Note: per-decision MCP resource URIs are not exposed for this
+    category — fetch the zip via ``download_url``.
     """
     after_d = _ptab_parse_date(after, field_name="after")
     before_d = _ptab_parse_date(before, field_name="before")
