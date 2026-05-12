@@ -102,3 +102,6 @@ python-version = "3.11"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.uv]
+exclude-newer = "7 days"
