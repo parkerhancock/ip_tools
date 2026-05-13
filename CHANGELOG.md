@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Downloads now ride two transports.** Every download tool's return
+  pairs a `pca://...` MCP resource URI with the existing HMAC-signed
+  `download_url`. Resource-aware clients (Claude CoWork, any client
+  that follows MCP `ResourceLink` content blocks) fetch bytes through
+  `resources/read` over the same MCP session the tool call rode in on,
+  so no outbound HTTP allowlist is required. Clients without that
+  affordance keep using `download_url` unchanged. Six resource
+  templates are advertised via `resources/templates/list`:
+  `pca://patents/{publication_number}`,
+  `pca://publications/{publication_number}`,
+  `pca://epo/patents/{publication_number}`,
+  `pca://uspto/applications/{application_number}/documents/{document_identifier}`,
+  `pca://ptab/documents/{document_identifier}`, and
+  `pca://jpo/documents/{ip_type}/{application_number}/{doc_kind}` (last one is
+  registered only when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are
+  set). Bulk tools decompose into one `ResourceLink` per successfully
+  fetched item alongside the zip URL — large-archive callers can pull
+  per-doc through MCP and avoid JSON-RPC message caps. Invariant:
+  cache key === MCP URI path === HTTP `/downloads` path; one fetch
+  serves both transports.
 - `law_tools_core.mcp.server_factory.build_server()` now accepts optional
   `icons` and `website_url` kwargs, forwarded to FastMCP and surfaced in
   the MCP `initialize` response's `serverInfo.icons` / `serverInfo.websiteUrl`

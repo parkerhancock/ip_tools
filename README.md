@@ -63,7 +63,7 @@ Ask Claude to research patents and trademarks in natural language:
 
 > "Search the TMEP for guidance on Section 2(d) likelihood-of-confusion refusals"
 
-`patent-client-agents` connects Claude Code to USPTO (patents and trademarks), EPO, and Google Patents, giving your agent the ability to search, analyze, and report on intellectual property worldwide. JPO clients ship in the Python library; JPO MCP tools are not available.
+`patent-client-agents` connects Claude Code to USPTO (patents and trademarks), EPO, Google Patents, and JPO, giving your agent the ability to search, analyze, and report on intellectual property worldwide. JPO MCP tools register on the local stdio server and the Claude Code plugin when `JPO_API_USERNAME` and `JPO_API_PASSWORD` are set; the hosted demo at `mcp.patentclient.com` does not carry JPO credentials, so JPO tools don't appear there.
 
 ## Coverage
 
@@ -77,7 +77,7 @@ Ask Claude to research patents and trademarks in natural language:
 | **USPTO TSDR** | Trademark Status & Document Retrieval — status, docs, mark images |
 | **USPTO Trademark Assignments** | Trademark ownership transfers (Assignment Center) |
 | **EPO OPS** | European patents, Inpadoc families, legal events, EP Register |
-| **JPO** | Japanese patents, examination history, PCT national phase — *Python library only; JPO MCP tools are not available* |
+| **JPO** | Japanese patents, examination history, PCT national phase — *MCP tools register when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set; not exposed by the hosted demo* |
 | **MPEP** | Manual of Patent Examining Procedure search and section lookup |
 | **TMEP** | Trademark Manual of Examining Procedure search and section lookup |
 | **CPC** | Classification hierarchy lookup, search, and CPC/IPC mapping |
@@ -113,7 +113,7 @@ how you'll use it.
 | `USPTO_ODP_API_KEY` | USPTO ODP | Most USPTO patent tools | [developer.uspto.gov](https://developer.uspto.gov/) (free) |
 | `USPTO_TSDR_API_KEY` | USPTO TSDR | All TSDR trademark tools | [account.uspto.gov/api-manager/](https://account.uspto.gov/api-manager/) (free MyUSPTO account) |
 | `EPO_OPS_API_KEY`, `EPO_OPS_API_SECRET` | EPO OPS | All EPO tools | [developers.epo.org](https://developers.epo.org/) (free) |
-| `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | Python library only — JPO MCP tools are not available | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
+| `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | All JPO library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
 
 **No API key needed:** Google Patents, USPTO Publications (PPUBS), USPTO
 Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC.
@@ -267,13 +267,15 @@ No API key required.
 </details>
 
 <details>
-<summary><strong>JPO (Japan Patent Office) — Python library only</strong></summary>
+<summary><strong>JPO (Japan Patent Office)</strong></summary>
 
-> **JPO MCP tools are not available.** The hosted demo at
-> `mcp.patentclient.com` does not expose any JPO tools, and neither does
-> the local stdio MCP server or the Claude Code plugin. The Python
-> library's `JpoClient` still works locally if you have your own
-> `JPO_API_USERNAME` / `JPO_API_PASSWORD`.
+> **JPO MCP tools are env-gated.** The local stdio MCP server and the
+> Claude Code plugin register 12 JPO MCP tools (plus the
+> `pca://jpo/documents/...` resource template) when `JPO_API_USERNAME`
+> and `JPO_API_PASSWORD` are set in the server's env. The hosted demo
+> at `mcp.patentclient.com` does not carry JPO credentials, so JPO
+> tools don't appear there. The Python library's `JpoClient` works
+> the same way — credentials are read from env on first use.
 
 | Feature | Description |
 |---------|-------------|
@@ -300,12 +302,13 @@ No API key required.
 │              patent_client_agents Python library             │
 │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐ │
 │  │  USPTO  │ │  USPTO  │ │   EPO   │ │ Google  │ │  JPO*  │ │
-│  │ patents │ │  marks  │ │   OPS   │ │ Patents │ │ (lib)  │ │
+│  │ patents │ │  marks  │ │   OPS   │ │ Patents │ │        │ │
 │  │ ODP+    │ │TSDR+TM  │ │  + CPC  │ │  +MPEP  │ │        │ │
 │  │ PPUBS   │ │assigns  │ │         │ │  +TMEP  │ │        │ │
 │  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └────────┘ │
 └─────────────────────────────────────────────────────────────┘
-* JPO is library-only — JPO MCP tools are not available.
+* JPO MCP tools register when JPO_API_USERNAME + JPO_API_PASSWORD are set
+  on the server; the hosted demo does not carry these credentials.
 ```
 
 ## Development

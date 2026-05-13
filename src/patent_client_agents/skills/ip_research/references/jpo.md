@@ -180,24 +180,28 @@ result = await get_jpo_documents(
 #   ],
 #   "binary_attachments": [],
 #   "download_url": "https://mcp.patentclient.com/downloads/jpo/documents/patent/2020123456/refusal?key=...",
+#   "resource_uri": "pca://jpo/documents/patent/2020123456/refusal",
 #   "filename": "jpo_patent_2020123456_refusal.zip",
 #   "content_type": "application/zip"
 # }
 ```
 
 If JPO has no documents on file (status 107 / 108) the tool returns
-`{}` regardless of the `parse` value. The signed `download_url`
-resolves to the raw ZIP — useful for agents that need binary
-attachments (drawings, sequence listings, etc.) that the parser
-doesn't surface inline.
+`{}` regardless of the `parse` value. The raw ZIP is reachable two
+ways: fetch the signed `download_url` over HTTPS, or follow the
+`resource_uri` via MCP `resources/read` (the path hosted sandboxes
+like Claude CoWork take, since the MCP session bypasses the
+outbound-HTTP allowlist). Both transports resolve the same cached
+bytes — pick whichever your client supports.
 
 Pass `parse=False` to skip the parser and return just the bundle
-metadata + signed `download_url` (plus `filename`, `content_type`,
-`size_bytes`, `expires_at`). The response shape becomes
+metadata + the dual-transport download fields (`download_url`,
+`resource_uri`, `filename`, `content_type`, `size_bytes`,
+`expires_at`). The response shape becomes
 `{"application_number", "ip_type", "doc_kind", "entries": [],
-"binary_attachments": [], "download_url", ...}` — useful when the
-agent only needs to hand the URL to a human reviewer or to a separate
-processing pipeline.
+"binary_attachments": [], "download_url", "resource_uri", ...}` —
+useful when the agent only needs to hand the URL (or resource URI)
+to a human reviewer or to a separate processing pipeline.
 
 For library callers, the parsing layer is exposed directly:
 
@@ -286,6 +290,10 @@ exception of HTTP 429 which becomes `RateLimitError`).
 - **`applicant_attorney_cd` returns a single name string**
   (`applicantAttorneyName`), not a list.
 - **`case_number_reference` returns a single object**, not a list.
-- The MCP `get_jpo_documents` tool returns parsed entries **and** a
-  signed `download_url` for the raw ZIP — agents that need binaries
-  the parser doesn't surface should fetch the URL.
+- The MCP `get_jpo_documents` tool returns parsed entries **and**
+  dual-transport download handles for the raw ZIP (HMAC-signed
+  `download_url` + `pca://jpo/documents/...` `resource_uri`). Agents
+  that need binaries the parser doesn't surface should follow either
+  transport; CoWork-style sandboxed agents follow `resource_uri` via
+  `resources/read`, URL-comfortable clients follow `download_url`
+  over HTTPS.
