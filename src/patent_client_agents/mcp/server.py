@@ -25,7 +25,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from law_tools_core.mcp import make_auth
+from law_tools_core.mcp import make_auth, make_firestore_client_storage
 from law_tools_core.mcp.server_factory import build_server
 from patent_client_agents import __version__
 
@@ -47,6 +47,10 @@ mcp = build_server(
         issuer_url=_HOSTED_BASE_URL,
         # Public server — any verified Google account is welcome.
         allowed_email_domains=(),
+        # Persist DCR client registrations + auth transactions to Firestore
+        # so clients survive Cloud Run redeploys (vs. FastMCP's default
+        # per-container file store which is wiped every revision).
+        client_storage=make_firestore_client_storage(),
     ),
 )
 mcp.mount(ip_mcp)

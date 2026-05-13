@@ -16,7 +16,7 @@ compatibility with pre-split law-tools deployments.
 """
 
 from .annotations import DOWNLOAD, READ_ONLY
-from .auth import make_auth, make_domain_gate_middleware
+from .auth import make_auth, make_domain_gate_middleware, make_firestore_client_storage
 from .conditional import (
     conditional_resource,
     conditional_tool,
@@ -65,6 +65,7 @@ __all__ = [
     "handle_download",
     "make_auth",
     "make_domain_gate_middleware",
+    "make_firestore_client_storage",
     "read_resource",
     "reap_stale_bulk_zips",
     "register_source",
