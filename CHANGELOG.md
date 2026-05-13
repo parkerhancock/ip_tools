@@ -5,6 +5,49 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] — 2026-05-13
+
+### Added
+
+- **CanLII connector** (`patent_client_agents.canlii`). Async client for the
+  CanLII REST API covering Canadian courts, tribunals, statutes, and
+  regulations. The IP-relevant slice includes the Federal Court / Federal
+  Court of Appeal / Supreme Court of Canada (patent and trademark
+  infringement / validity), the Trade-marks Opposition Board, the
+  Commissioner of Patents — Patent Appeal Board, plus the Patent Act,
+  Trademarks Act, Industrial Design Act, and Copyright Act with
+  point-in-time entry-into-force / repeal markers. Nine library methods
+  (`list_case_databases`, `browse_cases`, `get_case`, `get_cited_cases`,
+  `get_citing_cases`, `get_cited_legislations`, `list_legislation_databases`,
+  `browse_legislation`, `get_legislation`) and nine MCP tools. Auth via
+  `CANLII_API_KEY` (free key by request through the CanLII feedback form);
+  MCP tools env-gate on the key in the same pattern as JPO.
+- **WIPO Lex connector** (`patent_client_agents.wipo_lex`). Async client
+  for the WIPO Lex public web surface — global IP statute database
+  curated by WIPO across ~200 jurisdictions in six UN languages. v0.9
+  scope is the **legislation collection** (search + per-entry detail with
+  PDF/DOC attachment links); treaties and judgments share the same URL
+  shape and are planned follow-ups. Two library methods
+  (`search_legislation`, `get_legislation`) and two MCP tools. No auth
+  required; client identifies via a descriptive User-Agent and caches
+  aggressively. Parser keys on OpenGraph + `<meta name>` tags (stable
+  across page redesigns) plus extension-substring file-link detection;
+  parser-stability notes ship in `docs/usage.md`.
+- **`OAuth2ClientCredentialsAuth`** in `law_tools_core` — generic
+  `httpx.Auth` for RFC 6749 §4.4 client_credentials grant. Token cache
+  with 30-second safety margin, refresh-on-401 retry, HTTP Basic or
+  in-body credentials, optional scope + extra token params. Ships ready
+  for the upcoming EUIPO, IP Australia, and PISTE (Légifrance + Judilibre)
+  integrations. Eleven unit tests via `httpx.MockTransport`.
+
+### Changed
+
+- README "Coverage" table now lists CanLII and WIPO Lex; MCP tool counts
+  bumped to 51 default / 60 with CanLII / 63 with JPO / 72 with both.
+- MCP server `instructions` string mentions CanLII and WIPO Lex.
+- `CATALOG.md` adds rows for both new sources and per-source pages at
+  `src/patent_client_agents/catalog/sources/{canlii,wipo-lex}.md`.
+
 ## [0.8.2] — 2026-05-13
 
 ### Documentation

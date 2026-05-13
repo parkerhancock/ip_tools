@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
+from .tools.canlii import canlii_mcp
 from .tools.international import international_mcp
 from .tools.mpep import mpep_mcp
 from .tools.office_actions import office_actions_mcp
@@ -26,14 +27,17 @@ from .tools.patents import patents_mcp
 from .tools.publications import publications_mcp
 from .tools.trademarks import trademarks_mcp
 from .tools.uspto import uspto_mcp
+from .tools.wipo_lex import wipo_lex_mcp
 
 ip_mcp = FastMCP(
     "patent-client-agents",
     instructions=(
         "Patent and IP data connectors: USPTO (ODP, PPUBS, Assignments, "
         "Office Actions, PTAB, Petitions, Bulk Data, TSDR, Trademark "
-        "Assignments), EPO OPS, Google Patents, CPC, MPEP, and TMEP. "
-        "~40 read-only tools, grouped by intent."
+        "Assignments), EPO OPS, Google Patents, CPC, MPEP, TMEP, CanLII "
+        "(Canadian courts, tribunals, and IP statutes — env-gated on "
+        "CANLII_API_KEY), and WIPO Lex (global IP statute / treaty / "
+        "judgment database). ~50 read-only tools, grouped by intent."
     ),
 )
 
@@ -45,5 +49,7 @@ ip_mcp.mount(office_actions_mcp)
 ip_mcp.mount(patent_assignments_mcp)
 ip_mcp.mount(trademarks_mcp)
 ip_mcp.mount(mpep_mcp)
+ip_mcp.mount(canlii_mcp)
+ip_mcp.mount(wipo_lex_mcp)
 
 __all__ = ["ip_mcp"]

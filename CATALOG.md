@@ -24,6 +24,8 @@ Two-layer documentation for `patent-client-agents`:
 | [JPO](src/patent_client_agents/catalog/sources/jpo.md) | Japan Patent Office — patent / design / trademark progress, registration, priorities, applicant lookup, document bundles, J-PlatPat permalinks. 12 MCP tools dispatched by `ip_type`; document parser handles XML (patents) and HTM (design/trademark). MCP tools auto-register only when `JPO_API_USERNAME` AND `JPO_API_PASSWORD` are both set; intentionally absent on the hosted public server `mcp.patentclient.com` per JPO TOS. | `JPO_API_USERNAME` + `JPO_API_PASSWORD` (OAuth2 password grant) | 10 req/min + per-endpoint daily caps |
 | [MPEP](src/patent_client_agents/catalog/sources/mpep.md) | Manual of Patent Examining Procedure search and section lookup | None | Unpublished (scraped) |
 | [TMEP](src/patent_client_agents/catalog/sources/tmep.md) | Trademark Manual of Examining Procedure search and section lookup | None | Unpublished (scraped) |
+| [CanLII](src/patent_client_agents/catalog/sources/canlii.md) | Canadian case law + statutes + citator (FC / FCA / SCC + TMOB + PAB + Patent Act + Trademarks Act with point-in-time queries) | `CANLII_API_KEY` | Not published; keys revocable on high-volume use |
+| [WIPO Lex](src/patent_client_agents/catalog/sources/wipo-lex.md) | Global IP statute + treaty + judgment database curated by WIPO (~50k docs across ~200 jurisdictions). Sprint-1 scope: legislation collection (search + detail) | None | Not published; polite-scrape posture, aggressive caching |
 
 ## MCP tools
 
@@ -51,3 +53,5 @@ for the master table. Cross-source fused tools have dedicated pages:
 **Free API key:** USPTO ODP (and wrappers — Applications, Office Actions, Petitions, Bulk Data) via `USPTO_ODP_API_KEY`; USPTO TSDR via `USPTO_TSDR_API_KEY`; EPO OPS and CPC via `EPO_OPS_API_KEY` + `EPO_OPS_API_SECRET`.
 
 **Credentialed (registration required):** JPO via `JPO_API_USERNAME` + `JPO_API_PASSWORD` (OAuth2 password grant; corporate registration recommended for higher daily quotas). JPO MCP tools are env-gated — they only register when both vars are set, so the public `mcp.patentclient.com` deploy doesn't advertise them at all. Private deploys flip the surface on by mounting both secrets in their own Cloud Run env.
+
+**Free key on request:** CanLII via `CANLII_API_KEY` (issued through the CanLII feedback form). MCP tools are env-gated and absent on deploys without the key. ToS warns against high-volume scraping; cache-and-serve through the CoWork allowlist is an open question to escalate before any public exposure.

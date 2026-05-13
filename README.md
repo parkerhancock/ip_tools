@@ -81,6 +81,8 @@ Ask Claude to research patents and trademarks in natural language:
 | **MPEP** | Manual of Patent Examining Procedure search and section lookup |
 | **TMEP** | Trademark Manual of Examining Procedure search and section lookup |
 | **CPC** | Classification hierarchy lookup, search, and CPC/IPC mapping |
+| **CanLII** | Canadian courts, tribunals, and IP statutes — Federal Court / FCA / Supreme Court IP rulings, Trade-marks Opposition Board, Patent Appeal Board, Patent Act, Trademarks Act with point-in-time queries — *MCP tools register when `CANLII_API_KEY` is set; not exposed by the hosted demo* |
+| **WIPO Lex** | Global IP statute / treaty / judgment database curated by WIPO — ~50k legal documents across ~200 jurisdictions, six UN languages. v0.9 scope: legislation collection (search + detail with PDF links) |
 
 All sources include automatic caching (hishel + SQLite with WAL), rate limiting,
 and retry logic via `law_tools_core`.
@@ -95,11 +97,11 @@ For Claude Code users — run these inside a Claude Code session:
 /reload-plugins
 ```
 
-Three slash commands (not shell). You get 49 patent + trademark MCP
-tools exposed to the agent by default (61 with JPO credentials in
-the environment). Prereq: [uv](https://docs.astral.sh/uv/) on
-PATH — the MCP server runs under `uvx` so you don't `pip install`
-anything yourself.
+Three slash commands (not shell). You get 51 patent + IP MCP tools
+exposed to the agent by default (63 with JPO credentials in the
+environment; 60 / 72 with `CANLII_API_KEY` also set). Prereq:
+[uv](https://docs.astral.sh/uv/) on PATH — the MCP server runs under
+`uvx` so you don't `pip install` anything yourself.
 
 **Seven install modes are documented at [docs.patentclient.com/installation](https://docs.patentclient.com/installation/)**
 — Python library, Python+MCP runtime, Claude Code plugin, dev symlink, stdio
@@ -114,9 +116,10 @@ how you'll use it.
 | `USPTO_TSDR_API_KEY` | USPTO TSDR | All TSDR trademark tools | [account.uspto.gov/api-manager/](https://account.uspto.gov/api-manager/) (free MyUSPTO account) |
 | `EPO_OPS_API_KEY`, `EPO_OPS_API_SECRET` | EPO OPS | All EPO tools | [developers.epo.org](https://developers.epo.org/) (free) |
 | `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | All JPO library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
+| `CANLII_API_KEY` | CanLII | All CanLII library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [canlii.org/en/feedback/feedback.html](https://www.canlii.org/en/feedback/feedback.html) (free, by request) |
 
 **No API key needed:** Google Patents, USPTO Publications (PPUBS), USPTO
-Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC.
+Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC, WIPO Lex.
 
 ## Quickstart — Python library
 

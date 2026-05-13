@@ -38,7 +38,9 @@ mcp = build_server(
     instructions=(
         "Patent and IP data connectors: USPTO (ODP, PPUBS, Assignments, "
         "Office Actions, PTAB, Petitions, Bulk Data, TSDR, Trademark "
-        "Assignments), EPO OPS, Google Patents, CPC, MPEP, and TMEP."
+        "Assignments), EPO OPS, Google Patents, CPC, MPEP, TMEP, CanLII "
+        "(Canadian courts, tribunals, and IP statutes), and WIPO Lex "
+        "(global IP statute / treaty / judgment database)."
     ),
     auth=make_auth(
         base_url=_HOSTED_BASE_URL,
@@ -59,9 +61,9 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         prog="patent-client-agents-mcp",
         description=(
-            "Run the patent-client-agents MCP server on stdio. Exposes ~40 patent/IP "
-            "tools from USPTO, EPO, Google Patents, and MPEP to any MCP "
-            "client. See docs/installation.md for client configuration."
+            "Run the patent-client-agents MCP server on stdio. Exposes ~50 patent/IP "
+            "tools from USPTO, EPO, Google Patents, MPEP, and CanLII to any "
+            "MCP client. See docs/installation.md for client configuration."
         ),
     )
     parser.add_argument(
