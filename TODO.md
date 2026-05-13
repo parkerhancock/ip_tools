@@ -28,6 +28,54 @@ that fix them.
 
 ## Known issues (deferred)
 
+- [ ] **MPEP and TMEP live calls fail against USPTO; replace with a local
+      scrape-and-serve corpus.** Discovered while smoke-testing the v0.8.2
+      promote (2026-05-13). Both subdomains misbehave when the library
+      proxies live requests:
+
+      - `mpep.uspto.gov/RDMS/MPEP/search` returns Apache `502 Proxy
+        Error` for the library's `User-Agent: patent-client-agents-mpep/0.2`
+        (set in `src/patent_client_agents/mpep/client.py:37`). The same
+        URL with `User-Agent: Mozilla/5.0` returns 200. USPTO's WAF is
+        bot-flagging the custom UA. Affects every endpoint in `client.py`
+        (`/RDMS/MPEP/search`, `/result`, `/content`, `/current`) and so
+        all of `search_mpep` and `get_mpep_section`.
+      - `tmep.uspto.gov` returns 200 to direct curls with either the
+        library UA or a Mozilla UA, but `search_tmep` and
+        `get_tmep_section` consistently time out from prod. Different
+        root cause from MPEP — likely a slow path or a different
+        sub-endpoint the library polls. Needs reproduction with logging
+        on to nail down.
+
+      Short-term workaround would be to ship a Mozilla-like UA in both
+      clients, but that's a fragile arms race with USPTO's WAF and
+      doesn't help with the TMEP timeout. The right solution is to scrape
+      both corpora once and serve from a static index bundled with the
+      wheel (similar to how `cpc/` ships a snapshot, or the way the
+      `skills/ip_research/` knowledge corpus is packaged via
+      `importlib.resources`). Section text and search are both
+      deterministic functions of the published MPEP/TMEP — there's no
+      reason to round-trip to USPTO at runtime. A scheduled scrape job
+      (monthly?) can republish a fresh wheel when the corpora update.
+
+      Files most relevant:
+      - `src/patent_client_agents/mpep/client.py` — URL paths + UA
+      - `src/patent_client_agents/mpep/transformers.py` — HTML→model parser
+      - `src/patent_client_agents/uspto_tmep/` — equivalent module for TMEP
+      - Empirical proof from the v0.8.2 smoke test is in this session's
+        Cloud Logging timestamp 2026-05-13T14:50:59Z (search
+        `mpep.uspto.gov.*502` against `patent-mcp-demo` service logs).
+
+- [ ] **`get_trademark_status` returns null fields for some serials.**
+      Sample serials 85088070 and 88876181 both came back with all
+      fields null on the v0.8.2 prod smoke test. The TSDR API responds
+      (no auth error, no exception), so the secret mount is fine and
+      the request shape works; either the parser is missing fields the
+      API now returns, or those specific serials returned an empty
+      payload. Worth a quick repro against TSDR's status endpoint with
+      a known-registered mark and a `print(resp.text)` to confirm where
+      the data drops out.
+
 - [ ] **Re-record stale law-tools VCR cassettes** (TSDR + FedReserve).
       The TSDR test also needs a code update — the cassette recorded
       `/last-update/info.json?sn=...` but current client requests
