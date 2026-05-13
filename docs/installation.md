@@ -228,9 +228,35 @@ export EPO_OPS_API_SECRET="…"
 ```
 
 Restart Claude Code so the new env reaches the MCP subprocess. Without
-keys, Google Patents / PPUBS / Assignments / Trademark Assignments /
-MPEP / TMEP still work; USPTO ODP, USPTO TSDR, and EPO tools will return
-auth errors.
+keys, Google Patents / PPUBS / Assignments / Trademark Assignments
+still work; USPTO ODP, USPTO TSDR, and EPO tools will return auth
+errors. MPEP and TMEP no longer hit USPTO at runtime — see "MPEP /
+TMEP corpus setup" below for the one-time build step.
+
+### MPEP / TMEP corpus setup
+
+`MpepClient` and `TmepClient` read from local SQLite/FTS5 snapshots
+instead of calling USPTO. The wheel ships the builders; build each
+corpus once into the default cache:
+
+```bash
+patent-client-agents-build-mpep-corpus \
+    --output ~/.cache/patent_client_agents/mpep.db
+patent-client-agents-build-tmep-corpus \
+    --output ~/.cache/patent_client_agents/tmep.db
+```
+
+MPEP is ~50MB and takes ~4 minutes; TMEP is ~16MB and takes ~2 minutes.
+Re-run periodically to pick up USPTO revisions.
+
+For cloud deployments, build the corpus into the container image and
+set `MPEP_CORPUS_PATH` / `TMEP_CORPUS_PATH` in the runtime env to point
+at the output paths. The published wheel stays small (no corpus
+bundled); refresh becomes "rebuild + redeploy."
+
+If a call is made before the corpus exists, the client raises
+`CorpusUnavailable` with the build command in the message — there is
+no silent fallback to live HTTP.
 
 ### Verify
 

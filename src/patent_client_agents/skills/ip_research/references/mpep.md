@@ -2,6 +2,21 @@
 
 Search and retrieve sections of the USPTO MPEP. No API key required.
 
+## Backend
+
+`MpepClient` reads from a local SQLite/FTS5 corpus, not live USPTO.
+The corpus must exist before the first call — the wheel ships the
+builder, not the data:
+
+```bash
+patent-client-agents-build-mpep-corpus \
+    --output ~/.cache/patent_client_agents/mpep.db
+```
+
+Runtime locates the corpus via `MPEP_CORPUS_PATH` env var, then
+`~/.cache/patent_client_agents/mpep.db`. If neither exists, calls raise
+`patent_client_agents.mpep.corpus.CorpusUnavailable`.
+
 ## Module
 
 ```python

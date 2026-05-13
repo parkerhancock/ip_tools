@@ -3,6 +3,28 @@
 Access the Trademark Manual of Examining Procedure (TMEP) for searching
 and retrieving trademark examination guidance.
 
+## First-time setup
+
+`TmepClient` reads from a local SQLite/FTS5 corpus, **not** live USPTO.
+The wheel ships the builder; build the snapshot once before the first
+call:
+
+```bash
+patent-client-agents-build-tmep-corpus \
+    --output ~/.cache/patent_client_agents/tmep.db
+```
+
+The crawl takes ~2 minutes and produces ~1,750 sections across all 19
+TMEP chapters (~16MB). Re-run periodically to pick up USPTO revisions.
+
+The runtime locates the corpus via:
+
+1. `TMEP_CORPUS_PATH` env var (explicit; used in cloud deploys).
+2. `~/.cache/patent_client_agents/tmep.db` (local-dev default).
+
+If neither exists, the first call raises `CorpusUnavailable` with the
+build command in the message — no silent fallback to live HTTP.
+
 ## Quick Start
 
 ```python
@@ -15,7 +37,7 @@ async with TmepClient() as client:
     # Get a specific section
     section = await client.get_section("1207.01(a)")
 
-    # List available versions
+    # List available versions (single-entry; reflects the loaded snapshot)
     versions = await client.list_versions()
 ```
 
@@ -23,9 +45,9 @@ async with TmepClient() as client:
 
 | Function | Description |
 |---|---|
-| `search()` | Full-text search across the TMEP |
+| `search()` | Full-text search across the TMEP (FTS5 BM25 by default) |
 | `get_section()` | Get a specific TMEP section by number or href |
-| `list_versions()` | List available TMEP editions |
+| `list_versions()` | Return the loaded snapshot's version label |
 
 ## Common Sections
 
@@ -59,7 +81,15 @@ results = await search(SearchInput(query="2(d) refusal"))
 section = await get_section("1207.01(a)")
 ```
 
-## Configuration
+## Cloud deploys
 
-No credentials required. Rate limit is unpublished — the client's
-`hishel` cache + `default_retryer` handle transient throttling.
+For containerized deployments, run the builder during image build and
+set `TMEP_CORPUS_PATH` in the runtime env:
+
+```dockerfile
+RUN patent-client-agents-build-tmep-corpus --output /app/data/tmep.db
+ENV TMEP_CORPUS_PATH=/app/data/tmep.db
+```
+
+The published wheel stays small (no corpus bundled); refresh becomes
+"rebuild + redeploy".

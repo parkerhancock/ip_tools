@@ -2,6 +2,21 @@
 
 Search and retrieve sections of the USPTO TMEP. No API key required.
 
+## Backend
+
+`TmepClient` reads from a local SQLite/FTS5 corpus, not live USPTO.
+The corpus must exist before the first call — the wheel ships the
+builder, not the data:
+
+```bash
+patent-client-agents-build-tmep-corpus \
+    --output ~/.cache/patent_client_agents/tmep.db
+```
+
+Runtime locates the corpus via `TMEP_CORPUS_PATH` env var, then
+`~/.cache/patent_client_agents/tmep.db`. If neither exists, calls raise
+`patent_client_agents.tmep.corpus.CorpusUnavailable`.
+
 ## Module
 
 ```python
