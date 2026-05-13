@@ -41,18 +41,22 @@ that fix them.
 
 ## Nice to have
 
-- [ ] **Migrate JPO off its bespoke retry loop.** The JPO client inherits
-      from `BaseAsyncClient` but overrides `_request` with its own
-      AsyncRetrying loop to handle rate-limiting + token refresh on
-      401/403. Consolidation would require moving rate-limit + auth-refresh
-      hooks into `BaseAsyncClient`. Not done — the bespoke logic is
-      justified and a refactor risk.
-
 - [ ] **JPO module test coverage.** Credentials are restricted, so the
       pragmatic approach is recording VCR cassettes once against a known
       good fixture set and replaying thereafter.
 
 ## Done this session (2026-05-13)
+
+- ✓ **JPO retry consolidated onto `default_retryer`.** The bespoke
+  `AsyncRetrying(...)` block in `jpo/client.py:_raw_request` now
+  delegates to `law_tools_core.resilience.default_retryer` for backoff
+  and retry-filter behavior; rate-limit acquire, token refresh on
+  401/403, and 429→`RateLimitError` mapping stay inline because they
+  encode JPO-specific protocol details (not generic resilience). Side
+  benefit: `default_retryer`'s filter is more selective than the
+  previous "retry on any exception", so plain `ApiError` (4xx and 5xx
+  responses with non-retryable codes) no longer burns three attempts.
+  Test suite drops from 9.01s → 3.93s for `tests/jpo/`.
 
 - ✓ **TMEP corpus replaces all eTMEP HTTP calls.** Same pattern as the
   MPEP work earlier in the session: `tmep/corpus/{schema,db,build}.py`

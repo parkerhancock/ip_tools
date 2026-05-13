@@ -22,7 +22,6 @@ from collections import deque
 from typing import Any
 
 import httpx
-from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential_jitter
 
 from law_tools_core.base_client import BaseAsyncClient
 from law_tools_core.exceptions import (
@@ -32,6 +31,7 @@ from law_tools_core.exceptions import (
     NotFoundError,
     RateLimitError,
 )
+from law_tools_core.resilience import default_retryer
 
 from .models import (
     ApiResult,
@@ -318,11 +318,13 @@ class JpoClient(BaseAsyncClient):
             "Accept": "application/json, application/zip",
         }
 
-        async for attempt in AsyncRetrying(
-            stop=stop_after_attempt(3),
-            wait=wait_exponential_jitter(initial=1, max=10),
-            reraise=True,
-        ):
+        # JPO-specific concerns live inline (rate-limit acquire above,
+        # token refresh on 401/403 below, 429→RateLimitError mapping). The
+        # backoff and retry-filter behavior is delegated to
+        # ``default_retryer`` — it retries on RateLimitError,
+        # TransportError, and 5xx HTTPStatusError, and *doesn't* retry on
+        # plain ApiError, which is the right call for 4xx responses.
+        async for attempt in default_retryer(max_attempts=3, max_wait=10.0):
             with attempt:
                 response = await self._client.request(method, url, params=params, headers=headers)
 
