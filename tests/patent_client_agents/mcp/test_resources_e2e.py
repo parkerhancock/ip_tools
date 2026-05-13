@@ -53,10 +53,7 @@ def test_resource_templates_are_listed():
         "pca://ptab/documents/{document_identifier}",
     }
     missing = expected - template_uris
-    assert not missing, (
-        f"missing resource templates: {missing}\n"
-        f"got: {sorted(template_uris)}"
-    )
+    assert not missing, f"missing resource templates: {missing}\ngot: {sorted(template_uris)}"
 
 
 def test_resource_read_uses_registered_fetcher_and_cache(_isolated_cache):
@@ -99,11 +96,7 @@ def test_resource_read_routes_per_source(_isolated_cache):
     downloads.register_source("uspto/applications", app_doc_fetch, "application/pdf")
 
     asyncio.run(ip_mcp.read_resource("pca://patents/US10"))
-    asyncio.run(
-        ip_mcp.read_resource(
-            "pca://uspto/applications/16123456/documents/XYZ"
-        )
-    )
+    asyncio.run(ip_mcp.read_resource("pca://uspto/applications/16123456/documents/XYZ"))
 
     assert "patent:US10" in fetched
     assert "app:16123456/documents/XYZ" in fetched

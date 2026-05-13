@@ -172,9 +172,7 @@ register_source_if_configured(
     ),
     requires_env=_JPO_REQUIRED_ENV,
 )
-async def _jpo_document_bundle_resource(
-    ip_type: str, application_number: str, doc_kind: str
-):
+async def _jpo_document_bundle_resource(ip_type: str, application_number: str, doc_kind: str):
     return await read_resource(f"jpo/documents/{ip_type}/{application_number}/{doc_kind}")
 
 

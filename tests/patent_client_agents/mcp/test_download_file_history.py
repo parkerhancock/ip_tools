@@ -168,9 +168,7 @@ class TestDownloadFileHistoryFiltering:
                 "16123456/documents/D": b"pdf-D",
             }
         )
-        result = _run(
-            uspto_tools.download_file_history("16123456", document_codes=["CTNF", "IDS"])
-        )
+        result = _run(uspto_tools.download_file_history("16123456", document_codes=["CTNF", "IDS"]))
         ids = sorted(m["item_id"] for m in result["manifest"])
         assert ids == ["A", "C", "D"]
 

@@ -98,9 +98,7 @@ register_source("ptab/documents", _fetch_ptab_document, "application/pdf")
         "(from list_file_history)."
     ),
 )
-async def _application_document_resource(
-    application_number: str, document_identifier: str
-):
+async def _application_document_resource(application_number: str, document_identifier: str):
     return await read_resource(
         f"uspto/applications/{application_number}/documents/{document_identifier}"
     )
