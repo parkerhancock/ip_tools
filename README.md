@@ -63,7 +63,7 @@ Ask Claude to research patents and trademarks in natural language:
 
 > "Search the TMEP for guidance on Section 2(d) likelihood-of-confusion refusals"
 
-`patent-client-agents` connects Claude Code to USPTO (patents and trademarks), EPO, Google Patents, and JPO, giving your agent the ability to search, analyze, and report on intellectual property worldwide. JPO MCP tools register on the local stdio server and the Claude Code plugin when `JPO_API_USERNAME` and `JPO_API_PASSWORD` are set; the hosted demo at `mcp.patentclient.com` does not carry JPO credentials, so JPO tools don't appear there.
+`patent-client-agents` connects Claude Code to USPTO (patents and trademarks), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO, giving your agent the ability to search, analyze, and report on intellectual property worldwide. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry these credentials, so those tool families don't appear there.
 
 ## Coverage
 
@@ -83,6 +83,7 @@ Ask Claude to research patents and trademarks in natural language:
 | **CPC** | Classification hierarchy lookup, search, and CPC/IPC mapping |
 | **CanLII** | Canadian courts, tribunals, and IP statutes — Federal Court / FCA / Supreme Court IP rulings, Trade-marks Opposition Board, Patent Appeal Board, Patent Act, Trademarks Act with point-in-time queries — *MCP tools register when `CANLII_API_KEY` is set; not exposed by the hosted demo* |
 | **WIPO Lex** | Global IP statute / treaty / judgment database curated by WIPO — ~50k legal documents across ~200 jurisdictions, six UN languages. v0.9 scope: legislation collection (search + detail with PDF links) |
+| **EUIPO** | EU Trade Marks (~2.3M EUTMs since 1996) + Registered Community Designs (~1.5M RCDs since 2003). RSQL search, full prosecution records, multilingual goods-and-services / product indications, sandbox toggle — *MCP tools register when `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET` are set; not exposed by the hosted demo* |
 
 All sources include automatic caching (hishel + SQLite with WAL), rate limiting,
 and retry logic via `law_tools_core`.
@@ -98,8 +99,9 @@ For Claude Code users — run these inside a Claude Code session:
 ```
 
 Three slash commands (not shell). You get 51 patent + IP MCP tools
-exposed to the agent by default (63 with JPO credentials in the
-environment; 60 / 72 with `CANLII_API_KEY` also set). Prereq:
+exposed to the agent by default, plus additional families that
+register when their credentials are present: +12 JPO, +9 CanLII,
++4 EUIPO. Prereq:
 [uv](https://docs.astral.sh/uv/) on PATH — the MCP server runs under
 `uvx` so you don't `pip install` anything yourself.
 
@@ -117,6 +119,7 @@ how you'll use it.
 | `EPO_OPS_API_KEY`, `EPO_OPS_API_SECRET` | EPO OPS | All EPO tools | [developers.epo.org](https://developers.epo.org/) (free) |
 | `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | All JPO library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
 | `CANLII_API_KEY` | CanLII | All CanLII library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [canlii.org/en/feedback/feedback.html](https://www.canlii.org/en/feedback/feedback.html) (free, by request) |
+| `EUIPO_CLIENT_ID`, `EUIPO_CLIENT_SECRET` | EUIPO | All EUIPO library + MCP tools (env-gated; not set on the hosted demo). Set `EUIPO_ENV=sandbox` to use the open sandbox environment instead of production. | [dev.euipo.europa.eu](https://dev.euipo.europa.eu/) (sandbox auto-approves; production requires ID-document review) |
 
 **No API key needed:** Google Patents, USPTO Publications (PPUBS), USPTO
 Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC, WIPO Lex.
@@ -301,22 +304,24 @@ No API key required, but requires a one-time corpus build —
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Claude Code Agent                        │
-├─────────────────────────────────────────────────────────────┤
-│               patent-client-agents MCP Server                │
-│              (Natural language → API calls)                  │
-├─────────────────────────────────────────────────────────────┤
-│              patent_client_agents Python library             │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌────────┐ │
-│  │  USPTO  │ │  USPTO  │ │   EPO   │ │ Google  │ │  JPO*  │ │
-│  │ patents │ │  marks  │ │   OPS   │ │ Patents │ │        │ │
-│  │ ODP+    │ │TSDR+TM  │ │  + CPC  │ │  +MPEP  │ │        │ │
-│  │ PPUBS   │ │assigns  │ │         │ │  +TMEP  │ │        │ │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └────────┘ │
-└─────────────────────────────────────────────────────────────┘
-* JPO MCP tools register when JPO_API_USERNAME + JPO_API_PASSWORD are set
-  on the server; the hosted demo does not carry these credentials.
+┌──────────────────────────────────────────────────────────────────────┐
+│                         Claude Code Agent                             │
+├──────────────────────────────────────────────────────────────────────┤
+│                   patent-client-agents MCP Server                     │
+│                  (Natural language → API calls)                       │
+├──────────────────────────────────────────────────────────────────────┤
+│                  patent_client_agents Python library                  │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────┐ ┌────────┐ │
+│  │  USPTO  │ │  USPTO  │ │   EPO   │ │ Google  │ │ JPO* │ │ EUIPO* │ │
+│  │ patents │ │  marks  │ │   OPS   │ │ Patents │ │      │ │  marks │ │
+│  │ ODP+    │ │TSDR+TM  │ │  + CPC  │ │  +MPEP  │ │      │ │ + RCDs │ │
+│  │ PPUBS   │ │assigns  │ │         │ │  +TMEP  │ │      │ │        │ │
+│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └──────┘ └────────┘ │
+│       + CanLII* (case law) + WIPO Lex (global IP statutes)            │
+└──────────────────────────────────────────────────────────────────────┘
+* MCP tools register only when the corresponding credentials are set
+  on the server (JPO_API_*, CANLII_API_KEY, EUIPO_CLIENT_ID/SECRET);
+  the hosted demo does not carry these credentials.
 ```
 
 ## Development
@@ -325,7 +330,7 @@ No API key required, but requires a one-time corpus build —
 git clone https://github.com/parkerhancock/patent-client-agents.git
 cd patent-client-agents
 uv sync --group dev
-uv run pytest                       # 1,056 tests, replays VCR cassettes
+uv run pytest                       # 1,117 tests, replays VCR cassettes
 uv run ruff check . && uv run ruff format .
 ```
 
@@ -336,6 +341,7 @@ uv run pytest --vcr-record=once     # Record missing cassettes
 uv run pytest --vcr-record=all      # Re-record everything
 uv run pytest --run-live-uspto      # Skip VCR, hit live USPTO
 uv run pytest --run-live-jpo        # Skip VCR, hit live JPO
+uv run pytest --run-live-euipo      # Skip VCR, hit live EUIPO (sandbox or prod)
 ```
 
 API errors follow a log-first pattern — concise messages with a path to

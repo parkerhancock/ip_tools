@@ -66,7 +66,8 @@ EPO OPS, and JPO all consume credentials from env (see each connector's
 
 ## Tools exposed
 
-The server mounts `ip_mcp`, which composes 8 sub-servers:
+The server mounts `ip_mcp`, which composes 11 sub-servers (always-on
+plus env-gated):
 
 | Sub-server | Tools | Download path (HTTPS + `pca://`) |
 |---|---:|---|
@@ -78,7 +79,10 @@ The server mounts `ip_mcp`, which composes 8 sub-servers:
 | `PatentAssignments` (USPTO Assignment Center) | 1 | — |
 | `Trademarks` (TSDR — needs `USPTO_TSDR_API_KEY`; TMEP; Trademark Assignments) | 7 | — |
 | `MPEP` | 2 | — |
-| **Total** | **49 / 61** | |
+| `CanLII` (env-gated on `CANLII_API_KEY`) | 0 / 9 | — |
+| `WIPO Lex` | 2 | — |
+| `EUIPO` (env-gated on `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET`) | 0 / 4 | — |
+| **Total** | **51 default; +12 JPO / +9 CanLII / +4 EUIPO with credentials** | |
 
 ## Downloads — two transports
 
@@ -155,8 +159,10 @@ asyncio.run(main())
 ```
 
 Expect 51 tools by default. Counts scale with env-gated connectors:
-60 with `CANLII_API_KEY`, 63 with `JPO_API_USERNAME` + `JPO_API_PASSWORD`,
-72 with both. Title should be `2106 … Patent Subject Matter Eligibility`.
++12 JPO when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set, +9 CanLII
+when `CANLII_API_KEY` is set, +4 EUIPO when `EUIPO_CLIENT_ID` +
+`EUIPO_CLIENT_SECRET` are set. Title should be
+`2106 … Patent Subject Matter Eligibility`.
 
 ## Not installed?
 
