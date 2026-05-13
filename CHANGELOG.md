@@ -5,6 +5,32 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.8.2] — 2026-05-13
+
+### Documentation
+
+- Surfaced the **dual-transport download** feature shipped in v0.8.1
+  through README, `docs/mcp-stdio.md`, and the packaged JPO skill
+  reference. Every download tool's return now carries both a
+  `pca://...` MCP resource URI and an HMAC-signed `download_url`;
+  six resource templates are advertised via
+  `resources/templates/list`. Resource-aware clients (Claude CoWork)
+  fetch through `resources/read`; URL-comfortable clients keep using
+  `download_url`. v0.8.1 shipped the code but the release notes
+  undersold the surface.
+- Corrected README claims that JPO MCP tools "are not available."
+  Twelve JPO MCP tools + the `pca://jpo/documents/...` resource
+  template register on the local stdio server and Claude Code plugin
+  when `JPO_API_USERNAME` and `JPO_API_PASSWORD` are set in the
+  server's env. The hosted demo at `mcp.patentclient.com` does not
+  carry JPO credentials (deployment choice).
+
+### Fixed
+
+- `__version__` in `src/patent_client_agents/__init__.py` had drifted
+  again — it stayed at `0.8.0` while `pyproject.toml` advanced to
+  `0.8.1`. Both now read `0.8.2`.
+
 ## [0.8.1] — 2026-05-12
 
 ### Added
