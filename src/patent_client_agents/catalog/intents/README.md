@@ -1,8 +1,13 @@
 # MCP Tools by Intent
 
-Read-only MCP tools, grouped by what an agent wants to do. 49 tools register
-by default; 12 JPO tools register additionally when `JPO_API_USERNAME` and
-`JPO_API_PASSWORD` are both set in the environment (61 total when JPO is on).
+Read-only MCP tools, grouped by what an agent wants to do. Most tools register
+by default; additional tool families are env-gated and appear only when their
+credentials are present:
+
+- **JPO** (12 tools) when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set
+- **CanLII** (9 tools) when `CANLII_API_KEY` is set
+- **EUIPO** (4 tools) when `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET` are set
+
 Cross-source fused tools are marked ⭑ and have dedicated pages in this folder;
 the rest are single-source wrappers documented by their backend in
 [../sources/](../sources/).
@@ -25,6 +30,8 @@ Find records matching a query.
 | `search_mpep` | MPEP | Keyword |
 | `search_tmep` | TMEP | Keyword |
 | `search_trademark_assignments` | Trademark Assignment Center. `query` + `by` (assignee, assignor, serial_number, registration_number, reel_frame). | Plain value per axis |
+| `search_euipo_trademarks` | EUTM register (~2.3M EU trademarks since 1996, env-gated) | RSQL — see [../sources/euipo.md](../sources/euipo.md) |
+| `search_euipo_designs` | RCD register (~1.5M EU designs since 2003, env-gated) | RSQL — see [../sources/euipo.md](../sources/euipo.md) |
 | `search_cpc` | CPC classifications | Keyword |
 
 ## Lookup (single record by identifier)
@@ -47,6 +54,8 @@ Find records matching a query.
 | `get_trademark_documents` | TSDR — prosecution documents list (requires `USPTO_TSDR_API_KEY`) |
 | `get_trademark_last_update` | TSDR — last-modified timestamp for a case (requires `USPTO_TSDR_API_KEY`) |
 | `batch_trademark_status` | TSDR — status for a JSON array of serial numbers (requires `USPTO_TSDR_API_KEY`) |
+| `get_euipo_trademark` | EUTM full record by application number (env-gated) |
+| `get_euipo_design` | RCD full record by design number (env-gated) |
 | `get_jpo_progress(application_number, ip_type)` | JPO full prosecution status (patent/design/trademark) |
 | `get_jpo_progress_simple(application_number, ip_type)` | JPO simplified status (no priority/family) |
 | `get_jpo_registration_info(application_number, ip_type)` | JPO granted-rights record |

@@ -19,6 +19,7 @@ from __future__ import annotations
 from fastmcp import FastMCP
 
 from .tools.canlii import canlii_mcp
+from .tools.euipo import euipo_mcp
 from .tools.international import international_mcp
 from .tools.mpep import mpep_mcp
 from .tools.office_actions import office_actions_mcp
@@ -36,8 +37,10 @@ ip_mcp = FastMCP(
         "Office Actions, PTAB, Petitions, Bulk Data, TSDR, Trademark "
         "Assignments), EPO OPS, Google Patents, CPC, MPEP, TMEP, CanLII "
         "(Canadian courts, tribunals, and IP statutes — env-gated on "
-        "CANLII_API_KEY), and WIPO Lex (global IP statute / treaty / "
-        "judgment database). ~50 read-only tools, grouped by intent."
+        "CANLII_API_KEY), WIPO Lex (global IP statute / treaty / "
+        "judgment database), and EUIPO (EU Trade Marks + Registered "
+        "Community Designs — env-gated on EUIPO_CLIENT_ID / EUIPO_CLIENT_SECRET). "
+        "~50 read-only tools, grouped by intent."
     ),
 )
 
@@ -51,5 +54,6 @@ ip_mcp.mount(trademarks_mcp)
 ip_mcp.mount(mpep_mcp)
 ip_mcp.mount(canlii_mcp)
 ip_mcp.mount(wipo_lex_mcp)
+ip_mcp.mount(euipo_mcp)
 
 __all__ = ["ip_mcp"]

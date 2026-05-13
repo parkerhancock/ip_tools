@@ -1,0 +1,1508 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "x-api-id": "b07011d6-9968-468e-a60c-0f3231f89f48",
+    "x-audience": "external-public",
+    "x-ibm-name": "persons",
+    "x-pathalias": "persons",
+    "title": "Persons",
+    "description": "Search for persons related to EUIPO's procedures",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Platform Team",
+      "url": "https://dev.euipo.europa.eu",
+      "email": "apiplatform@euipo.europa.com"
+    },
+    "termsOfService": "https://euipo.europa.eu/tunnel-web/secure/webdav/guest/document_library/contentPdfs/law_and_practice/decisions_president/EX-22-05_en_annex_I_version_2_en.pdf",
+    "x-ip-domain": [
+      "Trademark",
+      "Industrial Design"
+    ],
+    "x-service-type": [
+      "Search",
+      "Dissemination"
+    ],
+    "x-content-type": [
+      "Bibliographic data"
+    ],
+    "x-product-page-url": "https://dev.euipo.europa.eu/product/persons_100",
+    "x-ibm-summary": ""
+  },
+  "servers": [
+    {
+      "url": "https://api.euipo.europa.eu/persons"
+    }
+  ],
+  "x-ibm-configuration": {
+    "testable": true,
+    "enforced": true,
+    "cors": {
+      "enabled": true
+    },
+    "phase": "realized",
+    "type": "rest",
+    "oauth-servers": {
+      "Oauth2ClientCredentials": {
+        "clientCredentials": {
+          "tokenUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ],
+          "authorizationUrls": [],
+          "refreshUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ]
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "ClientID": [],
+      "Oauth2ClientCredentials": [
+        "uid"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Applicant"
+    },
+    {
+      "name": "Representative"
+    }
+  ],
+  "paths": {
+    "/applicants": {
+      "get": {
+        "operationId": "searchApplicants",
+        "summary": "Search for applicants",
+        "description": "Search for applicants",
+        "tags": [
+          "Applicant"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Name"
+          },
+          {
+            "$ref": "#/components/parameters/ApplicantType"
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ApplicantSearchResult"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/applicants/{identifier}": {
+      "get": {
+        "operationId": "getApplicant",
+        "description": "Get applicant details",
+        "summary": "Get applicant details\n",
+        "tags": [
+          "Applicant"
+        ],
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Applicant"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/PersonNotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/representatives": {
+      "get": {
+        "operationId": "searchRepresentatives",
+        "summary": "Search for representatives",
+        "description": "Search for representatives",
+        "tags": [
+          "Representative"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Name"
+          },
+          {
+            "$ref": "#/components/parameters/RepresentativeType"
+          },
+          {
+            "$ref": "#/components/parameters/Nationality"
+          },
+          {
+            "$ref": "#/components/parameters/City"
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/RepresentativeSearchResult"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/representatives/{identifier}": {
+      "get": {
+        "operationId": "getRepresentative",
+        "description": "Get representative details",
+        "summary": "Get representative details\n",
+        "tags": [
+          "Representative"
+        ],
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Representative"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/PersonNotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IBM-Client-Id"
+      },
+      "Oauth2ClientCredentials": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "refreshUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "scopes": {
+              "uid": "Access is not restricted"
+            }
+          }
+        },
+        "x-ibm-oauth-provider": "production-oauth"
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The maximum number of requests you're permitted to make per time period."
+      },
+      "X-RateLimit-Remaining": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of requests remaining in the current rate limit window."
+      },
+      "X-RateLimit-Reset": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The relative time in seconds until the current rate-limit window resets.\n"
+      },
+      "Retry-After": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of seconds to wait until the rate limit window resets. Only sent when the rate limit is reached."
+      }
+    },
+    "parameters": {
+      "Name": {
+        "name": "name",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "ApplicantType": {
+        "name": "type",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/ApplicantType"
+        }
+      },
+      "RepresentativeType": {
+        "name": "type",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/RepresentativeType"
+        }
+      },
+      "Nationality": {
+        "name": "nationality",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/Country"
+        }
+      },
+      "City": {
+        "name": "city",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "example": "Alicante"
+        }
+      },
+      "Country": {
+        "name": "country",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/Country"
+        }
+      },
+      "PageNumber": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/PageNumber"
+        }
+      },
+      "PageSize": {
+        "name": "size",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/PageSize"
+        }
+      }
+    },
+    "responses": {
+      "ApplicantSearchResult": {
+        "description": "List of applicants that match the search criteria",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "applicants": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApplicantSearchItem"
+                  }
+                },
+                "totalElements": {
+                  "$ref": "#/components/schemas/TotalElements"
+                },
+                "totalPages": {
+                  "$ref": "#/components/schemas/TotalPages"
+                },
+                "size": {
+                  "$ref": "#/components/schemas/PageSize"
+                },
+                "page": {
+                  "$ref": "#/components/schemas/PageNumber"
+                }
+              },
+              "example": {
+                "applicants": [
+                  {
+                    "identifier": 203161,
+                    "type": "APPLICANT_BUSINESS",
+                    "name": "Firstname 203161 Owner 203161",
+                    "address": {
+                      "street": "Address of owner 203161",
+                      "city": "Irvine",
+                      "postalCode": "92618",
+                      "state": "US-VA",
+                      "country": "US"
+                    },
+                    "correspondenceAddress": {
+                      "formattedAddress": "Correspondence address of owner 203161"
+                    }
+                  }
+                ],
+                "totalElements": 1,
+                "totalPages": 1,
+                "size": 10,
+                "page": 0
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "Applicant": {
+        "description": "Applicant details",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Applicant"
+            },
+            "example": {
+              "identifier": 203161,
+              "type": "APPLICANT_BUSINESS",
+              "legalName": "Firstname 203161 Owner 203161",
+              "legalForm": "partnership",
+              "countryOfIncorporation": "US",
+              "stateOfIncorporation": "US-VA",
+              "address": {
+                "street": "Address of owner 203161",
+                "city": "Irvine",
+                "postalCode": "92618",
+                "state": "US-VA",
+                "country": "US"
+              },
+              "correspondenceAddress": {
+                "street": "Correspondence address of owner 203161",
+                "city": "Irvine",
+                "postalCode": "92618",
+                "state": "US-VA",
+                "country": "US"
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "RepresentativeSearchResult": {
+        "description": "List of representatives that match the search criteria",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "representatives": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RepresentativeSearchItem"
+                  }
+                },
+                "totalElements": {
+                  "$ref": "#/components/schemas/TotalElements"
+                },
+                "totalPages": {
+                  "$ref": "#/components/schemas/TotalPages"
+                },
+                "size": {
+                  "$ref": "#/components/schemas/PageSize"
+                },
+                "page": {
+                  "$ref": "#/components/schemas/PageNumber"
+                }
+              },
+              "example": {
+                "representatives": [
+                  {
+                    "identifier": "36287",
+                    "type": "REPRESENTATIVE_EMPLOYEE",
+                    "name": "Pedro Ángel Lago Lopez",
+                    "address": {
+                      "street": "Calle Reina, 3, Torneiros",
+                      "city": "O Porriño (Pontevedra)",
+                      "postalCode": "36410",
+                      "country": "ES"
+                    },
+                    "correspondenceAddress": {
+                      "formattedAddress": "Pedro Ángel Lago Lopez \nCalle Reina, 3, Torneiros\nO Porriño (Pontevedra)\nESPAÑA"
+                    }
+                  }
+                ],
+                "totalElements": 1,
+                "totalPages": 1,
+                "size": 10,
+                "page": 0
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "Representative": {
+        "description": "Representative details",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Representative"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "BadRequestError": {
+        "description": "Bad request",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/input-validation-error",
+              "title": "Input validation error",
+              "detail": "size number must be greater than or equal to 10",
+              "status": 400
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "PersonNotFoundError": {
+        "x-summary": "Not found",
+        "description": "Person not found",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/not-found-error",
+              "title": "Resource not found",
+              "detail": "Person identifier '9999990' not found",
+              "status": 404
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "x-summary": "Unauthorized",
+        "description": "Client request has not been completed because it lacks valid authentication credentials for the requested resource",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/unauthorized",
+              "title": "The request lacks valid authentication credentials for this resource",
+              "detail": "Full authentication is required to access this resource",
+              "status": 401,
+              "instance": "/designs"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Rate Limit Exceeded",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/too-many-requests",
+              "title": "Too Many Requests",
+              "detail": "Rate Limit exceeded",
+              "status": 429
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "DefaultError": {
+        "x-summary": "Unexpected error",
+        "description": "Error occurred - see status code and problem object for more information.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/general-error",
+              "title": "General error",
+              "status": 500
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "PageNumber": {
+        "type": "integer",
+        "format": "int32",
+        "default": 0,
+        "example": 0,
+        "description": "The results are returned in pages. The page parameter (zero-based) indicates which page to return. For example, page = 2 (third page) and size = 10 will return matching applications No 21 to No 30"
+      },
+      "PageSize": {
+        "type": "integer",
+        "format": "int32",
+        "default": 20,
+        "example": 10,
+        "description": "Number of results to fetch per page"
+      },
+      "TotalElements": {
+        "type": "integer",
+        "format": "int32",
+        "example": 1
+      },
+      "TotalPages": {
+        "type": "integer",
+        "format": "int32",
+        "example": 1
+      },
+      "ApplicantSearchItem": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ApplicantType"
+          },
+          "name": {
+            "type": "string",
+            "description": "Applicant's full name"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/Address"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Applicant": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ApplicantBusiness"
+          },
+          {
+            "$ref": "#/components/schemas/ApplicantIndividual"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "APPLICANT_BUSINESS": "#/components/schemas/ApplicantBusiness",
+            "APPLICANT_INDIVIDUAL": "#/components/schemas/ApplicantIndividual"
+          }
+        }
+      },
+      "ApplicantBusiness": {
+        "type": "object",
+        "description": "Legal entity applicant",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "APPLICANT_BUSINESS"
+            ],
+            "description": "Applicant type"
+          },
+          "legalName": {
+            "type": "string",
+            "maxLength": 350,
+            "description": "Name of the company"
+          },
+          "legalForm": {
+            "type": "string",
+            "maxLength": 250,
+            "description": "Legal form used by the company. It may differ per country."
+          },
+          "nationalIdentification": {
+            "type": "string",
+            "description": "Company’s national identification"
+          },
+          "countryOfIncorporation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              }
+            ],
+            "description": "Nationality of the company"
+          },
+          "stateOfIncorporation": {
+            "type": "string",
+            "format": "iso-3166-2",
+            "description": "State, District, or Territory of incorporation (For US applicants)"
+          },
+          "employees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedMember"
+            },
+            "description": "Employees of the legal entity"
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/ApplicantCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "legalName",
+          "countryOfIncorporation",
+          "address"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "APPLICANT_BUSINESS",
+          "legalName": "MIA CAROLA, S.L.",
+          "countryOfIncorporation": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14-16, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          }
+        }
+      },
+      "ApplicantIndividual": {
+        "type": "object",
+        "description": "Natural person applicant",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "APPLICANT_INDIVIDUAL"
+            ],
+            "description": "Applicant type"
+          },
+          "firstName": {
+            "$ref": "#/components/schemas/FirstName"
+          },
+          "surname": {
+            "$ref": "#/components/schemas/Surname"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/ApplicantCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "firstName",
+          "surname",
+          "nationality",
+          "address"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "APPLICANT_INDIVIDUAL",
+          "firstName": "Luis",
+          "surname": "Garcia",
+          "nationality": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          }
+        }
+      },
+      "RepresentativeSearchItem": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/RepresentativeType"
+          },
+          "name": {
+            "type": "string",
+            "description": "Representative's full name"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/Address"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Representative": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/RepresentativeEmployee"
+          },
+          {
+            "$ref": "#/components/schemas/RepresentativeLegalAssociation"
+          },
+          {
+            "$ref": "#/components/schemas/RepresentativeLegalProfessional"
+          },
+          {
+            "$ref": "#/components/schemas/RepresentativeEUIPOProfessional"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "REPRESENTATIVE_EMPLOYEE": "#/components/schemas/RepresentativeEmployee",
+            "REPRESENTATIVE_LEGAL_ASSOCIATION": "#/components/schemas/RepresentativeLegalAssociation",
+            "REPRESENTATIVE_LEGAL_PROFESSIONAL": "#/components/schemas/RepresentativeLegalProfessional",
+            "REPRESENTATIVE_EUIPO_PROFESSIONAL": "#/components/schemas/RepresentativeEUIPOProfessional"
+          }
+        }
+      },
+      "RepresentativeEmployee": {
+        "type": "object",
+        "description": "Employee representative",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "REPRESENTATIVE_EMPLOYEE"
+            ],
+            "description": "Representative type"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "firstName": {
+            "$ref": "#/components/schemas/FirstName"
+          },
+          "surname": {
+            "$ref": "#/components/schemas/Surname"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "economicConnections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EconomicConnection"
+            }
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/RepresentativeCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "firstName",
+          "surname",
+          "nationality",
+          "address",
+          "status"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "REPRESENTATIVE_EMPLOYEE",
+          "firstName": "Luis",
+          "surname": "Garcia",
+          "nationality": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          },
+          "status": "VALID"
+        }
+      },
+      "RepresentativeLegalAssociation": {
+        "type": "object",
+        "description": "Association representative",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "REPRESENTATIVE_LEGAL_ASSOCIATION"
+            ],
+            "description": "Applicant type"
+          },
+          "associationName": {
+            "type": "string",
+            "description": "Name of the association"
+          },
+          "countryOfRegistration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              },
+              {
+                "description": "Nationality of the association"
+              }
+            ]
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedMember"
+            },
+            "description": "Members of the Association"
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/RepresentativeCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "associationName",
+          "members",
+          "countryOfRegistration",
+          "status",
+          "address"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "REPRESENTATIVE_LEGAL_ASSOCIATION",
+          "associationName": "MIA CAROLA, S.L.",
+          "members": [
+            {
+              "type": "REPRESENTATIVE_LEGAL_PROFESSIONAL",
+              "identifier": "102355"
+            },
+            {
+              "type": "REPRESENTATIVE_LEGAL_PROFESSIONAL",
+              "identifier": "102356"
+            }
+          ],
+          "countryOfRegistration": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14-16, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          },
+          "status": "VALID"
+        }
+      },
+      "RepresentativeLegalProfessional": {
+        "type": "object",
+        "description": "Legal practitioner representative",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "REPRESENTATIVE_LEGAL_PROFESSIONAL"
+            ],
+            "description": "Representative type"
+          },
+          "firstName": {
+            "$ref": "#/components/schemas/FirstName"
+          },
+          "surname": {
+            "$ref": "#/components/schemas/Surname"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "officialCollegeId": {
+            "type": "string",
+            "maxLength": 260,
+            "description": "ID of the Official college"
+          },
+          "officialCollegeCountry": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              }
+            ],
+            "description": "Country where official college is seated"
+          },
+          "associations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedMember"
+            }
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/RepresentativeCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "firstName",
+          "surname",
+          "nationality",
+          "address",
+          "status"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "REPRESENTATIVE_LEGAL_PROFESSIONAL",
+          "firstName": "Luis",
+          "surname": "Garcia",
+          "nationality": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          },
+          "status": "VALID"
+        }
+      },
+      "RepresentativeEUIPOProfessional": {
+        "type": "object",
+        "description": "Professional trade mark representative before the EUIPO",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "REPRESENTATIVE_EUIPO_PROFESSIONAL"
+            ],
+            "description": "Representative type"
+          },
+          "firstName": {
+            "$ref": "#/components/schemas/FirstName"
+          },
+          "surname": {
+            "$ref": "#/components/schemas/Surname"
+          },
+          "nationality": {
+            "$ref": "#/components/schemas/Nationality"
+          },
+          "associations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedMember"
+            }
+          },
+          "address": {
+            "$ref": "#/components/schemas/LegalAddress"
+          },
+          "correspondenceAddress": {
+            "$ref": "#/components/schemas/RepresentativeCorrespondenceAddress"
+          },
+          "phone": {
+            "$ref": "#/components/schemas/Phone"
+          },
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "type",
+          "firstName",
+          "surname",
+          "nationality",
+          "address",
+          "status"
+        ],
+        "example": {
+          "identifier": 1234,
+          "type": "REPRESENTATIVE_EUIPO_PROFESSIONAL",
+          "firstName": "Luis",
+          "surname": "Garcia",
+          "nationality": "ES",
+          "address": {
+            "street": "Paseo Ruiseñores, 14, 10ºB",
+            "city": "ALICANTE",
+            "country": "ES"
+          },
+          "status": "VALID"
+        }
+      },
+      "ApplicantType": {
+        "type": "string",
+        "enum": [
+          "APPLICANT_INDIVIDUAL",
+          "APPLICANT_BUSINESS"
+        ]
+      },
+      "Country": {
+        "type": "string",
+        "format": "iso-3166",
+        "example": "ES"
+      },
+      "PERIdentifier": {
+        "type": "string",
+        "description": "Unique identifier given by EUIPO to persons that intervened in procedures before the Office"
+      },
+      "FirstName": {
+        "type": "string",
+        "maxLength": 260,
+        "description": "First name of the natural person"
+      },
+      "Surname": {
+        "type": "string",
+        "maxLength": 260,
+        "description": "Surname of the natural person"
+      },
+      "Nationality": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Country"
+          }
+        ],
+        "description": "Nationality of the natural person"
+      },
+      "LegalAddress": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Address"
+          }
+        ],
+        "description": "Legal address"
+      },
+      "ApplicantCorrespondenceAddress": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Address"
+          }
+        ],
+        "description": "Correspondence address in case it's different from legal\naddress.\n\nIf applicant domicile belongs to EEA(European Economic\nArea),then correspondence country must belong to EEA.\n\nIf applicant domicilie is out of EEA, correspondence country\nlist will be out of EEA.\n"
+      },
+      "RepresentativeCorrespondenceAddress": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Address"
+          }
+        ],
+        "description": "Correspondence address in case it's different from legal\naddress.\n"
+      },
+      "Phone": {
+        "type": "string",
+        "description": "Phone number including area code"
+      },
+      "Email": {
+        "type": "string",
+        "format": "email",
+        "description": "E-mail address"
+      },
+      "Address": {
+        "type": "object",
+        "description": "Address information",
+        "properties": {
+          "street": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Street and Number of Address"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "City of Address"
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 10,
+            "description": "Postal Code of Address"
+          },
+          "state": {
+            "type": "string",
+            "description": "State or County where the applicant is allocated in case country is US (Unites States), GB (Great Britain), IN (India), CA (Canada), BR (Brazil), MX (Mexico), AU (Australia), or IE (Ireland)"
+          },
+          "country": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              }
+            ],
+            "description": "Country of Address"
+          },
+          "formattedAddress": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Postal address whose format may vary depending on the country"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "street",
+          "city",
+          "country"
+        ],
+        "example": {
+          "street": "Av. de Europa, 4",
+          "city": "Alicante",
+          "postalCode": "03008",
+          "country": "ES",
+          "formattedAddress": "EUIPO, Av. de Europa, 4, 03008 Alicante"
+        }
+      },
+      "EconomicConnection": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "$ref": "#/components/schemas/PERIdentifier"
+          },
+          "type": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApplicantType"
+              },
+              {
+                "$ref": "#/components/schemas/RepresentativeType"
+              }
+            ]
+          },
+          "employerName": {
+            "type": "string"
+          },
+          "natureOfEconomicConnection": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type"
+        ]
+      },
+      "RepresentativeType": {
+        "type": "string",
+        "enum": [
+          "REPRESENTATIVE_EMPLOYEE",
+          "REPRESENTATIVE_LEGAL_ASSOCIATION",
+          "REPRESENTATIVE_LEGAL_PROFESSIONAL",
+          "REPRESENTATIVE_EUIPO_PROFESSIONAL"
+        ]
+      },
+      "HttpLink": {
+        "type": "string",
+        "format": "uri"
+      },
+      "RelatedMember": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string"
+          },
+          "type": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApplicantType"
+              },
+              {
+                "$ref": "#/components/schemas/RepresentativeType"
+              }
+            ]
+          },
+          "href": {
+            "$ref": "#/components/schemas/HttpLink"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "A short, human-readable summary of the problem type\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human-readable explanation specific to this occurrence of the problem\n"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code generated by the origin server for this occurrence of the problem\n"
+          },
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "description": "A URI reference [RFC3986] that identifies the\n      problem type.  This specification encourages that, when\n      dereferenced, it provide human-readable documentation for the\n      problem type\n"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies the specific occurrence of the problem.\nIt may or may not yield further information if dereferenced\n"
+          },
+          "extensions": {
+            "type": "object",
+            "description": "Contains members that may convey additional, problem-specific information.\n"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "detail"
+        ]
+      }
+    }
+  },
+  "x-ibm-endpoints": [
+    {
+      "url": "https://api.euipo.europa.eu/persons"
+    }
+  ]
+}

@@ -1,0 +1,1568 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "x-api-id": "69a2a63c-437e-4324-b60e-25194bbe4543",
+    "x-audience": "external-public",
+    "version": "1.0.0",
+    "title": "Product Indications",
+    "x-ibm-name": "product-indications",
+    "x-pathalias": "product-indications",
+    "description": "API to get HDB product indications & locarno classifications",
+    "contact": {
+      "name": "API Platform Team",
+      "url": "https://dev.euipo.europa.eu",
+      "email": "apiplatform@euipo.europa.eu"
+    },
+    "termsOfService": "https://euipo.europa.eu/tunnel-web/secure/webdav/guest/document_library/contentPdfs/law_and_practice/decisions_president/EX-22-05_en_annex_I_version_2_en.pdf",
+    "x-ip-domain": [
+      "Industrial Design"
+    ],
+    "x-service-type": [
+      "Search",
+      "Dissemination",
+      "Translation"
+    ],
+    "x-content-type": [
+      "Classification"
+    ],
+    "x-product-page-url": "https://dev.euipo.europa.eu/product/product-indications_100",
+    "x-ibm-summary": ""
+  },
+  "servers": [
+    {
+      "url": "https://api.euipo.europa.eu/product-indications"
+    }
+  ],
+  "security": [
+    {
+      "ClientID": [],
+      "Oauth2ClientCredentials": [
+        "uid"
+      ]
+    }
+  ],
+  "x-ibm-configuration": {
+    "type": "rest",
+    "phase": "realized",
+    "enforced": true,
+    "testable": true,
+    "cors": {
+      "enabled": true
+    },
+    "oauth-servers": {
+      "Oauth2ClientCredentials": {
+        "clientCredentials": {
+          "tokenUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ],
+          "authorizationUrls": [],
+          "refreshUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ]
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Classification"
+    },
+    {
+      "name": "Classes"
+    },
+    {
+      "name": "Taxonomy"
+    },
+    {
+      "name": "Terms"
+    }
+  ],
+  "paths": {
+    "/class-headings": {
+      "get": {
+        "operationId": "getClassHeadings",
+        "summary": "Get class headings",
+        "description": "Retrieves Locarno class headings\n\nThe Locarno Classification headings describe in very general terms the nature of the different product indications classified under them.\n",
+        "tags": [
+          "Classes"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Language"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locarno class headings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassHeadingsResource"
+                },
+                "example": {
+                  "headings": [
+                    {
+                      "classNumber": 1,
+                      "heading": "Foodstuffs"
+                    },
+                    {
+                      "classNumber": 1,
+                      "subClassNumber": 1,
+                      "heading": "Bakers' products, biscuits, pastry, pasta and other cereal products, chocolates, confectionery, ices"
+                    },
+                    {
+                      "classNumber": 1,
+                      "subClassNumber": 2,
+                      "heading": "Fruit and vegetables"
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/taxonomy": {
+      "get": {
+        "operationId": "getTaxonomyTree",
+        "summary": "Gets Taxonomy tree",
+        "description": "Gets Taxonomy tree\n\nThe Taxonomy is based on the 45 Class Headings of the Nice Classification (34 for Goods and 11 for Services). \nEach Nice class is divided into groups of terms of similar characteristics and the groups ordered within a hierarchy \nranging from the more general to the more specific. Each grouping has a “Group title” that is coherent with the \ncurrent market situation and which bears reference to the relevant Nice Class Heading.\n",
+        "tags": [
+          "Taxonomy"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Language"
+          },
+          {
+            "$ref": "#/components/parameters/ClassNumber"
+          },
+          {
+            "$ref": "#/components/parameters/SubClassNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Taxonomy tree results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyTreeRoot"
+                },
+                "example": {
+                  "level": 0,
+                  "items": [
+                    {
+                      "level": 1,
+                      "classNumber": 1,
+                      "text": "Foodstuffs",
+                      "items": [
+                        {
+                          "level": 2,
+                          "classNumber": 1,
+                          "subClassNumber": 1,
+                          "text": "Bakers' products, biscuits, pastry, pasta and other cereal products, chocolates, confectionery, ices",
+                          "items": [
+                            {
+                              "level": 3,
+                              "conceptId": "2253",
+                              "classNumber": 1,
+                              "subClassNumber": 1,
+                              "text": "BAKERS’ PRODUCTS",
+                              "items": [
+                                {
+                                  "level": 4,
+                                  "conceptId": "2994",
+                                  "classNumber": 1,
+                                  "subClassNumber": 1,
+                                  "text": "PASTRIES AND CAKES"
+                                },
+                                {
+                                  "level": 4,
+                                  "conceptId": "2995",
+                                  "classNumber": 1,
+                                  "subClassNumber": 1,
+                                  "text": "BREAD AND RUSKS"
+                                }
+                              ]
+                            },
+                            {
+                              "level": 3,
+                              "conceptId": "12346",
+                              "classNumber": 1,
+                              "subClassNumber": 1,
+                              "text": "BISCUITS"
+                            }
+                          ]
+                        },
+                        {
+                          "level": 2,
+                          "classNumber": 1,
+                          "subClassNumber": 2,
+                          "text": "Fruit, vegetables and products made from fruits and vegetables"
+                        },
+                        {
+                          "level": 2,
+                          "classNumber": 1,
+                          "subClassNumber": 3,
+                          "text": "Cheeses, butter and butter substitutes, other dairy produce"
+                        },
+                        {
+                          "level": 2,
+                          "classNumber": 1,
+                          "subClassNumber": 4,
+                          "text": "Butchers' meat (including pork products), fish"
+                        }
+                      ]
+                    },
+                    {
+                      "level": 1,
+                      "classNumber": 2,
+                      "text": "Articles of Clothing and Haberdashery",
+                      "subClasses": [
+                        {
+                          "level": 2,
+                          "classNumber": 2,
+                          "subClassNumber": 1,
+                          "text": "Undergarments, lingerie, corsets, brassieres, nightwear"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/terms": {
+      "get": {
+        "operationId": "searchTerms",
+        "summary": "Search terms",
+        "description": "Retrieves a list of product indications that match specified criteria",
+        "tags": [
+          "Terms"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Language"
+          },
+          {
+            "$ref": "#/components/parameters/ClassNumber"
+          },
+          {
+            "$ref": "#/components/parameters/SubClassNumber"
+          },
+          {
+            "$ref": "#/components/parameters/TermText"
+          },
+          {
+            "$ref": "#/components/parameters/ParentConceptId"
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Example HDB term list response that meets the given specified criteria",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTermsResource"
+                },
+                "example": {
+                  "terms": [
+                    {
+                      "conceptId": "12054178",
+                      "classNumber": 14,
+                      "subClassNumber": 3,
+                      "text": "Amplifiers for cars"
+                    },
+                    {
+                      "conceptId": "12253187",
+                      "classNumber": 14,
+                      "subClassNumber": 1,
+                      "text": "Audio control equipment for cars"
+                    },
+                    {
+                      "conceptId": "12102702",
+                      "classNumber": 14,
+                      "subClassNumber": 1,
+                      "text": "Optical disc players for cars"
+                    },
+                    {
+                      "conceptId": "12253186",
+                      "classNumber": 14,
+                      "subClassNumber": 1,
+                      "text": "Sound control equipment for cars"
+                    }
+                  ],
+                  "totalElements": 24,
+                  "totalPages": 2,
+                  "size": 20,
+                  "page": 1
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/classification-validation": {
+      "post": {
+        "operationId": "validateTerms",
+        "summary": "Validate terms",
+        "description": "Checks every term against the harmonised DB and against validation rules for invalid characters, syntax, max\nterm length, duplicate terms, etc.\n",
+        "tags": [
+          "Classification"
+        ],
+        "requestBody": {
+          "description": "Example of list of terms to be checked",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassificationValidationRequestResource"
+              },
+              "example": {
+                "sourceLanguage": "en",
+                "productIndications": [
+                  {
+                    "classNumber": 5,
+                    "subClassNumber": 2,
+                    "terms": [
+                      "Amplifiers for cars"
+                    ]
+                  },
+                  {
+                    "classNumber": 14,
+                    "subClassNumber": 3,
+                    "terms": [
+                      "Amplifiers for cars",
+                      "Optical disc players for cars",
+                      "FFFF",
+                      "C@ts and dog$"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of terms validated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassificationValidationResultResource"
+                },
+                "example": {
+                  "sourceLanguage": "en",
+                  "productIndications": [
+                    {
+                      "classNumber": 19,
+                      "subClassNumber": 8,
+                      "terms": [
+                        {
+                          "text": "Bank cards",
+                          "conceptId": "12141822",
+                          "harmonized": true
+                        }
+                      ]
+                    },
+                    {
+                      "classNumber": 2,
+                      "subClassNumber": 1,
+                      "terms": [
+                        {
+                          "text": "FFF",
+                          "conceptId": null,
+                          "harmonized": false
+                        },
+                        {
+                          "text": "Access cards",
+                          "conceptId": null,
+                          "harmonized": false,
+                          "errors": [
+                            {
+                              "type": "/problems/suggested-term",
+                              "title": "Suggested term",
+                              "detail": "Suggested term: classNumber '19', subClassNumber '8', conceptId '12159817' and text 'Access cards'",
+                              "text": "Access cards",
+                              "conceptId": "12159817",
+                              "classNumber": 19,
+                              "subClassNumber": 8
+                            }
+                          ]
+                        },
+                        {
+                          "text": "C@ts and dog$",
+                          "conceptId": null,
+                          "harmonized": false,
+                          "errors": [
+                            {
+                              "type": "/problems/invalid-character",
+                              "title": "Invalid character",
+                              "detail": "Invalid character '@' found at position 2",
+                              "invalidChar": "@",
+                              "position": 1
+                            },
+                            {
+                              "type": "/problems/invalid-character",
+                              "title": "Invalid character",
+                              "detail": "Invalid character '$' found at position 12",
+                              "invalidChar": "@",
+                              "position": 12
+                            }
+                          ]
+                        },
+                        {
+                          "text": "ZZZZ",
+                          "conceptId": "0123456",
+                          "harmonized": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IBM-Client-Id"
+      },
+      "Oauth2ClientCredentials": {
+        "type": "oauth2",
+        "description": "- **Client Credentials Flow:** In this method, the final user remains anonymous. The API authenticates the client \nbased on their credentials but does not have access to the user’s identity.\n",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "refreshUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "scopes": {
+              "uid": "Access is not restricted"
+            }
+          }
+        },
+        "x-ibm-oauth-provider": "production-oauth"
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The maximum number of requests you're permitted to make per time period."
+      },
+      "X-RateLimit-Remaining": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of requests remaining in the current rate limit window."
+      },
+      "X-RateLimit-Reset": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The relative time in seconds until the current rate-limit window resets.\n"
+      },
+      "Retry-After": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of seconds to wait until the rate limit window resets. Only sent when the rate limit is reached."
+      }
+    },
+    "parameters": {
+      "Language": {
+        "name": "language",
+        "required": true,
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/EUOfficialLanguage"
+        },
+        "example": "en"
+      },
+      "ClassNumber": {
+        "name": "classNumber",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/ClassNumber"
+        },
+        "example": 14
+      },
+      "SubClassNumber": {
+        "name": "subClassNumber",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/SubClassNumber"
+        },
+        "example": 3
+      },
+      "TermText": {
+        "name": "termText",
+        "in": "query",
+        "description": "Text to search terms",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/Text"
+        },
+        "example": "cars"
+      },
+      "ParentConceptId": {
+        "name": "parentConceptId",
+        "in": "query",
+        "description": "Concept identifier of the parent node in taxonomy",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/ConceptId"
+        },
+        "example": "012345"
+      },
+      "PageNumber": {
+        "name": "page",
+        "in": "query",
+        "description": "Number of the page when paginating (starts with 0)",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "default": 0,
+          "minimum": 0
+        },
+        "example": 0
+      },
+      "PageSize": {
+        "name": "size",
+        "description": "Size of the page when paginating. Values between 10 and 250.",
+        "required": false,
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "default": 10,
+          "minimum": 10,
+          "maximum": 250
+        }
+      }
+    },
+    "responses": {
+      "BadRequestError": {
+        "description": "Bad request",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/input-validation-error",
+              "title": "Input validation error",
+              "status": 400
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "x-summary": "Unauthorized",
+        "description": "Client request has not been completed because it lacks valid authentication credentials for the requested resource",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/unauthorized",
+              "title": "The request lacks valid authentication credentials for this resource",
+              "detail": "Full authentication is required to access this resource",
+              "status": 401
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Rate Limit Exceeded",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/too-many-requests",
+              "title": "Too Many Requests",
+              "detail": "Rate Limit exceeded",
+              "status": 429
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "DefaultError": {
+        "x-summary": "Unexpected error",
+        "description": "Error occurred - see status code and problem object for more information.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/general-error",
+              "title": "General error",
+              "status": 500
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "PageNumber": {
+        "type": "integer",
+        "format": "int32",
+        "default": 0,
+        "minimum": 0,
+        "example": 0,
+        "description": "The results are returned in pages. The page parameter (zero-based) indicates which page to return. For example, page = 2 (third page) and size = 10 will return matching applications No 21 to No 30"
+      },
+      "PageSize": {
+        "type": "integer",
+        "format": "int32",
+        "default": 10,
+        "minimum": 10,
+        "maximum": 100,
+        "example": 10,
+        "description": "Number of results to fetch per page"
+      },
+      "TotalElements": {
+        "type": "integer",
+        "format": "int32",
+        "example": 1,
+        "description": "Total number of results"
+      },
+      "TotalPages": {
+        "type": "integer",
+        "format": "int32",
+        "example": 1,
+        "description": "Total number of pages"
+      },
+      "ClassNumber": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Locarno class number. Allowed values between 1 and 32.",
+        "minimum": 1,
+        "maximum": 32
+      },
+      "SubClassNumber": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Locarno sub class number. Allowed values between 0 and 99.",
+        "minimum": 0,
+        "maximum": 99
+      },
+      "ConceptId": {
+        "type": "string",
+        "description": "Product indication concept identifier"
+      },
+      "Level": {
+        "type": "integer",
+        "format": "int32",
+        "description": "Level in the taxonomy tree. It starts from 0 and increments from 1 to 1",
+        "minimum": 0
+      },
+      "Text": {
+        "type": "string",
+        "description": "Product Indication text"
+      },
+      "EUOfficialLanguage": {
+        "type": "string",
+        "description": "EU Official languages",
+        "enum": [
+          "bg",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fi",
+          "fr",
+          "hr",
+          "hu",
+          "it",
+          "lt",
+          "lv",
+          "mt",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "sk",
+          "sl",
+          "sv"
+        ]
+      },
+      "ClassHeadingsResource": {
+        "type": "object",
+        "description": "Locarno Class Headings",
+        "properties": {
+          "headings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassInfoResource"
+            },
+            "description": "List of Locarno class headings"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "headings"
+        ]
+      },
+      "ClassInfoResource": {
+        "type": "object",
+        "description": "Class info",
+        "properties": {
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          },
+          "heading": {
+            "type": "string",
+            "description": "Locarno class heading"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classNumber",
+          "heading"
+        ]
+      },
+      "GetTermsResult": {
+        "type": "object",
+        "description": "Get terms item",
+        "properties": {
+          "conceptId": {
+            "$ref": "#/components/schemas/ConceptId"
+          },
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          },
+          "text": {
+            "$ref": "#/components/schemas/Text"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classNumber",
+          "subClassNumber",
+          "text"
+        ]
+      },
+      "GetTermsResource": {
+        "type": "object",
+        "description": "Get terms result",
+        "properties": {
+          "terms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetTermsResult"
+            },
+            "description": "List of terms that meet the search criteria"
+          },
+          "totalElements": {
+            "$ref": "#/components/schemas/TotalElements"
+          },
+          "totalPages": {
+            "$ref": "#/components/schemas/TotalPages"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageNumber"
+          },
+          "size": {
+            "$ref": "#/components/schemas/PageSize"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "terms",
+          "totalElements",
+          "totalPages",
+          "page",
+          "size"
+        ]
+      },
+      "TaxonomyTreeRoot": {
+        "type": "object",
+        "description": "Taxonomy tree root",
+        "properties": {
+          "level": {
+            "$ref": "#/components/schemas/Level"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxonomyTreeItem"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "items"
+        ]
+      },
+      "TaxonomyTreeItem": {
+        "type": "object",
+        "description": "Taxonomy tree item",
+        "properties": {
+          "level": {
+            "$ref": "#/components/schemas/Level"
+          },
+          "conceptId": {
+            "$ref": "#/components/schemas/ConceptId"
+          },
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          },
+          "text": {
+            "$ref": "#/components/schemas/Text"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxonomyTreeItem"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "classNumber",
+          "text"
+        ]
+      },
+      "ClassificationValidationRequestResource": {
+        "type": "object",
+        "description": "Product indications classification to validate",
+        "properties": {
+          "sourceLanguage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EUOfficialLanguage"
+              }
+            ],
+            "description": "Language used in the product indication classification"
+          },
+          "productIndications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductIndicationEntryResource"
+            },
+            "description": "Product indications classification to validate"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "sourceLanguage",
+          "productIndications"
+        ]
+      },
+      "ProductIndicationEntryResource": {
+        "type": "object",
+        "description": "Product indication",
+        "properties": {
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          },
+          "terms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classNumber",
+          "subClassNumber",
+          "terms"
+        ]
+      },
+      "ClassificationValidationResultResource": {
+        "type": "object",
+        "description": "Classification validation result",
+        "properties": {
+          "sourceLanguage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EUOfficialLanguage"
+              }
+            ],
+            "description": "Language used in the product indication classification"
+          },
+          "productIndications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductIndicationsValidationResultResource"
+            },
+            "description": "Classification validation result detailed by product indication"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MaxNumberOfTermsExceededProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/MaxNumberOfTermsPerClassExceededProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/ClassificationRangeProblem"
+                }
+              ]
+            },
+            "description": "list of validation errors"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "sourceLanguage",
+          "productIndications"
+        ]
+      },
+      "ProductIndicationsValidationResultResource": {
+        "type": "object",
+        "description": "Product indications validation result",
+        "properties": {
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          },
+          "terms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TermValidationResultResource"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classNumber",
+          "subClassNumber",
+          "terms"
+        ]
+      },
+      "TermValidationResultResource": {
+        "type": "object",
+        "description": "Term validation result",
+        "properties": {
+          "text": {
+            "$ref": "#/components/schemas/Text"
+          },
+          "harmonized": {
+            "type": "boolean"
+          },
+          "conceptId": {
+            "$ref": "#/components/schemas/ConceptId"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/InvalidCharacterProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/MaxLengthExceededProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/InvalidSyntaxProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/SuggestedTermProblem"
+                }
+              ]
+            },
+            "description": "list of validation errors"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/DuplicatedTermProblem"
+                }
+              ]
+            },
+            "description": "list of validation warnings"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "harmonized"
+        ]
+      },
+      "MaxNumberOfTermsExceededProblem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/max-number-of-terms-exceeded"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "maxNumberOfTerms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numberOfTermsListSize": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "maxNumberOfTerms",
+          "numberOfTermsListSize"
+        ],
+        "example": {
+          "type": "/problems/max-number-of-terms-exceeded",
+          "title": "Max number of terms exceeded",
+          "detail": "Your list contains more than 5 terms. A wide range of product indications can increase the probability of a design being opposed or possibly cancelled due to the conflict with an earlier design with similar product indications, or non-use of these. Are you sure you need all the product indications in your list?",
+          "maxNumberOfTerms": 5,
+          "numberOfTermsListSize": 6
+        }
+      },
+      "MaxNumberOfTermsPerClassExceededProblem": {
+        "description": "The number of terms in the class exceeds the maximum allowed",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/max-number-of-terms-per-class-exceeded"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "maxNumberOfTerms": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Maximum number of terms allowed per class"
+          },
+          "numberOfTermsListSize": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current number of terms in the class"
+          },
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "maxNumberOfTerms",
+          "numberOfTermsListSize",
+          "classNumber"
+        ],
+        "example": {
+          "type": "/problems/max-number-of-terms-per-class-exceeded",
+          "title": "Max number of terms per class exceeded",
+          "detail": "Your list contains more than 5 terms per class. A wide range of product indications can increase the probability of a design being opposed or possibly cancelled due to the conflict with an earlier design with similar product indications, or non-use of these. Are you sure you need all the product indications in your list?",
+          "maxNumberOfTerms": 5,
+          "numberOfTermsListSize": 6,
+          "classNumber": 2
+        }
+      },
+      "ClassificationRangeProblem": {
+        "description": "The classification contains classes [%s, %s] that are not within the acceptable range",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/classification-out-of-range"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "classNumber",
+          "subClassNumber"
+        ]
+      },
+      "InvalidCharacterProblem": {
+        "description": "The term contains an invalid character",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/invalid-character"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "invalidChar": {
+            "type": "string",
+            "maxLength": 1,
+            "description": "The invalid character"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Position in the term text where the invalid character occurs"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "invalidChar",
+          "position"
+        ],
+        "example": {
+          "type": "/problems/invalid-character",
+          "title": "Invalid character",
+          "detail": "Invalid character '@' found at position 2",
+          "invalidChar": "@",
+          "position": 2
+        }
+      },
+      "MaxLengthExceededProblem": {
+        "description": "The term exceeds the maximum character limit",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/max-length-exceeded"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "maxLength": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Maximum number of characters allowed"
+          },
+          "length": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current length of the text"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "maxLength",
+          "length"
+        ],
+        "example": {
+          "type": "/problems/max-length-exceeded",
+          "title": "Max length exceeded",
+          "detail": "Term has a length of 14 when maximum length allowed is 5",
+          "maxLength": 5,
+          "length": 14
+        }
+      },
+      "InvalidSyntaxProblem": {
+        "description": "There is a syntax issue with the term",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/invalid-syntax"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text responsible for the issue"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "text"
+        ],
+        "example": {
+          "type": "/problems/invalid-syntax",
+          "title": "Invalid syntax",
+          "detail": "Bracket '[' has not been properly opened/closed",
+          "text": "["
+        }
+      },
+      "DuplicatedTermProblem": {
+        "description": "There is a duplicated term for the class",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/duplicated-term"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type"
+        ],
+        "example": {
+          "type": "/problems/duplicated-term",
+          "title": "Duplicated term",
+          "detail": "Same term appears more than once within this class"
+        }
+      },
+      "SuggestedTermProblem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "/problems/suggested-term"
+            ],
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n"
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n"
+          },
+          "text": {
+            "$ref": "#/components/schemas/Text"
+          },
+          "conceptId": {
+            "$ref": "#/components/schemas/ConceptId"
+          },
+          "classNumber": {
+            "$ref": "#/components/schemas/ClassNumber"
+          },
+          "subClassNumber": {
+            "$ref": "#/components/schemas/SubClassNumber"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "text",
+          "conceptId",
+          "classNumber",
+          "subClassNumber"
+        ],
+        "example": {
+          "type": "/problems/suggested-term",
+          "title": "Suggested term",
+          "detail": "Suggested term: classNumber '19', subClassNumber '8', conceptId '12159817' and text 'Access cards'",
+          "text": "Access cards",
+          "conceptId": "12159817",
+          "classNumber": 19,
+          "subClassNumber": 8
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that uniquely identifies the problem type only in\nthe context of the provided API. Opposed to the specification in\nRFC-7807, it is neither recommended to be dereferencable and point\nto a human-readable documentation nor globally unique for the\nproblem type.\n",
+            "default": "about:blank",
+            "example": "/problem/connection-error"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable\nfor engineers, usually not suited for non technical stakeholders and\nnot localized.\n",
+            "example": "Service Unavailable"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code generated by the origin server for this\noccurrence of the problem.\n",
+            "minimum": 100,
+            "maximum": 600,
+            "exclusiveMaximum": true,
+            "example": 503
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the\nproblem that is helpful to locate the problem and give advice on how\nto proceed. Written in English and readable for engineers, usually\nnot suited for non technical stakeholders and not localized.\n",
+            "example": "Connection to database timed out"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies the specific occurrence of the\nproblem, e.g. by adding a fragment identifier or sub-path to the\nproblem type. May be used to locate the root of this problem in the\nsource code.\n",
+            "example": "/problem/connection-error#token-info-read-timed-out"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "detail"
+        ]
+      }
+    }
+  },
+  "x-ibm-endpoints": [
+    {
+      "url": "https://api.euipo.europa.eu/product-indications"
+    }
+  ]
+}

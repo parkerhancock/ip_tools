@@ -26,11 +26,14 @@ Two-layer documentation for `patent-client-agents`:
 | [TMEP](src/patent_client_agents/catalog/sources/tmep.md) | Trademark Manual of Examining Procedure search and section lookup | None | Unpublished (scraped) |
 | [CanLII](src/patent_client_agents/catalog/sources/canlii.md) | Canadian case law + statutes + citator (FC / FCA / SCC + TMOB + PAB + Patent Act + Trademarks Act with point-in-time queries) | `CANLII_API_KEY` | Not published; keys revocable on high-volume use |
 | [WIPO Lex](src/patent_client_agents/catalog/sources/wipo-lex.md) | Global IP statute + treaty + judgment database curated by WIPO (~50k docs across ~200 jurisdictions). Sprint-1 scope: legislation collection (search + detail) | None | Not published; polite-scrape posture, aggressive caching |
+| [EUIPO](src/patent_client_agents/catalog/sources/euipo.md) | EU Trade Marks (~2.3M, since 1996) + Registered Community Designs (~1.5M, since 2003). RSQL search, full prosecution records, multilingual goods-and-services / product indications. Sandbox vs production toggle. | `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET` (OAuth2 client_credentials) | 25,000 calls/day per app (Default Plan) |
 
 ## MCP tools
 
-The MCP surface — 49 tools by default, 61 when JPO credentials are in the
-environment — is grouped by intent rather than by backend. See
+The MCP surface is grouped by intent rather than by backend. Most tools
+register by default; additional families are env-gated and appear only
+when their credentials are present (JPO: 12 tools, CanLII: 9 tools,
+EUIPO: 4 tools). See
 [intents/README.md](src/patent_client_agents/catalog/intents/README.md)
 for the master table. Cross-source fused tools have dedicated pages:
 

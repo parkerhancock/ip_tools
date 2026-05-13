@@ -1,0 +1,2568 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "x-api-id": "7f7ceff3-627d-4c9d-8333-069dbd112bb0",
+    "x-audience": "external-public",
+    "version": "1.0.0",
+    "title": "Trademark search",
+    "x-ibm-name": "trademark-search",
+    "x-pathalias": "trademark-search",
+    "description": "Perform searches within EUIPO's database and retrieve all available information on a given trade mark.\n",
+    "contact": {
+      "name": "API Platform Team",
+      "url": "https://dev.euipo.europa.eu",
+      "email": "apiplatform@euipo.europa.eu"
+    },
+    "termsOfService": "https://euipo.europa.eu/tunnel-web/secure/webdav/guest/document_library/contentPdfs/law_and_practice/decisions_president/EX-22-05_en_annex_I_version_2_en.pdf",
+    "x-ip-domain": [
+      "Trademark"
+    ],
+    "x-service-type": [
+      "Search",
+      "Dissemination"
+    ],
+    "x-content-type": [
+      "Bibliographic data",
+      "Legal status",
+      "Classification"
+    ],
+    "x-product-page-url": "https://dev.euipo.europa.eu/product/trademark-search_100",
+    "x-ibm-summary": ""
+  },
+  "servers": [
+    {
+      "url": "https://api.euipo.europa.eu/trademark-search"
+    }
+  ],
+  "x-ibm-configuration": {
+    "testable": true,
+    "enforced": true,
+    "cors": {
+      "enabled": true
+    },
+    "phase": "realized",
+    "type": "rest",
+    "oauth-servers": {
+      "Oauth2ClientCredentials": {
+        "clientCredentials": {
+          "tokenUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ],
+          "authorizationUrls": [],
+          "refreshUrls": []
+        }
+      },
+      "Oauth2AuthorizationCode": {
+        "authorizationCode": {
+          "tokenUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ],
+          "authorizationUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/authorize"
+          ],
+          "refreshUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ]
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Trademarks"
+    }
+  ],
+  "security": [
+    {
+      "ClientID": [],
+      "Oauth2ClientCredentials": [
+        "uid"
+      ]
+    },
+    {
+      "ClientID": [],
+      "Oauth2AuthorizationCode": [
+        "trademark-search.trademarks.read"
+      ]
+    }
+  ],
+  "paths": {
+    "/trademarks": {
+      "get": {
+        "summary": "Search for trade marks",
+        "description": "Search for trade marks that match the criteria below. Results are returned in pages (check parameters page and size for more details).",
+        "operationId": "searchTrademarks",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Query"
+          },
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Result of the search",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrademarkSearchResult"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/SearchTrademarkBadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}": {
+      "get": {
+        "operationId": "getTrademark",
+        "summary": "Retrieves the details of a trade mark\n",
+        "description": "Retrieves the details of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          },
+          {
+            "$ref": "#/components/parameters/Language"
+          },
+          {
+            "$ref": "#/components/parameters/Fields"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The trade mark",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trademark"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}/image": {
+      "get": {
+        "operationId": "getTrademarkImage",
+        "description": "Retrieves the image of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The image attachment",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}/image/thumbnail": {
+      "get": {
+        "operationId": "getTrademarkThumbnailImage",
+        "description": "Retrieves the thumbnail image of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The thumbnail of the image attachment",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}/sound": {
+      "get": {
+        "operationId": "getTrademarkSound",
+        "description": "Retrieves the sound of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sound attachment",
+            "content": {
+              "audio/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}/video": {
+      "get": {
+        "operationId": "getTrademarkVideo",
+        "description": "Retrieves the video of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The video attachment",
+            "content": {
+              "video/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/trademarks/{applicationNumber}/model": {
+      "get": {
+        "operationId": "getTrademarkModel",
+        "description": "Retrieves the model of a trade mark",
+        "tags": [
+          "Trademarks"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApplicationNumber"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The model attachment",
+            "content": {
+              "model/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "X-RateLimit-Limit": {
+                "$ref": "#/components/headers/X-RateLimit-Limit"
+              },
+              "X-RateLimit-Remaining": {
+                "$ref": "#/components/headers/X-RateLimit-Remaining"
+              },
+              "X-RateLimit-Reset": {
+                "$ref": "#/components/headers/X-RateLimit-Reset"
+              },
+              "Retry-After": {
+                "$ref": "#/components/headers/Retry-After"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IBM-Client-Id"
+      },
+      "Oauth2ClientCredentials": {
+        "type": "oauth2",
+        "description": "This API operates using two different OAuth2 flows, each offering a unique way of handling user data and trade mark \ninformation:\n- **Client Credentials Flow:** In this method, the final user remains anonymous. The API authenticates the client \nbased on their credentials but does not have access to the user’s identity. As a result, under certain conditions, \nthe API may choose to hide specific parts of the trade mark information to maintain privacy and security.\n",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "scopes": {
+              "uid": "Grants read access to trade marks"
+            }
+          }
+        },
+        "x-ibm-oauth-provider": "production-oauth"
+      },
+      "Oauth2AuthorizationCode": {
+        "type": "oauth2",
+        "description": "- **Authorization Code Flow:** This flow involves the identification of the final user. Since the user is authenticated \nand their identity is known, the API can provide complete information about the trade mark. This method allows \nfor a more personalized user experience, as it tailors the data access according to the user’s identity.\n",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/authorize",
+            "tokenUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "refreshUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "scopes": {
+              "trademark-search.trademarks.read": "Grants read access to trade marks"
+            }
+          }
+        },
+        "x-ibm-oauth-provider": "production-oauth"
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The maximum number of requests you're permitted to make per time period."
+      },
+      "X-RateLimit-Remaining": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of requests remaining in the current rate limit window."
+      },
+      "X-RateLimit-Reset": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The relative time in seconds until the current rate-limit window resets.\n"
+      },
+      "Retry-After": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of seconds to wait until the rate limit window resets. Only sent when the rate limit is reached."
+      }
+    },
+    "parameters": {
+      "PageNumber": {
+        "in": "query",
+        "name": "page",
+        "schema": {
+          "$ref": "#/components/schemas/PageNumber"
+        },
+        "description": "The page to be returned"
+      },
+      "PageSize": {
+        "in": "query",
+        "name": "size",
+        "schema": {
+          "$ref": "#/components/schemas/PageSize"
+        },
+        "description": "The number of elements to be returned"
+      },
+      "Sort": {
+        "in": "query",
+        "name": "sort",
+        "schema": {
+          "$ref": "#/components/schemas/Sort"
+        },
+        "description": "The sort query parameter determines the sort order. It is the sort field that uses the ':' separator\nplus the value 'asc' (ascending) or 'desc' (descending) to indicate sorting direction.\n\n ### List of sortable fields\n | Field                               |\n |-------------------------------------|\n | applicationNumber                   |\n | applicationReference                |\n | applicationDate                     |\n | designationDate                     |\n | registrationDate                    |\n | markFeature                         |\n | wordMarkSpecification.verbalElement |\n | updateDate                          |\n",
+        "example": "applicationNumber:asc"
+      },
+      "ApplicationNumber": {
+        "in": "path",
+        "name": "applicationNumber",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/ApplicationNumber"
+        },
+        "description": "Public identifier of the trade mark"
+      },
+      "Language": {
+        "in": "header",
+        "name": "Accept-Language",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/EUOfficialLanguage"
+        },
+        "description": "Language to filter the multi-lingual elements of the trade mark:\n- Goods and Services\n- Description\n- Disclaimer\n- Colour claim\n\nFor instance, if `Accept-Language` is set to English, the server will return the terms of the Goods and Services \nonly in English. \n\nIf this language is not available as part of the translations, the server returns the multi-lingual elements in\nthe first language of the application.\n\nBy default, if no value is specified, the server returns the multi-lingual elements in all the available languages.\n"
+      },
+      "Fields": {
+        "in": "query",
+        "name": "fields",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "description": "The `fields` query parameter determines the fields returned with the response payload object.\n\nThe syntax of the query `fields` value is defined by the following [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar.\n```\nfilter = filter-item, {\",\", filter};\nfilter-item = all | field-name | field-name, negation, \"(\" field-names \")\" | field-name, \"(\", filter-item, {\",\", filter-item}, \")\";\nfield-names = field-name, {\",\", field-name};\nfield-name = {letter-digit}-;\nletter-digit = ? alphanumeric character ?;\nnegation = \"!\";\nall = \"*\";\n```\n\n**Examples of valid `fields` values:**\n- Return trademarks root object with only the applicationNumber field:<br>\n```trademarks(applicationNumber)```\n\n- Return trademarks root object with the applicationNumber field and the nested applicants object with only its\n  identifier field:<br>\n```trademarks(applicationNumber,applicants(identifier))```\n\n- Return trademarks root object excluding applicantReference field:<br>\n```trademarks!(applicantReference)```\n\n- Return `trademarks` root object with the `applicationNumber` field and the nested `applicants` object with all its\nfields but `name`:<br>\n```trademarks(applicationNumber,applicants!(name))```\n\n- Return root object without `goodsAndServices` field:<br>\n```!(goodsAndServices)```\n\n- Return root object only with `applicationNumber` field:<br>\n```applicationNumber```\n\n- Return root object excluding `description` field from 'goodsAndServices' field:<br>\n```goodsAndServices!(description),*```\n",
+        "example": "!(goodsAndServices)"
+      },
+      "Query": {
+        "in": "query",
+        "name": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "description": "The `query` parameter allows to search for a specific set of trademarks using RSQL expressions.\nRSQL is a query language for parametrized filtering of entries in RESTful APIs. It uses an URI-friendly syntax,\nthere are no unsafe characters, so URL encoding is not required.\n\nThe syntax of RQSL is defined by the following [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar.\n```\ninput          = or, EOF;\nor             = and, { \",\" , and };\nand            = constraint, { \";\" , constraint };\nconstraint     = ( group | comparison );\ngroup          = \"(\", or, \")\";\n\ncomparison     = selector, comparison-op, arguments;\n\nselector       = unreserved-str;\n\ncomparison-op  = comp-fiql | comp-alt;\ncomp-fiql      = ( ( \"=\", { ALPHA } ) | \"!\" ), \"=\";\ncomp-alt       = ( \">\" | \"<\" ), [ \"=\" ];\n\narguments      = ( \"(\", value, { \",\" , value }, \")\" ) | value;\nvalue          = unreserved-str | double-quoted | single-quoted;\n\nunreserved-str = unreserved, { unreserved }\nsingle-quoted  = \"'\", { ( escaped | all-chars - ( \"'\" | \"\\\" ) ) }, \"'\";\ndouble-quoted  = '\"', { ( escaped | all-chars - ( '\"' | \"\\\" ) ) }, '\"';\n\nreserved       = '\"' | \"'\" | \"(\" | \")\" | \";\" | \",\" | \"=\" | \"!\" | \"~\" | \"<\" | \">\";\nunreserved     = all-chars - reserved - \" \";\nescaped        = \"\\\", all-chars;\nall-chars      = ? all unicode characters ?;\n```\n\n### Available comparison operators\n\n| Operator | Alternative Syntax | Meaning                  |\n|----------|--------------------|--------------------------|\n| ==       |                    | Equal to                 |\n| !=       |                    | Not equal to             |\n| <        | =lt=               | Less than                |\n| <=       | =le=               | Less than or equal       |\n| >        | =gt=               | Greater than operator    |\n| >=       | =ge=               | Greater than or equal to |\n| =in=     |                    | In                       |\n| =out=    |                    | Not in                   |\n| =all=    |                    | All in                   |\n\n*An asterisk can be used as a wildcard with both the equal and not equal operators*\n\n### Available logical operators\n| Operator | Meaning     |\n|----------|-------------|\n| or       | Logical OR  |\n| and      | Logical AND |\n\n### Supported Fields\n| Field                               | Supported operators                        |\n|-------------------------------------|--------------------------------------------|\n| applicationNumber                   | \"==\", \"!=\"                                 |\n| applicantReference                  | \"==\", \"!=\"                                 |\n| applicationLanguage                 | \"==\", \"!=\"                                 |\n| secondLanguage                      | \"==\", \"!=\"                                 |\n| markKind                            | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| markFeature                         | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| markBasis                           | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| wordMarkSpecification.verbalElement | \"==\", \"!=\"                                 |\n| applicants.identifier               | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| applicants.name                     | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| representatives.identifier          | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| representatives.name                | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| applicationDate                     | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| registrationDate                    | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| designationDate                     | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| expiryDate                          | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| status                              | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| statusDate                          | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| description                         | \"==\", \"!=\"                                 |\n| niceClasses                         | \"==\", \"!=\", \"=in=\", \"=out=\", \"=all=\"       |\n| tradeDistinctivenessIndicator       | \"==\", \"!=\"                                 |\n| oppositionPeriodEndDate             | \"==\", \"!=\", \"<\", \"<=\", \">\", \">=\"           |\n| renewalStatus                       | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| fastTrackIndicator                  | \"==\", \"!=\"                                 |\n| oppositions.oppositionNumber        | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| cancellations.cancellationNumber    | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| appeals.appealNumber                | \"==\", \"!=\", \"=in=\", \"=out=\"                |\n| updateDate                          | \"<\", \"<=\", \">\", \">=\"                       |\n\n### Examples of valid queries\n- Trademarks from representative with identifier 123 for which renewal period is open\n```representatives.identifier==123 and renewalStatus==RENEWAL_PERIOD_OPEN```\n\n- Registered trademarks where their Goods and Services classification contains nice classes 25, 28 and 40 and verbal elements contains 'Dog'\n```niceClasses=all=(25,28,40) and wordMarkSpecification.verbalElement==*Dog* and status==REGISTERED```\n\n- Trademarks whose application date is greater than or equal to '2023-05-04' and they are FIGURATIVE and include nice classes 25,26 or they are WORD and they DON'T include nice class 40\n```applicationDate>=2023-05-04 and ((markFeature==FIGURATIVE and niceClasses=all=(25,26)) or (markFeature==WORD and niceClasses=out=(40)))```\n",
+        "example": "applicationDate>=2023-05-04 and ((markFeature==FIGURATIVE and niceClasses=all=(25,26)) or (markFeature==WORD and niceClasses=out=(40)))"
+      }
+    },
+    "responses": {
+      "DefaultError": {
+        "x-summary": "Unexpected error",
+        "description": "Error occurred - see status code and problem object for more information.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/general-error",
+              "title": "General error",
+              "status": 500
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "SearchTrademarkBadRequestError": {
+        "description": "Bad request",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/input-validation-error",
+              "title": "Input validation error",
+              "detail": "Query error: Unknown operator: =o=",
+              "status": 400,
+              "instance": "/trademarks"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "NotFoundError": {
+        "x-summary": "Not found",
+        "description": "Resource not found",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/not-found-error",
+              "title": "Resource not found",
+              "detail": "Trademark with number '015000302' not found",
+              "status": 404,
+              "instance": "/trademarks/015000302"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "x-summary": "Unauthorized",
+        "description": "Client request has not been completed because it lacks valid authentication credentials for the requested resource",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/unauthorized",
+              "title": "The request lacks valid authentication credentials for this resource",
+              "detail": "Full authentication is required to access this resource",
+              "status": 401,
+              "instance": "/trademarks"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Rate Limit Exceeded",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/too-many-requests",
+              "title": "Too Many Requests",
+              "detail": "Rate Limit exceeded",
+              "status": 429
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ApplicationNumber": {
+        "type": "string",
+        "pattern": "^(\\d{9}|W\\d{8}[A-Z]?)$",
+        "maxLength": 10,
+        "minLength": 9,
+        "example": "018692868",
+        "description": "Public identifier of the trade mark"
+      },
+      "PersonalReference": {
+        "type": "string",
+        "maxLength": 254,
+        "pattern": "^[a-zA-Z0-9._\\\\-\\\\/\\\\\\\\]{1,254}$",
+        "example": "PersonalReference001",
+        "description": "Value that the user may indicate for his own reference. It should consist of up to 254 alphanumeric characters,\nusing the Roman alphabet: a-z, A-Z, 0-9 and/or the special characters: .-_/\\\\. Spaces not allowed\n"
+      },
+      "PageNumber": {
+        "type": "integer",
+        "format": "int32",
+        "default": 0,
+        "minimum": 0,
+        "example": 0,
+        "description": "The results are returned in pages. The page parameter (zero-based) indicates which page to return. For example, page = 2 (third page) and size = 10 will return matching applications No 21 to No 30"
+      },
+      "PageSize": {
+        "type": "integer",
+        "format": "int32",
+        "default": 10,
+        "minimum": 10,
+        "maximum": 100,
+        "example": 10,
+        "description": "Number of results to fetch per page"
+      },
+      "TotalElements": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0,
+        "example": 1,
+        "description": "Total number of results"
+      },
+      "TotalPages": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0,
+        "example": 1,
+        "description": "Total number of pages"
+      },
+      "Sort": {
+        "type": "string",
+        "pattern": "^([\\w+]+(\\.(\\w)+)*:(asc|desc))$",
+        "description": "Sorting",
+        "maxLength": 50,
+        "example": "applicationNumber:desc"
+      },
+      "PersonId": {
+        "type": "string",
+        "description": "Person identifier"
+      },
+      "TrademarkSearchResult": {
+        "type": "object",
+        "properties": {
+          "trademarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrademarkSearchResultItem"
+            },
+            "maxItems": 100,
+            "description": "List of trade marks that meet the search criteria"
+          },
+          "size": {
+            "$ref": "#/components/schemas/PageSize"
+          },
+          "totalElements": {
+            "$ref": "#/components/schemas/TotalElements"
+          },
+          "totalPages": {
+            "$ref": "#/components/schemas/TotalPages"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageNumber"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "trademarks",
+          "size",
+          "totalElements",
+          "totalPages",
+          "page"
+        ]
+      },
+      "TrademarkSearchResultItem": {
+        "type": "object",
+        "properties": {
+          "applicationNumber": {
+            "$ref": "#/components/schemas/ApplicationNumber"
+          },
+          "applicantReference": {
+            "$ref": "#/components/schemas/PersonalReference"
+          },
+          "markKind": {
+            "$ref": "#/components/schemas/MarkKind"
+          },
+          "markFeature": {
+            "$ref": "#/components/schemas/MarkFeature"
+          },
+          "markBasis": {
+            "$ref": "#/components/schemas/MarkBasis"
+          },
+          "niceClasses": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 45
+            },
+            "description": "Nice classification of the trade mark. The Nice Classification divides the goods and services\ninto 45 categories (or classes).\n",
+            "externalDocs": {
+              "description": "More information on Nice classification",
+              "url": "https://euipo.europa.eu/ohimportal/en/nice-classification"
+            }
+          },
+          "wordMarkSpecification": {
+            "$ref": "#/components/schemas/WorkMarkSpecification"
+          },
+          "applicants": {
+            "$ref": "#/components/schemas/ApplicantsList"
+          },
+          "representatives": {
+            "$ref": "#/components/schemas/RepresentativesList"
+          },
+          "applicationDate": {
+            "$ref": "#/components/schemas/ApplicationDate"
+          },
+          "registrationDate": {
+            "$ref": "#/components/schemas/RegistrationDate"
+          },
+          "designationDate": {
+            "$ref": "#/components/schemas/DesignationDate"
+          },
+          "expiryDate": {
+            "$ref": "#/components/schemas/ExpiryDate"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "applicationNumber",
+          "markFeature",
+          "niceClasses",
+          "status"
+        ],
+        "example": {
+          "applicationNumber": "000984401",
+          "markKind": "INDIVIDUAL",
+          "markFeature": "WORD",
+          "markBasis": "EU_TRADEMARK",
+          "wordMarkSpecification": {
+            "verbalElement": "White wine"
+          },
+          "niceClasses": [
+            33
+          ],
+          "applicants": [
+            {
+              "office": "EM",
+              "identifier": "1516"
+            }
+          ],
+          "applicationDate": "1997-02-10",
+          "registrationDate": "1998-10-28",
+          "expiryDate": "2027-02-10",
+          "status": "REGISTERED"
+        }
+      },
+      "WorkMarkSpecification": {
+        "type": "object",
+        "properties": {
+          "verbalElement": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "verbalElement"
+        ],
+        "description": "Words or letters, numerals, other standard typographic characters, or a combination thereof.\nOnly European Union alphabets and keyboard symbols are accepted.\n"
+      },
+      "MarkImage": {
+        "type": "object",
+        "properties": {
+          "imageFormat": {
+            "type": "string",
+            "enum": [
+              "JPG",
+              "TIFF"
+            ],
+            "description": "Format of the image"
+          },
+          "colourClaim": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultilingualElement"
+              }
+            ],
+            "description": "Colour claim to claim priority in other offices",
+            "example": [
+              {
+                "language": "en",
+                "text": "Orange, dark blue."
+              },
+              {
+                "language": "es",
+                "text": "Naranja, azul oscuro."
+              }
+            ]
+          },
+          "viennaClasses": {
+            "$ref": "#/components/schemas/ViennaClassification"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "imageFormat"
+        ],
+        "description": "Image attached to the trade mark. The image must meet some technical requirements as explained at\n[Technical requirements for attachments to electronic filing and communication](https://euipo.europa.eu/ohimportal/en/web/guest/attachments?inheritRedirect=true)\nunder **\"European Union trade mark application e filing\"** section.\n"
+      },
+      "MarkSound": {
+        "type": "object",
+        "properties": {
+          "soundFormat": {
+            "type": "string",
+            "enum": [
+              "MP3"
+            ],
+            "description": "Format of the sound"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "soundFormat"
+        ],
+        "description": "Sound attached to the trade mark. The sound must meet some technical requirements as explained at\n[Technical requirements for attachments to electronic filing and communication](https://euipo.europa.eu/ohimportal/en/web/guest/attachments?inheritRedirect=true)\nunder **\"European Union trade mark application e filing\"** section.\n"
+      },
+      "MarkVideo": {
+        "type": "object",
+        "properties": {
+          "videoFormat": {
+            "type": "string",
+            "enum": [
+              "MP4"
+            ],
+            "description": "Format of the video"
+          },
+          "viennaClasses": {
+            "$ref": "#/components/schemas/ViennaClassification"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "videoFormat"
+        ],
+        "description": "Video attached to the trade mark. The video must meet some technical requirements as explained at\n[Technical requirements for attachments to electronic filing and communication](https://euipo.europa.eu/ohimportal/en/web/guest/attachments?inheritRedirect=true)\nunder **\"European Union trade mark application e filing\"** section.\n"
+      },
+      "MarkModel": {
+        "type": "object",
+        "properties": {
+          "modelFormat": {
+            "type": "string",
+            "enum": [
+              "OBJ",
+              "X3D",
+              "STL"
+            ],
+            "description": "Format of the 3D model"
+          },
+          "viennaClasses": {
+            "$ref": "#/components/schemas/ViennaClassification"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "modelFormat"
+        ],
+        "description": "3D Model attached to the trade mark. The 3D model must meet some technical requirements as explained at\n[Technical requirements for attachments to electronic filing and communication](https://euipo.europa.eu/ohimportal/en/web/guest/attachments?inheritRedirect=true)\nunder **\"European Union trade mark application e filing\"** section.\n"
+      },
+      "ViennaClassification": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ViennaClass"
+        },
+        "description": "Hierarchical system that proceeds from the general to the particular, classifying the figurative elements of\nmarks into categories, divisions and sections, on the basis of their shape\n",
+        "externalDocs": {
+          "description": "More information on Vienna classification",
+          "url": "https://euipo.europa.eu/ohimportal/en/vienna-classification"
+        }
+      },
+      "ViennaClass": {
+        "type": "string",
+        "pattern": "^[0-9][0-9].[0-9][0-9].[0-9][0-9]|[0-9][0-9].[0-9][0-9]$",
+        "maxLength": 8
+      },
+      "Trademark": {
+        "type": "object",
+        "properties": {
+          "applicationNumber": {
+            "$ref": "#/components/schemas/ApplicationNumber"
+          },
+          "applicationDate": {
+            "$ref": "#/components/schemas/ApplicationDate"
+          },
+          "applicantReference": {
+            "$ref": "#/components/schemas/PersonalReference"
+          },
+          "applicationLanguage": {
+            "$ref": "#/components/schemas/ApplicationLanguage"
+          },
+          "secondLanguage": {
+            "$ref": "#/components/schemas/SecondLanguage"
+          },
+          "markKind": {
+            "$ref": "#/components/schemas/MarkKind"
+          },
+          "markFeature": {
+            "$ref": "#/components/schemas/MarkFeature"
+          },
+          "markBasis": {
+            "$ref": "#/components/schemas/MarkBasis"
+          },
+          "wordMarkSpecification": {
+            "$ref": "#/components/schemas/WorkMarkSpecification"
+          },
+          "markImage": {
+            "$ref": "#/components/schemas/MarkImage"
+          },
+          "markSound": {
+            "$ref": "#/components/schemas/MarkSound"
+          },
+          "markVideo": {
+            "$ref": "#/components/schemas/MarkVideo"
+          },
+          "markModel": {
+            "$ref": "#/components/schemas/MarkModel"
+          },
+          "applicants": {
+            "$ref": "#/components/schemas/ApplicantsList"
+          },
+          "representatives": {
+            "$ref": "#/components/schemas/RepresentativesList"
+          },
+          "receiptDate": {
+            "$ref": "#/components/schemas/ReceiptDate"
+          },
+          "registrationDate": {
+            "$ref": "#/components/schemas/RegistrationDate"
+          },
+          "designationDate": {
+            "$ref": "#/components/schemas/DesignationDate"
+          },
+          "publicationDate": {
+            "$ref": "#/components/schemas/PublicationDate"
+          },
+          "expiryDate": {
+            "$ref": "#/components/schemas/ExpiryDate"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "statusDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultilingualElement"
+              }
+            ],
+            "description": "This is a description to add details on the mark. It requires a version in each of the languages of the EU languages."
+          },
+          "disclaimer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MultilingualElement"
+              }
+            ],
+            "description": "Text defining disclaimed elements of the mark.  It requires a version in each of the languages of the EU languages."
+          },
+          "goodsAndServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GoodsAndServicesClass"
+            },
+            "minItems": 1,
+            "description": "List of the goods and/or services to be covered by the mark",
+            "externalDocs": {
+              "description": "More information on Nice classification",
+              "url": "https://euipo.europa.eu/ohimportal/en/nice-classification"
+            }
+          },
+          "priorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Priority"
+            },
+            "description": "List of priorities",
+            "externalDocs": {
+              "description": "More information on Priorities - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2047275/trade-mark-guidelines/11-priority"
+            }
+          },
+          "seniorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Seniority"
+            },
+            "description": "List of seniorities",
+            "externalDocs": {
+              "description": "More information on Seniorities - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2047298/trade-mark-guidelines/13-seniority"
+            }
+          },
+          "exhibitionPriorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExhibitionPriority"
+            },
+            "description": "List of exhibition priorities",
+            "externalDocs": {
+              "description": "More information on Exhibition priorities - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2047294/trade-mark-guidelines/12-exhibition-priority"
+            }
+          },
+          "irTransformations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IRTransformation"
+            },
+            "maxItems": 1,
+            "description": "List of IR Transformations",
+            "externalDocs": {
+              "description": "More information on IR Transformations - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/1948428/trade-mark-guidelines/14-transformation"
+            }
+          },
+          "tradeDistinctivenessIndicator": {
+            "type": "boolean",
+            "description": "Indicates if the decision has been reviewed under Art. 7(3) (Acquired distinctiveness by use)"
+          },
+          "oppositionPeriodStartDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when the opposition period starts"
+          },
+          "oppositionPeriodEndDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when the opposition period ends"
+          },
+          "renewalStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_TO_BE_RENEWED",
+              "RENEWAL_PERIOD_TO_START",
+              "RENEWAL_PERIOD_OPEN",
+              "RENEWAL_IN_PROCESS",
+              "RENEWAL_PROCESS_BLOCKED",
+              "RENEWAL_PERIOD_LAPSED",
+              "INVALID_FOR_RENEWAL"
+            ],
+            "description": "State of the trade mark in the context of renewal"
+          },
+          "fastTrackIndicator": {
+            "type": "boolean",
+            "description": "Indicates whether the EUTM follows the Fast Track workflow"
+          },
+          "fastTrackOnReceptionIndicator": {
+            "type": "boolean",
+            "description": "Indicates whether the EUTM was identified as Fast Track on reception"
+          },
+          "oppositions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Opposition"
+            },
+            "description": "List of oppositions",
+            "externalDocs": {
+              "description": "More information on Oppositions - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/1788522/trade-mark-guidelines/part-c-opposition"
+            }
+          },
+          "cancellations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cancellation"
+            },
+            "description": "List of cancellations",
+            "externalDocs": {
+              "description": "More information on Cancellations - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/1785610/trade-mark-guidelines/part-d-cancellation"
+            }
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Record"
+            },
+            "description": "List of records",
+            "externalDocs": {
+              "description": "More information on changes in registration - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/1787238/trade-mark-guidelines/section-1-changes-in-a-registration"
+            }
+          },
+          "appeals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Appeal"
+            },
+            "description": "List of appeals",
+            "externalDocs": {
+              "description": "More information on Appeals - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2046049/trade-mark-guidelines/3-2-1-appeals"
+            }
+          },
+          "internationalApplications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InternationalApplication"
+            },
+            "description": "List of international aplications",
+            "externalDocs": {
+              "description": "More information on International applications - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2064998/trade-mark-guidelines/2-1-examination-and-forwarding-of-international-applications"
+            }
+          },
+          "inspectionRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InspectionRequest"
+            },
+            "description": "List of inspection requests",
+            "externalDocs": {
+              "description": "More information on Inspection requests - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/1787846/trade-mark-guidelines/4-inspection-of-files"
+            }
+          },
+          "publications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Publication"
+            },
+            "description": "List of publications",
+            "externalDocs": {
+              "description": "More information on Publications and Entries in the Register - EUIPO guidelines",
+              "url": "https://guidelines.euipo.europa.eu/2058843/2048209/trade-mark-guidelines/7-1-publication-and-entry-in-the-register"
+            }
+          },
+          "decisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Decision"
+            },
+            "description": "List of decisions"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "applicationNumber",
+          "applicationLanguage",
+          "goodsAndServices",
+          "status",
+          "statusDate"
+        ],
+        "example": {
+          "applicationNumber": "000084601",
+          "applicationLanguage": "en",
+          "secondLanguage": "es",
+          "markKind": "INDIVIDUAL",
+          "markFeature": "WORD",
+          "markBasis": "EU_TRADEMARK",
+          "wordMarkSpecification": {
+            "verbalElement": "White wine"
+          },
+          "goodsAndServices": [
+            {
+              "classNumber": 8,
+              "description": [
+                {
+                  "language": "en",
+                  "terms": [
+                    "Tableware [knives, forks and spoons]"
+                  ]
+                }
+              ]
+            }
+          ],
+          "applicants": [
+            {
+              "office": "EM",
+              "identifier": "1516"
+            }
+          ],
+          "applicationDate": "1997-02-10",
+          "registrationDate": "1998-10-28",
+          "expiryDate": "2027-02-10",
+          "fastTrackIndicator": false,
+          "fastTrackOnReceptionIndicator": false,
+          "status": "REGISTERED",
+          "statusDate": "1999-02-08"
+        }
+      },
+      "ApplicationLanguage": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EUOfficialLanguage"
+          }
+        ],
+        "description": "First language of the trade mark. One of the 23 offical European Union languages."
+      },
+      "SecondLanguage": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EUIPOOfficialLanguage"
+          }
+        ],
+        "description": "Second language of the trade mark. According to the regulation, you must provide a second language from one of the five official EUIPO languages (de, en, es, fr, it). The second language must be different from the first. Please note that your trade mark could be challenged in the second language.\n"
+      },
+      "ApplicantsList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Person"
+        },
+        "description": "List of persons that applied for the registration of the trade mark.\n\nFor security and data protection purposes, the applicant information of a trade mark will be available once the \nbasic application fee is paid unless the user performing the search has been identified as the owner of the \ntrade mark (`Authorization Code` flow required).\n",
+        "minItems": 1
+      },
+      "RepresentativesList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Person"
+        },
+        "description": "List of persons that represent the applicants of the trade mark"
+      },
+      "ApplicationDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Application date of the trade mark"
+      },
+      "ReceiptDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Date of receipt of the trade mark"
+      },
+      "RegistrationDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Registration date of the trade mark"
+      },
+      "DesignationDate": {
+        "type": "string",
+        "format": "date"
+      },
+      "PublicationDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Publication date of the trade mark"
+      },
+      "ExpiryDate": {
+        "type": "string",
+        "format": "date",
+        "description": "Expiry date of the trade mark"
+      },
+      "MultilingualElement": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "language": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/EUOfficialLanguage"
+                }
+              ],
+              "description": "Language of the text"
+            },
+            "text": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "language",
+            "text"
+          ]
+        }
+      },
+      "GoodsAndServicesClass": {
+        "type": "object",
+        "properties": {
+          "classNumber": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "maximum": 45,
+            "description": "Class Number. The Nice Classification divides the goods and services into 45 categories (or classes).\n"
+          },
+          "description": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "language": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/EUOfficialLanguage"
+                    }
+                  ],
+                  "description": "Language of the terms"
+                },
+                "terms": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "description": "Description of the Term"
+                  }
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "language",
+                "terms"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "classNumber",
+          "description"
+        ],
+        "example": {
+          "classNumber": 12,
+          "description": [
+            {
+              "language": "en",
+              "terms": [
+                "Cars"
+              ]
+            },
+            {
+              "language": "es",
+              "terms": [
+                "Coches"
+              ]
+            }
+          ]
+        }
+      },
+      "MarkKind": {
+        "type": "string",
+        "enum": [
+          "INDIVIDUAL",
+          "EU_COLLECTIVE",
+          "EU_CERTIFICATION"
+        ],
+        "description": "Kind of European Union trade mark.\n- INDIVIDUAL. Individual trade marks can be owned by one legal or natural person or by more than one legal or natural person.\n- EU_COLLECTIVE. An EU collective mark is owned by an association and can be used by any member of the association.\n- EU_CERTIFICATION. An EU certification mark is owned by a certification institution and can be used by any person who complies with the certification requirements.\n",
+        "externalDocs": {
+          "description": "More information on Certification and Collective trade marks",
+          "url": "https://euipo.europa.eu/ohimportal/certification-and-collective-marks"
+        }
+      },
+      "MarkFeature": {
+        "type": "string",
+        "enum": [
+          "WORD",
+          "FIGURATIVE",
+          "SHAPE_3D",
+          "COLOUR",
+          "SOUND",
+          "HOLOGRAM",
+          "OLFACTORY",
+          "POSITION",
+          "PATTERN",
+          "MOTION",
+          "MULTIMEDIA",
+          "OTHER"
+        ],
+        "description": "Trade mark type\n\n- WORD. A word mark consists exclusively of words or letters, numerals, other standard typographic characters, or a\ncombination thereof can be typed.\n- FIGURATIVE. A figurative mark is a trade mark that may contain graphic and/or verbal elements (including in non-EU alphabets),\nwhere non-standard fonts and/or stylisation and/or layout and/or colour(s) may be used.\n- SHAPE_3D. A shape mark consists of a three-dimensional shape with or without word/graphic elements on it. It can include containers, packaging, the product itself or its appearance.\n- COLOUR. A colour mark consists exclusively of a single colour without contour or a combination of colours without contours.\n- SOUND. A sound mark is defined as a trade mark consisting exclusively of a sound or combination of sounds.\n- HOLOGRAM. A hologram mark consists of elements with holographic characteristics.\n- OLFACTORY. Obsolete.\n- POSITION. A position mark consists of the specific way in which the mark is placed or affixed to the product.\n- PATTERN. A pattern mark consists exclusively of a set of elements that are repeated regularly.\n- MOTION. A motion mark consists of a movement or a change in the position of the elements of the mark. In addition to the movement itself, the mark may also include words, figurative elements, labels, etc.\n- MULTIMEDIA. A multimedia mark consists of a combination of image and sound. It may also include words, figurative elements, labels, etc., in addition to the image and sound.\n- OTHER. An ‘other’ mark is not any of the previous types. It must comply with the requirements for representation as stipulated in Article 3(1) EUTMIR and may be accompanied by a mark description, for example to specify what is meant by ‘other’\n"
+      },
+      "MarkBasis": {
+        "type": "string",
+        "enum": [
+          "EU_TRADEMARK",
+          "INTERNATIONAL_TRADEMARK"
+        ],
+        "description": "Trademark mark basis\n\n- EU_TRADEMARK. European Union Trade Mark registration\n- INTERNATIONAL_TRADEMARK. International registration \n"
+      },
+      "Person": {
+        "type": "object",
+        "properties": {
+          "office": {
+            "type": "string",
+            "enum": [
+              "EM",
+              "WO"
+            ],
+            "description": "Source Office:\n- EM. The European Union Intellectual Property Office (EUIPO)\n- WO. The World Intellectual Property Organization (WIPO).\n"
+          },
+          "identifier": {
+            "$ref": "#/components/schemas/PersonId"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the person"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "office",
+          "name"
+        ]
+      },
+      "Priority": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExtendedWIPOST3Country"
+              }
+            ],
+            "description": "Country of first filing"
+          },
+          "applicationNumber": {
+            "type": "string",
+            "description": "The number of the application in the original country"
+          },
+          "applicationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when filed in that country."
+          },
+          "partialIndicator": {
+            "type": "boolean",
+            "description": "Indicates whether the priority is related to all classes or only part of them"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PriorityStatus"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Priority"
+      },
+      "PriorityStatus": {
+        "type": "string",
+        "enum": [
+          "TO_DETERMINE",
+          "CLAIMED",
+          "ABANDONED",
+          "REFUSED"
+        ],
+        "description": "Indicates the result of the formality examination with respect to the priority claim"
+      },
+      "Seniority": {
+        "type": "object",
+        "properties": {
+          "seniorityKind": {
+            "$ref": "#/components/schemas/SeniorityKind"
+          },
+          "country": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExtendedWIPOST3Country"
+              }
+            ],
+            "description": "Member state of the registration the seniority claim refers to"
+          },
+          "applicationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when filed in that country."
+          },
+          "applicationNumber": {
+            "type": "string",
+            "description": "The number of the application in the original country"
+          },
+          "registrationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when registered in that country"
+          },
+          "registrationNumber": {
+            "type": "string",
+            "description": "The number of registration in the original country"
+          },
+          "priorityDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Own Priority date for the seniority"
+          },
+          "partialIndicator": {
+            "type": "boolean",
+            "description": "Indicates whether the seniority is related to all classes or only part of them"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SeniorityStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "seniorityKind",
+          "country",
+          "partialIndicator",
+          "status"
+        ],
+        "description": "Seniority"
+      },
+      "SeniorityKind": {
+        "type": "string",
+        "enum": [
+          "NATIONAL_REGISTRATION_IN_MEMBER_STATE",
+          "INTERNATIONAL_REGISTRATION_EFFECT_IN_MEMBER_STATE"
+        ],
+        "description": "Nature (national / international) of the registration the seniority claim refers to"
+      },
+      "SeniorityStatus": {
+        "type": "string",
+        "enum": [
+          "CLAIMED",
+          "ACCEPTED",
+          "ABANDONED",
+          "REFUSED",
+          "PARTIALLY_REFUSED",
+          "DEFICIENCY"
+        ],
+        "description": "Indicates the result of the examination with respect to the seniority claim"
+      },
+      "ExhibitionPriority": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of exhibition where the mark has been disclosed"
+          },
+          "firstDisplayDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of exhibition"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ExhibitionPriorityStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "firstDisplayDate",
+          "status"
+        ],
+        "description": "Exhibition priority"
+      },
+      "ExhibitionPriorityStatus": {
+        "type": "string",
+        "enum": [
+          "TO_DETERMINE",
+          "ACCEPTED",
+          "ABANDONED",
+          "REFUSED"
+        ],
+        "description": "Indicates the result of the examination with respect to the priority claim"
+      },
+      "IRTransformation": {
+        "type": "object",
+        "properties": {
+          "registrationNumber": {
+            "type": "string",
+            "description": "Number of the International Registration",
+            "example": "1454482"
+          },
+          "registrationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "IR registration date or the date on which the territorial extension to the European Community",
+            "example": "2018-12-27"
+          },
+          "cancellationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date on which the International Registration was cancelled by the International Bureau",
+            "example": "2020-06-17"
+          },
+          "priorityDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of Priority claimed in the International Registration",
+            "example": "2018-10-16"
+          }
+        },
+        "additionalProperties": false,
+        "description": "International Registration Transformation"
+      },
+      "EUOfficialLanguage": {
+        "type": "string",
+        "description": "The 23 official languages of European Union",
+        "enum": [
+          "bg",
+          "cs",
+          "da",
+          "de",
+          "el",
+          "en",
+          "es",
+          "et",
+          "fi",
+          "fr",
+          "hr",
+          "hu",
+          "it",
+          "lt",
+          "lv",
+          "mt",
+          "nl",
+          "pl",
+          "pt",
+          "ro",
+          "sk",
+          "sl",
+          "sv"
+        ]
+      },
+      "EUIPOOfficialLanguage": {
+        "type": "string",
+        "enum": [
+          "de",
+          "en",
+          "es",
+          "fr",
+          "it"
+        ]
+      },
+      "WIPOST3Country": {
+        "type": "string",
+        "enum": [
+          "AD",
+          "AE",
+          "AF",
+          "AG",
+          "AI",
+          "AL",
+          "AM",
+          "AN",
+          "AO",
+          "AP",
+          "AR",
+          "AT",
+          "AU",
+          "AW",
+          "AZ",
+          "BA",
+          "BB",
+          "BD",
+          "BE",
+          "BF",
+          "BG",
+          "BH",
+          "BI",
+          "BJ",
+          "BM",
+          "BN",
+          "BO",
+          "BQ",
+          "BR",
+          "BS",
+          "BT",
+          "BV",
+          "BW",
+          "BX",
+          "BY",
+          "BZ",
+          "CA",
+          "CD",
+          "CF",
+          "CG",
+          "CH",
+          "CI",
+          "CK",
+          "CL",
+          "CM",
+          "CN",
+          "CO",
+          "CR",
+          "CU",
+          "CV",
+          "CW",
+          "CY",
+          "CZ",
+          "DE",
+          "DJ",
+          "DK",
+          "DM",
+          "DO",
+          "DZ",
+          "EA",
+          "EC",
+          "EE",
+          "EG",
+          "EH",
+          "EM",
+          "EP",
+          "ER",
+          "ES",
+          "ET",
+          "FI",
+          "FJ",
+          "FK",
+          "FO",
+          "FR",
+          "GA",
+          "GB",
+          "GC",
+          "GD",
+          "GE",
+          "GG",
+          "GH",
+          "GI",
+          "GL",
+          "GM",
+          "GN",
+          "GQ",
+          "GR",
+          "GS",
+          "GT",
+          "GW",
+          "GY",
+          "HK",
+          "HN",
+          "HR",
+          "HT",
+          "HU",
+          "IB",
+          "ID",
+          "IE",
+          "IL",
+          "IM",
+          "IN",
+          "IQ",
+          "IR",
+          "IS",
+          "IT",
+          "JE",
+          "JM",
+          "JO",
+          "JP",
+          "KE",
+          "KG",
+          "KH",
+          "KI",
+          "KM",
+          "KN",
+          "KP",
+          "KR",
+          "KW",
+          "KY",
+          "KZ",
+          "LA",
+          "LB",
+          "LC",
+          "LI",
+          "LK",
+          "LR",
+          "LS",
+          "LT",
+          "LU",
+          "LV",
+          "LY",
+          "MA",
+          "MC",
+          "MD",
+          "ME",
+          "MG",
+          "MK",
+          "ML",
+          "MM",
+          "MN",
+          "MO",
+          "MP",
+          "MR",
+          "MS",
+          "MT",
+          "MU",
+          "MV",
+          "MW",
+          "MX",
+          "MY",
+          "MZ",
+          "NA",
+          "NE",
+          "NG",
+          "NI",
+          "NL",
+          "NO",
+          "NP",
+          "NR",
+          "NZ",
+          "OA",
+          "OM",
+          "PA",
+          "PE",
+          "PG",
+          "PH",
+          "PK",
+          "PL",
+          "PT",
+          "PW",
+          "PY",
+          "QA",
+          "QZ",
+          "RO",
+          "RS",
+          "RU",
+          "RW",
+          "SA",
+          "SB",
+          "SC",
+          "SD",
+          "SE",
+          "SG",
+          "SH",
+          "SI",
+          "SK",
+          "SL",
+          "SM",
+          "SN",
+          "SO",
+          "SR",
+          "SS",
+          "ST",
+          "SV",
+          "SX",
+          "SY",
+          "SZ",
+          "TC",
+          "TD",
+          "TG",
+          "TH",
+          "TJ",
+          "TL",
+          "TM",
+          "TN",
+          "TO",
+          "TR",
+          "TT",
+          "TV",
+          "TW",
+          "TZ",
+          "UA",
+          "UG",
+          "US",
+          "UY",
+          "UZ",
+          "VA",
+          "VC",
+          "VE",
+          "VG",
+          "VN",
+          "VU",
+          "WO",
+          "WS",
+          "XN",
+          "YE",
+          "ZA",
+          "ZM",
+          "ZW"
+        ],
+        "example": "ES"
+      },
+      "WIPOFormerST3Country": {
+        "type": "string",
+        "enum": [
+          "CS",
+          "DL",
+          "DD",
+          "SU",
+          "YD",
+          "YU"
+        ],
+        "example": "YU"
+      },
+      "ExtendedWIPOST3Country": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WIPOST3Country"
+          },
+          {
+            "$ref": "#/components/schemas/WIPOFormerST3Country"
+          }
+        ]
+      },
+      "Status": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "UNDER_EXAMINATION",
+          "APPLICATION_PUBLISHED",
+          "REGISTRATION_PENDING",
+          "REGISTERED",
+          "WITHDRAWN",
+          "REFUSED",
+          "OPPOSITION_PENDING",
+          "APPEALED",
+          "CANCELLATION_PENDING",
+          "CANCELLED",
+          "SURRENDERED",
+          "EXPIRED",
+          "APPEALABLE",
+          "START_OF_OPPOSITION_PERIOD",
+          "ACCEPTANCE_PENDING",
+          "ACCEPTED",
+          "REMOVED_FROM_REGISTER"
+        ],
+        "description": "Status of the trade mark\n\nFor EUTMs:\n- RECEIVED. The trade mark application has been accepted by the Office (has met the minimum filing requirements) and has not yet been assigned to an examiner.\n- UNDER_EXAMINATION. The trade mark application has been accepted by the Office (has met the minimum filing requirements) and that this application has been assigned to an examiner.\n- APPLICATION_PUBLISHED. The trade mark application has been added to the Registry for that Office and has been published in a way that allows the public to challenge the registration.\n- REGISTRATION_PENDING. Transitory status prior to registration.\n- REGISTERED. The trade mark application has been registered with the Office.\n- WITHDRAWN. The owner of the trade mark application withdrew (e.g. abandoned) the application and the application is no longer active.\n- REFUSED. This trade mark application was refused, dismissed, or invalidated by the Office and this application is no longer active.\n- OPPOSITION_PENDING. The registered trade mark has been published for opposition, at which time one or more challenges to registration were filed but they have not yet been decided.\n- APPEALED. An appeal of the Office’s final refusal to register a pending trade mark application is currently pending.\n- CANCELLATION_PENDING. This trade mark application has been registered with the Office, but it is currently undergoing a challenge which may result in its removal from the registry.\n- CANCELLED. The trade mark application was registered, but subsequently it was cancelled or invalidated and removed from the registry.\n- SURRENDERED. The trade mark application was registered, but subsequently voluntarily removed from the registry by action of the owner.\n- EXPIRED. The trade mark application registered, but subsequently removed from the registry when the registration was not successfully maintained.\n- APPEALABLE.\n\nFOR IRs:\n- RECEIVED. The trade mark application has been accepted by the Office (has met the minimum filing requirements) and has not yet been assigned to an examiner.\n- UNDER_EXAMINATION. The trade mark application has been accepted by the Office (has met the minimum filing requirements) and that this application has been assigned to an examiner.\n- OPPOSITION_PENDING. The registered trade mark has been published for opposition, at which time one or more challenges to registration were filed but they have not yet been decided.\n- START_OF_OPPOSITION_PERIOD.\n- ACCEPTANCE_PENDING\n- REFUSED. This trade mark application was refused, dismissed, or invalidated by the Office and this application is no longer active.\n- ACCEPTED. The trade mark application has been registered with the Office.\n- APPEALED. An appeal of the Office’s final refusal to register a pending trade mark application is currently pending.\n- REMOVED_FROM_REGISTER. The trade mark application registered, but subsequently removed from the registry when the registration was not successfully maintained.\n- CANCELLED. The trade mark application was registered, but subsequently it was cancelled or invalidated and removed from the registry.\n- CANCELLATION_PENDING.\n- APPEALABLE.\n"
+      },
+      "Opposition": {
+        "type": "object",
+        "properties": {
+          "oppositionNumber": {
+            "type": "string",
+            "pattern": "^\\d{9}$",
+            "maxLength": 9,
+            "minLength": 9,
+            "example": "000315418",
+            "description": "Public identifier of the opposition"
+          },
+          "oppositionDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2022-01-15",
+            "description": "Application date of the opposition"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OppositionStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "oppositionNumber",
+          "oppositionDate",
+          "status"
+        ],
+        "description": "Opposition"
+      },
+      "Cancellation": {
+        "type": "object",
+        "properties": {
+          "cancellationNumber": {
+            "type": "string",
+            "pattern": "^\\d{9}$",
+            "maxLength": 9,
+            "minLength": 9,
+            "example": "000013022",
+            "description": "Public identifier of the cancellation"
+          },
+          "cancellationDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Application date of the cancellation"
+          },
+          "cancellationKind": {
+            "$ref": "#/components/schemas/CancellationKind"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CancellationStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "cancellationNumber",
+          "cancellationDate",
+          "cancellationKind",
+          "status"
+        ],
+        "description": "Cancellation",
+        "externalDocs": {
+          "description": "More information on Cancellations - EUIPO guidelines",
+          "url": "https://guidelines.euipo.europa.eu/2058843/1785610/trade-mark-guidelines/part-d-cancellation"
+        }
+      },
+      "OppositionStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "ADMISSIBILITY_CHECK",
+          "BLOCKED_PER_JOINDER",
+          "SUSPENDED",
+          "APPEALABLE",
+          "APPEALED",
+          "WITHDRAWN",
+          "EARLY_OPPOSITION",
+          "NOT_ACCEPTABLE",
+          "COOLING_OFF_PERIOD",
+          "CLOSED",
+          "ADVERSARIAL_PROCEEDINGS",
+          "DECISION"
+        ],
+        "description": "Status of the opposition"
+      },
+      "CancellationKind": {
+        "type": "string",
+        "enum": [
+          "REVOCATION",
+          "INVALIDITY",
+          "INVALIDITY_AND_REVOCATION"
+        ],
+        "example": "REVOCATION",
+        "description": "Type of Cancellation\n\n- REVOCATION. Revoke the rights of the proprietor of an EU trade mark and declare it invalid. It applies as from the date of the request.\n- INVALIDITY. Remove the registration from the Register of European Union trade marks with retroactive effect.\n- INVALIDITY_AND_REVOCATION. Both.\n"
+      },
+      "CancellationStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "ADMISSIBILITY_CHECK",
+          "BLOCKED_PER_JOINDER",
+          "SUSPENDED",
+          "APPEALABLE",
+          "APPEALED",
+          "WITHDRAWN",
+          "CLOSED",
+          "ADVERSARIAL_PROCEEDINGS",
+          "DECISION"
+        ]
+      },
+      "Record": {
+        "type": "object",
+        "properties": {
+          "recordNumber": {
+            "type": "string",
+            "pattern": "^\\d{9}$",
+            "maxLength": 9,
+            "minLength": 9,
+            "example": "002280595",
+            "description": "Public identifier of the record\n"
+          },
+          "recordKind": {
+            "type": "string",
+            "example": "Change of Names and Addresses of Rep",
+            "description": "Description of the record\n"
+          },
+          "bulletinNumber": {
+            "type": "string",
+            "pattern": "^\\d{4}\\/\\d{3}$",
+            "maxLength": 8,
+            "example": "2000/056",
+            "description": "Bulletin number where the publication of the record was done"
+          },
+          "publicationSection": {
+            "type": "string",
+            "pattern": "^[A-Z]\\.\\d{1,2}(\\.\\d+)?$",
+            "maxLength": 6,
+            "example": "C.1.3",
+            "externalDocs": {
+              "description": "VADEMECUM TO THE EUROPEAN UNION TRADE MARKS BULLETIN",
+              "url": "https://euipo.europa.eu/pdf/mark/vademecum-ctm-en.pdf"
+            }
+          },
+          "publicationDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2022-01-15",
+            "description": "Date when the Bulletin containing the record was published"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "recordNumber",
+          "publicationSection"
+        ]
+      },
+      "Appeal": {
+        "type": "object",
+        "properties": {
+          "appealNumber": {
+            "type": "string",
+            "example": "1664/2019",
+            "description": "Public identifier of the appeal"
+          },
+          "appealDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2019-07-29",
+            "description": "Application date of the appeal"
+          },
+          "contestedEntity": {
+            "type": "object",
+            "properties": {
+              "contestedEntityKind": {
+                "$ref": "#/components/schemas/ContestedEntityKind"
+              },
+              "contestedEntityIdentifier": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "contestedEntityKind",
+              "contestedEntityIdentifier"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/AppealStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "appealNumber",
+          "appealDate",
+          "contestedEntity",
+          "status"
+        ]
+      },
+      "ContestedEntityKind": {
+        "type": "string",
+        "enum": [
+          "EU_TRADEMARK",
+          "OPPOSITION",
+          "TRADEMARK_RECORD",
+          "INSPECTION_REQUEST",
+          "CANCELLATION",
+          "INTERNATIONAL_TRADEMARK_REGISTRATION",
+          "INTERNATIONAL_TRADEMARK_APPLICATION",
+          "SUBSEQUENT_DESIGNATION"
+        ],
+        "example": "CANCELLATION"
+      },
+      "AppealStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "WRITTEN_PROCEDURE_OPEN",
+          "CASE_PENDING_BEFORE_THE_BOARD",
+          "DECISION_NOTIFIED_TO_PARTIES",
+          "CASE_PENDING_BEFORE_EUROPEAN_COURTS",
+          "EUROPEAN_COURT_JUDGEMENT_OR_ORDER_RENDERED",
+          "CLOSED",
+          "SUSPENDED"
+        ],
+        "description": "Status of the appeal"
+      },
+      "InternationalApplication": {
+        "type": "object",
+        "properties": {
+          "applicationNumber": {
+            "type": "string",
+            "pattern": "^\\d{9}_\\d{2}$",
+            "maxLength": 12,
+            "minLength": 12,
+            "example": "018297415_01",
+            "description": "Public identifier of the international application"
+          },
+          "internationalRegistrationNumber": {
+            "type": "string",
+            "example": "1591259",
+            "description": "IR Number given to the IA by WIPO in their registry"
+          },
+          "registrationDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2020-11-06",
+            "description": "Date of registration of the IA"
+          },
+          "subsequentDesignations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubsequentDesignation"
+            },
+            "description": "List of subsequent designations"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InternationalApplicationStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "applicationNumber",
+          "status"
+        ],
+        "description": "International application"
+      },
+      "InternationalApplicationStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "UNDER_EXAMINATION",
+          "SENT_TO_WIPO",
+          "REGISTERED_BY_WIPO",
+          "REGISTERED",
+          "CANCELLED",
+          "WITHDRAWN",
+          "NOT_REGISTERED_BY_WIPO",
+          "REFUSED",
+          "APPEALABLE",
+          "APPEALED"
+        ]
+      },
+      "SubsequentDesignation": {
+        "type": "object",
+        "properties": {
+          "applicationNumber": {
+            "type": "string",
+            "pattern": "^S\\d{8}$",
+            "maxLength": 9,
+            "minLength": 9,
+            "example": "S00000001",
+            "description": "Public identifier of the subsequent designation"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubsequentDesignationStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "applicationNumber",
+          "status"
+        ],
+        "description": "Subsequent designation",
+        "externalDocs": {
+          "description": "More information on Subsequent designations - EUIPO guidelines",
+          "url": "https://guidelines.euipo.europa.eu/2058843/2048105/trade-mark-guidelines/2-2-subsequent-designations"
+        }
+      },
+      "SubsequentDesignationStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "UNDER_EXAMINATION",
+          "REFUSED",
+          "SENT_TO_WIPO",
+          "NOT_REGISTERED_BY_WIPO",
+          "REGISTERED_BY_WIPO",
+          "WITHDRAWN"
+        ]
+      },
+      "InspectionRequest": {
+        "type": "object",
+        "properties": {
+          "applicationNumber": {
+            "type": "string",
+            "pattern": "^\\d{9}$",
+            "maxLength": 9,
+            "minLength": 9,
+            "example": "000000015",
+            "description": "Public identifier of the inspection request"
+          },
+          "applicationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InspectionRequestStatus"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "applicationNumber",
+          "applicationDate",
+          "status"
+        ],
+        "description": "Inspection request"
+      },
+      "InspectionRequestStatus": {
+        "type": "string",
+        "enum": [
+          "RECEIVED",
+          "UNDER_EXAMINATION",
+          "PREPARATION_OF_DOCUMENTATION",
+          "COMPLETED",
+          "APPEALABLE",
+          "APPEALED",
+          "CANCELLED",
+          "WITHDRAWN",
+          "REFUSED",
+          "IMPOSSIBLE_REQUEST",
+          "FILE_CLASSIFIED"
+        ]
+      },
+      "Publication": {
+        "type": "object",
+        "properties": {
+          "bulletinNumber": {
+            "type": "string",
+            "pattern": "^\\d{4}\\/\\d{3}$",
+            "maxLength": 8,
+            "example": "2000/056",
+            "description": "Bulletin number where the publication was done"
+          },
+          "publicationSection": {
+            "type": "string",
+            "pattern": "^[A-Z]\\.\\d{1,2}(\\.\\d+)?$",
+            "maxLength": 6,
+            "example": "A.1",
+            "description": "Section of the bulletin where the publication was done"
+          },
+          "publicationDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2022-01-15",
+            "description": "Date when the Bulletin was published"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "bulletinNumber",
+          "publicationSection",
+          "publicationDate"
+        ],
+        "description": "Publication"
+      },
+      "Decision": {
+        "type": "object",
+        "properties": {
+          "caseNumber": {
+            "type": "string",
+            "example": "R1851/2019-5",
+            "description": "Public identifier of the decision"
+          },
+          "decisionDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2020-05-25",
+            "description": "Date of decision"
+          },
+          "decisionKind": {
+            "$ref": "#/components/schemas/DecisionKind"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Decision"
+      },
+      "DecisionKind": {
+        "type": "string",
+        "enum": [
+          "REFUSAL",
+          "OPPOSITION",
+          "CANCELLATION",
+          "APPEAL",
+          "INSTANCE_OF_ECJ"
+        ],
+        "example": "REFUSAL",
+        "description": "Type of the decision"
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API. Opposed to the specification in RFC-7807, it is neither recommended to be dereferenceable and point to a human-readable documentation nor globally unique for the problem type.\n",
+            "default": "about:blank",
+            "example": "/some/uri-reference"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable for engineers, usually not suited for non technical stakeholders and not localized.\n",
+            "example": "some title for the error situation"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code generated by the origin server for this occurrence of the problem.\n",
+            "minimum": 100,
+            "maximum": 600
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the problem that is helpful to locate the problem and give advice on how to proceed. Written in English and readable for engineers, usually not suited for non technical stakeholders and not localized.\n",
+            "example": "some description for the error situation"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies the specific occurrence of the problem, e.g. by adding a fragment identifier or sub-path to the problem type. May be used to locate the root of this problem in the source code.\n",
+            "example": "/some/uri-reference#specific-occurrence-context"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "type": "/problems/not-found-error",
+          "title": "Resource not found",
+          "detail": "Application not found",
+          "status": 404
+        }
+      }
+    }
+  },
+  "x-ibm-endpoints": [
+    {
+      "url": "https://api.euipo.europa.eu/trademark-search"
+    }
+  ]
+}

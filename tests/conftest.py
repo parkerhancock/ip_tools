@@ -35,8 +35,17 @@ os.environ.setdefault("JPO_API_PASSWORD", "test_jpo_pass")
 # placeholder here serves replay-only — it never reaches the network.
 os.environ.setdefault("USPTO_TSDR_API_KEY", "test_tsdr_key")
 
+# EUIPO Trademark/Design Search clients need OAuth2 client_credentials at
+# construction time. Placeholders let unit tests build clients without
+# touching the network; cassettes scrub the real access_token + body of
+# the cas-server-webapp / auth-sandbox token endpoints on record (see
+# _scrub_euipo_* below).
+os.environ.setdefault("EUIPO_CLIENT_ID", "test_euipo_client")
+os.environ.setdefault("EUIPO_CLIENT_SECRET", "test_euipo_secret")
+
 USPTO_LIVE_ENV_VAR = "USPTO_LIVE_TESTS"
 JPO_LIVE_ENV_VAR = "JPO_LIVE_TESTS"
+EUIPO_LIVE_ENV_VAR = "EUIPO_LIVE_TESTS"
 
 CASSETTES_DIR = Path(__file__).parent / "cassettes"
 CASSETTES_DIR.mkdir(exist_ok=True)
@@ -64,6 +73,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Run tests that hit live JPO endpoints",
     )
+    parser.addoption(
+        "--run-live-euipo",
+        action="store_true",
+        default=False,
+        help="Run tests that hit live EUIPO endpoints (sandbox or production)",
+    )
     try:
         parser.addoption(
             "--vcr-record",
@@ -83,6 +98,7 @@ def pytest_configure(config: pytest.Config) -> None:
     for marker in (
         "live_uspto: marks tests that require access to live USPTO services",
         "live_jpo: marks tests that require access to live JPO services",
+        "live_euipo: marks tests that require access to live EUIPO services",
         "vcr_cassette: marks tests that use VCR cassette recording",
     ):
         config.addinivalue_line("markers", marker)
@@ -104,6 +120,73 @@ def require_live_jpo(request: pytest.FixtureRequest) -> None:
     has_env = bool(os.getenv(JPO_LIVE_ENV_VAR))
     if not (has_flag or has_env):
         pytest.skip("Live JPO test skipped. Set JPO_LIVE_TESTS=1 or pass --run-live-jpo to enable.")
+
+
+@pytest.fixture
+def require_live_euipo(request: pytest.FixtureRequest) -> None:
+    has_flag = bool(request.config.getoption("--run-live-euipo"))
+    has_env = bool(os.getenv(EUIPO_LIVE_ENV_VAR))
+    if not (has_flag or has_env):
+        pytest.skip(
+            "Live EUIPO test skipped. "
+            "Set EUIPO_LIVE_TESTS=1 or pass --run-live-euipo to enable. "
+            "Requires real EUIPO_CLIENT_ID/EUIPO_CLIENT_SECRET in env."
+        )
+
+
+def _scrub_euipo_token_request(request):
+    """EUIPO OAuth2 client_credentials: scrub client_id/client_secret from request body.
+
+    The cas-server-webapp (prod) and auth-sandbox (sandbox) token endpoints
+    receive ``client_id`` + ``client_secret`` in the form body when the
+    client_credentials grant is sent with credentials_in_body=True.
+    Rewrite both to placeholders before the cassette hits disk.
+    """
+    import re as _re
+
+    host = request.host
+    is_euipo_token = (
+        ("euipo.europa.eu" in host and "cas-server-webapp" in request.path)
+        or ("auth-sandbox.euipo.europa.eu" in host)
+    )
+    if is_euipo_token and request.body:
+        body = request.body
+        if isinstance(body, bytes):
+            body = body.decode("utf-8", "ignore")
+        body = _re.sub(r"client_id=[^&]*", "client_id=REDACTED_CLIENT_ID", body)
+        body = _re.sub(r"client_secret=[^&]*", "client_secret=REDACTED_CLIENT_SECRET", body)
+        request.body = body.encode("utf-8") if isinstance(request.body, (bytes, bytearray)) else body
+    return request
+
+
+def _scrub_euipo_token_response(response):
+    """EUIPO OAuth2 token response carries an access_token.
+
+    Replace the body with a deterministic placeholder so committed
+    cassettes never contain a real bearer token. Updates Content-Length
+    so httpx replay accepts the rewritten body. EUIPO responses include
+    ``access_token`` + ``token_type`` + ``scope`` + ``expires_in`` —
+    distinct from JPO which also has ``refresh_token`` / ``id_token``.
+    """
+    body = response.get("body", {})
+    raw = body.get("string", "") if isinstance(body, dict) else ""
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", "ignore")
+    if isinstance(raw, str) and "access_token" in raw and "token_type" in raw and "refresh_token" not in raw:
+        new_body = (
+            '{"access_token": "REDACTED_ACCESS_TOKEN", '
+            '"token_type": "Bearer", '
+            '"expires_in": 7200, '
+            '"scope": "uid"}'
+        )
+        body["string"] = new_body
+        headers = response.get("headers", {})
+        if isinstance(headers, dict):
+            new_len = str(len(new_body.encode("utf-8")))
+            for key in list(headers.keys()):
+                if key.lower() == "content-length":
+                    headers[key] = [new_len]
+    return response
 
 
 def _scrub_jpo_token_request(request):
@@ -164,13 +247,19 @@ def _scrub_jpo_token_response(response):
 def _match_body_unless_oauth(r1, r2) -> bool:
     """VCR body matcher that ignores the body for OAuth2 token requests.
 
-    JPO's ``/auth/token`` endpoint receives the user's password in the
-    form body. We scrub that body to ``REDACTED_PASSWORD`` before
-    recording, so the recorded body never matches the placeholder body
-    that gets sent at replay time. This matcher trivially passes for
-    token requests and falls back to byte-equality everywhere else.
+    JPO's ``/auth/token`` and EUIPO's ``/oidc/accessToken`` and
+    ``/cas-server-webapp/oidc/accessToken`` endpoints receive secrets in
+    the form body. We scrub those bodies before recording, so the
+    recorded body never matches the placeholder body that gets sent at
+    replay. This matcher trivially passes for token requests and falls
+    back to byte-equality everywhere else.
     """
-    if r1.path == "/auth/token" and r2.path == "/auth/token":
+    oauth_paths = {
+        "/auth/token",
+        "/oidc/accessToken",
+        "/cas-server-webapp/oidc/accessToken",
+    }
+    if r1.path in oauth_paths and r2.path in oauth_paths:
         return True
     return r1.body == r2.body
 
@@ -211,6 +300,24 @@ def _patch_vcr_httpcore_for_str_bodies() -> None:
 _patch_vcr_httpcore_for_str_bodies()
 
 
+def _chain_request_scrubbers(*scrubbers):
+    """Compose request scrubbers in order."""
+    def _chained(request):
+        for s in scrubbers:
+            request = s(request)
+        return request
+    return _chained
+
+
+def _chain_response_scrubbers(*scrubbers):
+    """Compose response scrubbers in order."""
+    def _chained(response):
+        for s in scrubbers:
+            response = s(response)
+        return response
+    return _chained
+
+
 def _create_vcr() -> vcr.VCR:
     v = vcr.VCR(
         cassette_library_dir=str(CASSETTES_DIR),
@@ -218,6 +325,7 @@ def _create_vcr() -> vcr.VCR:
         filter_headers=[
             ("authorization", "REDACTED"),
             ("x-api-key", "REDACTED"),
+            ("x-ibm-client-id", "REDACTED"),
             ("uspto-api-key", "REDACTED"),
             ("cookie", "REDACTED"),
             ("set-cookie", "REDACTED"),
@@ -226,8 +334,14 @@ def _create_vcr() -> vcr.VCR:
             ("api_key", "REDACTED"),
             ("apiKey", "REDACTED"),
         ],
-        before_record_request=_scrub_jpo_token_request,
-        before_record_response=_scrub_jpo_token_response,
+        before_record_request=_chain_request_scrubbers(
+            _scrub_jpo_token_request,
+            _scrub_euipo_token_request,
+        ),
+        before_record_response=_chain_response_scrubbers(
+            _scrub_jpo_token_response,
+            _scrub_euipo_token_response,
+        ),
         decode_compressed_response=True,
         match_on=["method", "scheme", "host", "port", "path", "query", "oauth_safe_body"],
     )

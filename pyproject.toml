@@ -1,7 +1,7 @@
 [project]
 name = "patent-client-agents"
-version = "0.9.2"
-description = "Intellectual property research toolkit for AI agents — patents, trademarks, and prosecution data from USPTO, EPO, JPO, Google Patents, CanLII, WIPO Lex, MPEP, and CPC"
+version = "0.10.0"
+description = "Intellectual property research toolkit for AI agents — patents, trademarks, and prosecution data from USPTO, EPO, JPO, EUIPO, Google Patents, CanLII, WIPO Lex, MPEP, and CPC"
 readme = "README.md"
 authors = [
     { name = "Parker Hancock", email = "633163+parkerhancock@users.noreply.github.com" }

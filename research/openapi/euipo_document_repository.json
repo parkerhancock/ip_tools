@@ -1,0 +1,987 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "x-api-id": "863d49f2-ae91-47a7-b516-f029c049643d",
+    "x-audience": "external-public",
+    "version": "1.0.0",
+    "title": "Document Repository",
+    "x-ibm-name": "document-repository",
+    "x-pathalias": "document-repository",
+    "description": "Document Repository\n",
+    "contact": {
+      "name": "API Platform Team",
+      "url": "https://dev.euipo.europa.eu",
+      "email": "apiplatform@euipo.europa.eu"
+    },
+    "termsOfService": "https://euipo.europa.eu/tunnel-web/secure/webdav/guest/document_library/contentPdfs/law_and_practice/decisions_president/EX-22-05_en_annex_I_version_2_en.pdf",
+    "x-ip-domain": [
+      "Trademark",
+      "Industrial Design"
+    ],
+    "x-service-type": [
+      "Application Management"
+    ],
+    "x-content-type": [
+      "Bibliographic data"
+    ],
+    "x-product-page-url": "https://dev.euipo.europa.eu/product/document-repository_100",
+    "x-ibm-summary": ""
+  },
+  "servers": [
+    {
+      "url": "https://api.euipo.europa.eu/document-repository"
+    }
+  ],
+  "x-ibm-configuration": {
+    "testable": true,
+    "enforced": true,
+    "cors": {
+      "enabled": true
+    },
+    "phase": "realized",
+    "type": "rest",
+    "oauth-servers": {
+      "Oauth2AuthorizationCode": {
+        "authorizationCode": {
+          "tokenUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ],
+          "authorizationUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/authorize"
+          ],
+          "refreshUrls": [
+            "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken"
+          ]
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Documents"
+    }
+  ],
+  "paths": {
+    "/documents": {
+      "post": {
+        "operationId": "createDocument",
+        "summary": "Uploads a document to the user's temporal storage and returns the associated identifier",
+        "description": "Creates a temporal document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "ClientID": [],
+            "Oauth2AuthorizationCode": [
+              "document-repository.documents.write"
+            ]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "description": "The file to upload.",
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Document"
+          },
+          "400": {
+            "$ref": "#/components/responses/QuotaError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      },
+      "get": {
+        "operationId": "getDocuments",
+        "summary": "Retrieves a list of the user documents with pagination.",
+        "description": "Retrieves a list of the user documents with pagination.",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "ClientID": [],
+            "Oauth2AuthorizationCode": [
+              "document-repository.documents.read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageNumber"
+          },
+          {
+            "$ref": "#/components/parameters/PageSize"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DocumentList"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/documents/{documentIdentifier}": {
+      "get": {
+        "operationId": "getDocument",
+        "summary": "Retrieves a document's metadata from the user's temporal storage",
+        "description": "Retrieves a document's metadata from the user's temporal storage",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "ClientID": [],
+            "Oauth2AuthorizationCode": [
+              "document-repository.documents.read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DocumentIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Document"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteDocument",
+        "summary": "Deletes a document from the user's temporal storage",
+        "description": "Delete a temporal document",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "ClientID": [],
+            "Oauth2AuthorizationCode": [
+              "document-repository.documents.write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DocumentIdentifier"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Document deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    },
+    "/documents/{documentIdentifier}/export": {
+      "get": {
+        "operationId": "exportDocumentContent",
+        "summary": "Retrieves a document from the user's temporal storage",
+        "description": "Retrieves a document from the user's temporal storage",
+        "tags": [
+          "Documents"
+        ],
+        "security": [
+          {
+            "ClientID": [],
+            "Oauth2AuthorizationCode": [
+              "document-repository.documents.read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DocumentIdentifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DocumentContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          },
+          "default": {
+            "$ref": "#/components/responses/DefaultError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClientID": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-IBM-Client-Id"
+      },
+      "Oauth2AuthorizationCode": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/authorize",
+            "tokenUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "refreshUrl": "https://euipo.europa.eu/cas-server-webapp/oidc/accessToken",
+            "scopes": {
+              "document-repository.documents.write": "Grants write access to user documents",
+              "document-repository.documents.read": "Grants read access to user documents"
+            }
+          }
+        },
+        "x-ibm-oauth-provider": "production-oauth"
+      }
+    },
+    "headers": {
+      "X-RateLimit-Limit": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The maximum number of requests you're permitted to make per time period."
+      },
+      "X-RateLimit-Remaining": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of requests remaining in the current rate limit window."
+      },
+      "X-RateLimit-Reset": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The relative time in seconds until the current rate-limit window resets.\n"
+      },
+      "Retry-After": {
+        "schema": {
+          "type": "integer"
+        },
+        "description": "The number of seconds to wait until the rate limit window resets. Only sent when the rate limit is reached."
+      }
+    },
+    "parameters": {
+      "PageNumber": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/PageNumber"
+        }
+      },
+      "PageSize": {
+        "name": "size",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/PageSize"
+        }
+      },
+      "DocumentIdentifier": {
+        "name": "documentIdentifier",
+        "description": "Identifier of the document",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "example": "863d49f2-ae91-47a7-b516-f029c049643d"
+      }
+    },
+    "responses": {
+      "Document": {
+        "description": "The document",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Document"
+            },
+            "example": {
+              "identifier": "27b072a8-3aa3-458b-adff-3bcd9e400c5a",
+              "createdBy": "johndoe02",
+              "creationDate": "2021-03-25T09:34:00.517+0000",
+              "fileName": "image001.jpg",
+              "fileSize": 5242880,
+              "mimeType": "image/jpeg",
+              "imageProperties": {
+                "heightDpi": 180,
+                "widthDpi": 180,
+                "height": 333,
+                "width": 500,
+                "progressive": false,
+                "bitsPerPixel": 32,
+                "colorTypeDescription": "CMYK"
+              }
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "DocumentList": {
+        "description": "List with User Documents",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "documents": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Document"
+                  }
+                },
+                "totalElements": {
+                  "$ref": "#/components/schemas/TotalElements"
+                },
+                "totalPages": {
+                  "$ref": "#/components/schemas/TotalPages"
+                },
+                "size": {
+                  "$ref": "#/components/schemas/PageSize"
+                },
+                "page": {
+                  "$ref": "#/components/schemas/PageNumber"
+                }
+              },
+              "additionalProperties": false
+            },
+            "example": {
+              "documents": [
+                {
+                  "identifier": "89e2f4b5-986c-4e59-9b95-0f7d7927aa23",
+                  "fileName": "image.jpg",
+                  "fileSize": 378137,
+                  "mimeType": "image/jpeg",
+                  "createdBy": "ansmann1",
+                  "creationDate": "2021-04-21T14:11:20.416+0000"
+                }
+              ],
+              "totalElements": 1,
+              "totalPages": 1,
+              "size": 10,
+              "page": 0
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "DocumentContent": {
+        "description": "The requested document",
+        "content": {
+          "application/octet-stream": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "QuotaError": {
+        "description": "Storage quota error",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "title": "Quota exceeded",
+              "detail": "Maximum allowed number of files exceeded. Please delete other\ndocuments you do not need anymore.\n",
+              "status": 400,
+              "instance": "/documents",
+              "usageFilesNumber": 31,
+              "limitFilesNumber": 30
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "x-summary": "Unauthorized",
+        "description": "Client request has not been completed because it lacks valid authentication credentials for the requested resource",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/unauthorized",
+              "title": "The request lacks valid authentication credentials for this resource",
+              "detail": "Full authentication is required to access this resource",
+              "status": 401
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "ForbiddenError": {
+        "x-summary": "Forbidden",
+        "description": "The user lacks the required permissions to access the requested resource",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/access-forbidden",
+              "title": "Document access error",
+              "detail": "Not allowed access to document cf6c1528-b03b-410e-a121-5cbc918aee71 by user johndoe02",
+              "status": 403
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "NotFoundError": {
+        "x-summary": "Not found",
+        "description": "Resource not found",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/not-found-error",
+              "title": "Resource not found",
+              "detail": "Document with identifier 6fe96074-c131-467c-a889-db30ee0936f9 not found",
+              "status": 404
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "RateLimitError": {
+        "description": "Rate Limit Exceeded",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/too-many-requests",
+              "title": "Too Many Requests",
+              "detail": "Rate Limit exceeded",
+              "status": 429
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      },
+      "DefaultError": {
+        "x-summary": "Unexpected error",
+        "description": "Error occurred - see status code and problem object for more information.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "/problems/general-error",
+              "title": "General error",
+              "status": 500
+            }
+          }
+        },
+        "headers": {
+          "X-RateLimit-Limit": {
+            "$ref": "#/components/headers/X-RateLimit-Limit"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "#/components/headers/X-RateLimit-Remaining"
+          },
+          "X-RateLimit-Reset": {
+            "$ref": "#/components/headers/X-RateLimit-Reset"
+          },
+          "Retry-After": {
+            "$ref": "#/components/headers/Retry-After"
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Document": {
+        "type": "object",
+        "description": "Document",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the document",
+            "readOnly": true
+          },
+          "filename": {
+            "type": "string",
+            "description": "Original filename of the document",
+            "readOnly": true
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Size in bytes of the document",
+            "readOnly": true
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "Mime type of the document",
+            "readOnly": true
+          },
+          "imageProperties": {
+            "$ref": "#/components/schemas/ImageProperties"
+          },
+          "audioProperties": {
+            "$ref": "#/components/schemas/AudioProperties"
+          },
+          "videoProperties": {
+            "$ref": "#/components/schemas/VideoProperties"
+          },
+          "threeDProperties": {
+            "$ref": "#/components/schemas/ThreeDProperties"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "Logname of the user that uploaded the document",
+            "readOnly": true
+          },
+          "creationDate": {
+            "type": "string",
+            "description": "Date when the document was upload",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "identifier": "d1759655-8847-449c-954c-3ce913ef9eb7",
+          "createdBy": "balagjo01",
+          "creationDate": "2023-06-08T08:10:32.241+0000",
+          "fileName": "logo.jpg",
+          "fileSize": 5895,
+          "mimeType": "image/jpeg",
+          "imageProperties": {
+            "width": 170,
+            "height": 37,
+            "widthDpi": 96,
+            "heightDpi": 96,
+            "progressive": false,
+            "bitsPerPixel": 24,
+            "colorTypeDescription": "RGB"
+          }
+        }
+      },
+      "ImageProperties": {
+        "type": "object",
+        "description": "Specific properties for image files",
+        "properties": {
+          "width": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Horizontal dimension (Pixels)"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Vertical dimension (Pixels)"
+          },
+          "widthDpi": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Horizontal resolution (Dots Per Inch)"
+          },
+          "heightDpi": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Vertical resolution (Dots Per Inch)"
+          },
+          "progressive": {
+            "type": "boolean",
+            "description": "Vertical resolution (Dots Per Inch)"
+          },
+          "bitsPerPixel": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Bit depth"
+          },
+          "colorTypeDescription": {
+            "type": "string",
+            "description": "Color model. e.g: RGB, CYMK"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "width": 170,
+          "height": 37,
+          "widthDpi": 96,
+          "heightDpi": 96,
+          "progressive": false,
+          "bitsPerPixel": 24,
+          "colorTypeDescription": "RGB"
+        }
+      },
+      "AudioProperties": {
+        "type": "object",
+        "description": "Specific properties for audio files",
+        "properties": {
+          "samplingRate": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of samples per unit time. e.g.: 48000, 44100, 22000"
+          },
+          "channels": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of channels. e.g.: For stereo audio the value would be 2"
+          },
+          "format": {
+            "type": "string",
+            "description": "Standard types of audio file. e.g.: MP3, WAVE"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "samplingRate": 44100,
+          "channels": 2,
+          "format": "MP3"
+        }
+      },
+      "VideoProperties": {
+        "type": "object",
+        "description": "Specific properties for video files",
+        "properties": {
+          "duration": {
+            "type": "string",
+            "description": "Duration period in ISO-8601 format"
+          },
+          "streams": {
+            "type": "array",
+            "description": "Specific properties of the streams in the video container",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Type of the steam: Video, Audio"
+                },
+                "codec": {
+                  "type": "string",
+                  "description": "The codec used for encoding or decoding a digital data stream"
+                },
+                "bitRate": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "The number of bits processed per unit of time, usually measured in kilobits per second (kbps)."
+                },
+                "frameRate": {
+                  "type": "number",
+                  "description": "The frequency at which frames in the video are displayed, usually measured in frames per second (fps).",
+                  "format": "float"
+                },
+                "frameSizeHeight": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "The height of the video frame, usually measured in pixels"
+                },
+                "frameSizeWidth": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "The width of the video frame, usually measured in pixels"
+                },
+                "aspectRatio": {
+                  "type": "string",
+                  "description": "The ratio of the width to the height of an image or screen"
+                },
+                "samplingRate": {
+                  "type": "integer",
+                  "format": "int32",
+                  "description": "The number of samples of audio carried per second, measured in Hz or kHz"
+                }
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "duration": "PT5S",
+          "streams": [
+            {
+              "type": "Video",
+              "codec": "H264",
+              "bitRate": 3857000,
+              "frameRate": 30,
+              "frameSizeHeight": 1080,
+              "frameSizeWidth": 1920,
+              "aspectRatio": "16:9"
+            },
+            {
+              "type": "Audio",
+              "codec": "AAC",
+              "bitRate": 127000,
+              "samplingRate": 44100
+            }
+          ]
+        }
+      },
+      "ThreeDProperties": {
+        "type": "object",
+        "description": "Specific properties for 3D files",
+        "properties": {
+          "format": {
+            "type": "string",
+            "description": "3D file format. e.g.: X3D, STL, OBJ"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "format": "X3D"
+        }
+      },
+      "PageNumber": {
+        "type": "integer",
+        "format": "int32",
+        "default": 0,
+        "minimum": 0,
+        "example": 0,
+        "description": "The results are returned in pages. The page parameter (zero-based) indicates which page to return. For example, page = 2 (third page) and size = 10 will return matching applications No 21 to No 30"
+      },
+      "PageSize": {
+        "type": "integer",
+        "format": "int32",
+        "default": 10,
+        "minimum": 10,
+        "maximum": 100,
+        "example": 10,
+        "description": "Number of results to fetch per page"
+      },
+      "TotalElements": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0,
+        "example": 1,
+        "description": "Total number of results"
+      },
+      "TotalPages": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 0,
+        "example": 1,
+        "description": "Total number of pages"
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that uniquely identifies the problem type only in the context of the provided API. Opposed to the specification in RFC-7807, it is neither recommended to be dereferenceable and point to a human-readable documentation nor globally unique for the problem type.\n",
+            "default": "about:blank",
+            "example": "/some/uri-reference"
+          },
+          "title": {
+            "type": "string",
+            "description": "A short summary of the problem type. Written in English and readable for engineers, usually not suited for non technical stakeholders and not localized.\n",
+            "example": "some title for the error situation"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The HTTP status code generated by the origin server for this occurrence of the problem.\n",
+            "minimum": 100,
+            "maximum": 600
+          },
+          "detail": {
+            "type": "string",
+            "description": "A human readable explanation specific to this occurrence of the problem that is helpful to locate the problem and give advice on how to proceed. Written in English and readable for engineers, usually not suited for non technical stakeholders and not localized.\n",
+            "example": "some description for the error situation"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "A URI reference that identifies the specific occurrence of the problem, e.g. by adding a fragment identifier or sub-path to the problem type. May be used to locate the root of this problem in the source code.\n",
+            "example": "/some/uri-reference#specific-occurrence-context"
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "type": "/problems/not-found-error",
+          "title": "Resource not found",
+          "detail": "Application not found",
+          "status": 404
+        }
+      }
+    }
+  },
+  "x-ibm-endpoints": [
+    {
+      "url": "https://api.euipo.europa.eu/document-repository"
+    }
+  ]
+}

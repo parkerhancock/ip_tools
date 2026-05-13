@@ -43,6 +43,8 @@ managers. All shared scaffolding (HTTP, cache, retry, errors) lives in
 | CPC lookup / search / mapping | `patent_client_agents.cpc` | [cpc.md](references/cpc.md) |
 | Canadian case law + IP statutes (FC / FCA / SCC / TMOB / Patent Appeal Board) | `patent_client_agents.canlii` | [canlii.md](references/canlii.md) |
 | Global IP statutes via WIPO Lex (~200 jurisdictions) | `patent_client_agents.wipo_lex` | [wipo_lex.md](references/wipo_lex.md) |
+| EU Trade Marks (EUTM register, ~2.3M marks) | `patent_client_agents.euipo_trademarks` | [euipo.md](references/euipo.md) |
+| EU Registered Community Designs (~1.5M designs) | `patent_client_agents.euipo_designs` | [euipo.md](references/euipo.md) |
 
 ## Quick Examples
 
