@@ -240,8 +240,9 @@ List MCP tools from within a Claude Code session:
 /mcp
 ```
 
-Expect `patent-client-agents` with 49 tools (61 if JPO env vars are
-set). Or call one directly by asking something patent-research-ish:
+Expect `patent-client-agents` with 51 tools by default; 60 with
+`CANLII_API_KEY`, 63 with JPO env vars, 72 with both. Or call one
+directly by asking something patent-research-ish:
 
 > "What's in MPEP section 2106?"
 
@@ -313,7 +314,7 @@ replaces with the symlink.
 
 |  | Plugin (§3) | Standalone skill (§4) |
 |---|---|---|
-| What it installs | MCP server only (49 tools; 61 with JPO env vars) | Skill markdown for Python library usage |
+| What it installs | MCP server only (51 default / 60 with `CANLII_API_KEY` / 63 with JPO / 72 with both) | Skill markdown for Python library usage |
 | Command | `/plugin install patent-client-agents@patent-client-agents` | `patent-client-agents-skill-install` |
 | Source | Cloned marketplace repo | pip-installed package (symlinked) |
 | Updates | `/plugin marketplace update` + `/reload-plugins` | Reinstall `patent-client-agents` to pick up new skill content |
@@ -421,7 +422,8 @@ async def main():
 asyncio.run(main())
 ```
 
-Expect **49 tools** (or **61** with JPO env vars set) and title starting
+Expect **51 tools** by default (**60** with `CANLII_API_KEY`, **63**
+with JPO env vars, **72** with both) and title starting
 `2106 ... Patent Subject Matter Eligibility`.
 
 ### Troubleshooting

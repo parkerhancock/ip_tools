@@ -154,8 +154,9 @@ async def main():
 asyncio.run(main())
 ```
 
-Expect 49 tools (61 with `JPO_API_USERNAME`/`JPO_API_PASSWORD` set) and
-the title `2106 … Patent Subject Matter Eligibility`.
+Expect 51 tools by default. Counts scale with env-gated connectors:
+60 with `CANLII_API_KEY`, 63 with `JPO_API_USERNAME` + `JPO_API_PASSWORD`,
+72 with both. Title should be `2106 … Patent Subject Matter Eligibility`.
 
 ## Not installed?
 

@@ -8,6 +8,8 @@ description: |
   - Checking USPTO application status, file wrapper, PTAB proceedings, or petitions
   - Searching office action rejections and cited references
   - Looking up MPEP or TMEP sections, or CPC classifications
+  - Searching Canadian case law / IP statutes via CanLII (Federal Court, FCA, SCC, TMOB, Patent Appeal Board, Patent Act, Trademarks Act)
+  - Searching global IP statutes / treaties via WIPO Lex (~200 jurisdictions)
   - Finding patent or trademark assignments / ownership history
   - Fetching USPTO publication full-text data
   - Checking U.S. trademark status, prosecution documents, or mark images (TSDR)
@@ -39,6 +41,8 @@ managers. All shared scaffolding (HTTP, cache, retry, errors) lives in
 | MPEP search + section lookup | `patent_client_agents.mpep` | [mpep.md](references/mpep.md) |
 | TMEP search + section lookup | `patent_client_agents.tmep` | [tmep.md](references/tmep.md) |
 | CPC lookup / search / mapping | `patent_client_agents.cpc` | [cpc.md](references/cpc.md) |
+| Canadian case law + IP statutes (FC / FCA / SCC / TMOB / Patent Appeal Board) | `patent_client_agents.canlii` | [canlii.md](references/canlii.md) |
+| Global IP statutes via WIPO Lex (~200 jurisdictions) | `patent_client_agents.wipo_lex` | [wipo_lex.md](references/wipo_lex.md) |
 
 ## Quick Examples
 
@@ -108,6 +112,33 @@ from patent_client_agents.cpc import retrieve_cpc
 entry = await retrieve_cpc(symbol="H04L63/08", ancestors=True)
 ```
 
+### Search Canadian IP case law (CanLII)
+
+```python
+from patent_client_agents.canlii import BrowseCasesInput, browse_cases
+
+# 20 most recent Federal Court IP decisions
+recent = await browse_cases(BrowseCasesInput(
+    database_id="fct",
+    result_count=20,
+    decision_date_after="2024-01-01",
+))
+```
+
+### Fetch a global IP statute via WIPO Lex
+
+```python
+from patent_client_agents.wipo_lex import (
+    SearchLegislationInput, SubjectMatter, search_legislation, get_legislation,
+)
+
+# Find Canadian patent statutes, then pull the Patent Act detail with PDFs
+hits = await search_legislation(SearchLegislationInput(
+    country_codes=["CA"], subject_matter=[SubjectMatter.PATENTS],
+))
+detail = await get_legislation(hits.hits[0].legislation_id)
+```
+
 ## Error Handling
 
 All clients raise typed exceptions from `law_tools_core.exceptions`. `ApiError`
@@ -160,9 +191,10 @@ details, debug info. Read this when concise error messages aren't enough.
 | `EPO_OPS_API_SECRET` | EPO OPS, CPC |
 | `JPO_API_USERNAME` | JPO client |
 | `JPO_API_PASSWORD` | JPO client |
+| `CANLII_API_KEY` | CanLII (Canadian courts + IP statutes); free key by request |
 
 USPTO Publications, USPTO Assignments, USPTO Trademark Assignments,
-Google Patents, MPEP, and TMEP require no API key.
+Google Patents, MPEP, TMEP, and WIPO Lex require no API key.
 
 ## Cache Management
 

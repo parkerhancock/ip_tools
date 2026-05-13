@@ -1,5 +1,5 @@
 site_name: patent-client-agents
-site_description: Async Python library and MCP server for patent + trademark data — USPTO (ODP, PPUBS, Assignments, TSDR, Trademark Assignments), EPO, JPO, Google Patents, MPEP, TMEP, CPC.
+site_description: Async Python library and MCP server for patent + trademark data — USPTO (ODP, PPUBS, Assignments, TSDR, Trademark Assignments), EPO, JPO, Google Patents, MPEP, TMEP, CPC, CanLII, WIPO Lex.
 site_author: Parker Hancock
 site_url: https://docs.patentclient.com/
 
@@ -101,3 +101,5 @@ nav:
     - MPEP: api/mpep.md
     - TMEP: api/tmep.md
     - CPC: api/cpc.md
+    - CanLII: api/canlii.md
+    - WIPO Lex: api/wipo-lex.md
