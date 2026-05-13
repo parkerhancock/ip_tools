@@ -5,6 +5,21 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.1] — 2026-05-13
+
+### Fixed
+
+- **`get_patent` MCP tool no longer stalls for ~4.5 min when Google Patents
+  returns 503.** Wrapped the tool body in a 60s `asyncio.timeout`, mapping
+  budget overruns to `RateLimitError` (`[retryable]`) and Google's
+  "couldn't find this patent" page to `NotFoundError` (`[not-retryable]`).
+- **`GooglePatentsClient.get_patent_data` stops swallowing exceptions and
+  returning `None`.** Typed errors (`httpx.HTTPStatusError`,
+  `FileNotFoundError`, transport errors) now propagate so callers and the
+  FriendlyErrors middleware can distinguish "rate-limited" from
+  "actually not found." Removes the dead `if patent is None` branches in
+  `download_patent_pdf` and `google_patents.api.fetch`.
+
 ## [0.10.0] — 2026-05-13
 
 ### Added
