@@ -35,6 +35,7 @@ from .models import (
     NumberConversionResponse,
     PdfDownloadResponse,
     SearchResponse,
+    UnitaryPatentPackage,
 )
 from .resources import (
     CPC_PARAMETERS_GUIDE,
@@ -63,6 +64,9 @@ __all__ = [
     "fetch_family",
     "fetch_family_details",
     "fetch_legal_events",
+    "fetch_register",
+    "get_unitary_patent_package",
+    "UnitaryPatentPackage",
     "convert_number",
     "number_service",
     "download_pdf",
@@ -286,6 +290,45 @@ async def fetch_legal_events(
 
     async with client_from_env() as cl:
         return await cl.fetch_legal_events(number=number, doc_type=doc_type, fmt=fmt)
+
+
+async def fetch_register(
+    number: str,
+    doc_type: str = "publication",
+    fmt: str = "epodoc",
+    sub: str = "biblio",
+    *,
+    client: EpoOpsClient | None = None,
+) -> str:
+    """Fetch raw XML from the EPO Register service.
+
+    ``sub`` is one of ``biblio``, ``events``, ``procedural-steps``, ``upp``.
+    See :meth:`EpoOpsClient.fetch_register` for details.
+    """
+    if client is not None:
+        _warn_client_deprecated()
+        return await client.fetch_register(number=number, doc_type=doc_type, fmt=fmt, sub=sub)
+    async with client_from_env() as cl:
+        return await cl.fetch_register(number=number, doc_type=doc_type, fmt=fmt, sub=sub)
+
+
+async def get_unitary_patent_package(
+    epo_number: str,
+    doc_type: str = "publication",
+    fmt: str = "epodoc",
+    *,
+    client: EpoOpsClient | None = None,
+) -> UnitaryPatentPackage | None:
+    """Return the Unitary Patent Package for an EP patent, if any.
+
+    See :meth:`EpoOpsClient.get_unitary_patent_package` for details.
+    Returns ``None`` when the EP wasn't elected for unitary effect.
+    """
+    if client is not None:
+        _warn_client_deprecated()
+        return await client.get_unitary_patent_package(epo_number, doc_type=doc_type, fmt=fmt)
+    async with client_from_env() as cl:
+        return await cl.get_unitary_patent_package(epo_number, doc_type=doc_type, fmt=fmt)
 
 
 async def convert_number(

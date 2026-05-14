@@ -212,3 +212,50 @@ class CpciBiblioRecord(BaseModel):
 
 class CpciBiblioResponse(BaseModel):
     records: list[CpciBiblioRecord] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# EPO Register service — Unitary Patent Package
+# ---------------------------------------------------------------------------
+
+
+class UnitaryPatentStatus(BaseModel):
+    """One row in ``<reg:unitary-patent-statuses>``.
+
+    ``status_code`` mirrors the EPO register's integer status code (e.g.
+    ``"9"`` = "Unitary effect registered"). ``text`` is the human-readable
+    label EPO embeds alongside the code.
+    """
+
+    status_code: str
+    text: str
+    change_date: str | None = None  # YYYYMMDD as published; not parsed
+
+
+class UnitaryPatentPackage(BaseModel):
+    """EPO Register ``/upp`` response, distilled to the unitary fields.
+
+    Returned by :func:`patent_client_agents.epo_ops.get_unitary_patent_package`.
+    ``None`` is returned when the register response contains no
+    ``<reg:unitary-patent>`` block — that means the EP either was never
+    elected for unitary effect, or is too new for the registration to
+    have been recorded yet.
+    """
+
+    epo_number: str
+    statuses: list[UnitaryPatentStatus] = Field(default_factory=list)
+
+    @property
+    def latest_status(self) -> UnitaryPatentStatus | None:
+        """Most recent status (statuses are returned newest-first)."""
+        if not self.statuses:
+            return None
+        return self.statuses[0]
+
+    @property
+    def is_registered(self) -> bool:
+        """True iff a "Unitary effect registered" status appears anywhere."""
+        return any(
+            "registered" in (s.text or "").lower() and "unitary" in (s.text or "").lower()
+            for s in self.statuses
+        )

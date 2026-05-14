@@ -32,6 +32,8 @@ from .models import (
     NumberConversionResponse,
     SearchResponse,
     SearchResult,
+    UnitaryPatentPackage,
+    UnitaryPatentStatus,
 )
 
 NS = {
@@ -39,6 +41,7 @@ NS = {
     "epo": "http://www.epo.org/exchange",
     "ft": "http://www.epo.org/fulltext",
     "cpc": "http://www.epo.org/cpcexport",
+    "reg": "http://www.epo.org/register",
 }
 
 
@@ -560,3 +563,29 @@ def parse_cpci_biblio(xml_data: str | bytes) -> CpciBiblioResponse:
                 )
             )
     return CpciBiblioResponse(records=records)
+
+
+def parse_unitary_patent_package(
+    xml_data: str | bytes,
+    *,
+    epo_number: str,
+) -> UnitaryPatentPackage | None:
+    """Parse a `/rest-services/register/.../upp` response.
+
+    Returns ``None`` when the response contains no ``<reg:unitary-patent>``
+    block — meaning the EP wasn't elected for unitary effect or the
+    registration hasn't been recorded yet.
+    """
+    root = _as_element(xml_data)
+    upp_nodes = root.xpath(".//reg:unitary-patent", namespaces=NS)
+    if not upp_nodes:
+        return None
+    upp = upp_nodes[0]
+    statuses: list[UnitaryPatentStatus] = []
+    for status_node in upp.xpath(".//reg:unitary-patent-status", namespaces=NS):
+        text = (status_node.text or "").strip()
+        code = status_node.get("status-code") or ""
+        change_date = status_node.get("change-date")
+        statuses.append(UnitaryPatentStatus(status_code=code, text=text, change_date=change_date))
+    # EPO returns newest first; preserve that ordering.
+    return UnitaryPatentPackage(epo_number=epo_number, statuses=statuses)

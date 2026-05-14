@@ -398,6 +398,36 @@ async def search_cpc(
         return _dump(result)  # type: ignore[return-value]
 
 
+@international_mcp.tool(annotations=READ_ONLY)
+async def get_unitary_patent_package(
+    epo_number: Annotated[
+        str,
+        (
+            "EP publication number (e.g. 'EP4108782' or 'EP4108782.B1'). "
+            "Pass the granted B1 publication when known — UPP data is "
+            "attached at grant."
+        ),
+    ],
+) -> dict | None:
+    """Check whether an EP patent has registered Unitary Patent effect.
+
+    Calls the EPO Register's ``/upp`` sub-endpoint and returns the
+    ``<reg:unitary-patent>`` block as structured data: the registration
+    status timeline (e.g. "Request for unitary effect filed" →
+    "Unitary effect registered") with dates.
+
+    Returns ``None`` when the EP wasn't elected for unitary effect, or
+    the registration hasn't been recorded yet. Note that UPC
+    *opt-out* status is **not** exposed by the OPS Register — that
+    requires the UPC CMS Public API (separate enrollment).
+    """
+    async with client_from_env() as client:
+        result = await client.get_unitary_patent_package(epo_number)
+        if result is None:
+            return None
+        return result.model_dump()
+
+
 # ---------------------------------------------------------------------------
 # JPO (Japan Patent Office) — Patent Information Retrieval API
 #

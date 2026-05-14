@@ -20,6 +20,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   "actually not found." Removes the dead `if patent is None` branches in
   `download_patent_pdf` and `google_patents.api.fetch`.
 
+## [0.13.0] — 2026-05-14
+
+### Added
+
+- **EPO OPS Register service + Unitary Patent Package helper.** Wraps
+  the EPO Register service's ``/rest-services/register/.../upp``
+  sub-endpoint and surfaces the structured ``<reg:unitary-patent>``
+  block.
+  - New low-level method: ``EpoOpsClient.fetch_register(number, sub=...)``
+    returning raw XML for any of the four register sub-endpoints
+    (``biblio`` / ``events`` / ``procedural-steps`` / ``upp``).
+  - New high-level helper:
+    ``EpoOpsClient.get_unitary_patent_package(epo_number)`` returns a
+    ``UnitaryPatentPackage`` with the registration status timeline
+    (e.g. "Request for unitary effect filed" → "Unitary effect
+    registered" with dates) or ``None`` when the EP wasn't elected
+    for unitary effect.
+  - New module-level convenience functions: ``fetch_register`` and
+    ``get_unitary_patent_package`` mirroring the client methods.
+  - New MCP tool: ``get_unitary_patent_package`` on
+    ``international_mcp`` (74 default tools, +1 from 0.12.1).
+- Answers "is patent X a Unitary Patent and when was it registered?"
+  for any EP via existing EPO OPS credentials. No UPC enrollment
+  needed.
+
+### Known limitation
+
+- **UPC opt-out status is *not* exposed by the EPO Register.** The
+  v0.11.0 research notes anticipated opt-out info being available at
+  the same endpoint, but empirical testing on 2026-05-14 confirmed
+  it isn't — opt-out data lives in subsequent EP publications
+  (B8/B9 kind codes, INID 920) which the Register's ``/upp`` doesn't
+  expose, and in the UPC CMS Public API which requires separate
+  enrollment (still in flight). Tracked in TODO.md.
+
 ## [0.12.1] — 2026-05-14
 
 ### Fixed

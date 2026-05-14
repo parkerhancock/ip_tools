@@ -34,6 +34,7 @@ from .models import (
     NumberConversionResponse,
     PdfDownloadResponse,
     SearchResponse,
+    UnitaryPatentPackage,
 )
 from .parsing import (
     NS,
@@ -47,6 +48,7 @@ from .parsing import (
     parse_legal_events,
     parse_number_conversion,
     parse_search_response,
+    parse_unitary_patent_package,
 )
 
 logger = logging.getLogger(__name__)
@@ -303,6 +305,51 @@ class EpoOpsClient(BaseAsyncClient):
         path = f"/rest-services/legal/{doc_type}/{fmt}/{normalized}"
         response = await self._request("GET", path)
         return parse_legal_events(response.text)
+
+    async def fetch_register(
+        self,
+        *,
+        number: str,
+        doc_type: str = "publication",
+        fmt: str = "epodoc",
+        sub: str = "biblio",
+    ) -> str:
+        """Fetch raw XML from the EPO Register service.
+
+        ``sub`` is one of ``biblio``, ``events``, ``procedural-steps``,
+        or ``upp``. ``upp`` (Unitary Patent Package) returns the biblio
+        plus a ``<reg:unitary-patent>`` block when the EP has been
+        elected for unitary effect — use :meth:`get_unitary_patent_package`
+        for a structured-out view.
+        """
+        valid = {"biblio", "events", "procedural-steps", "upp"}
+        if sub not in valid:
+            raise ValueError(f"sub must be one of {sorted(valid)}; got {sub!r}")
+        normalized = self._normalize_number(number)
+        path = f"/rest-services/register/{doc_type}/{fmt}/{normalized}/{sub}"
+        response = await self._request("GET", path)
+        return response.text
+
+    async def get_unitary_patent_package(
+        self,
+        epo_number: str,
+        *,
+        doc_type: str = "publication",
+        fmt: str = "epodoc",
+    ) -> UnitaryPatentPackage | None:
+        """Return the Unitary Patent Package for an EP patent, if any.
+
+        Calls the register's ``/upp`` sub-endpoint and parses out the
+        ``<reg:unitary-patent>`` block. Returns ``None`` when the EP
+        was never elected for unitary effect or the registration hasn't
+        been recorded yet.
+
+        Note: this answers "is patent X a Unitary Patent and when?".
+        UPC opt-out status is **not** exposed by the OPS Register;
+        it requires the UPC CMS Public API (separate enrollment).
+        """
+        xml = await self.fetch_register(number=epo_number, doc_type=doc_type, fmt=fmt, sub="upp")
+        return parse_unitary_patent_package(xml, epo_number=epo_number)
 
     async def convert_number(
         self,
