@@ -11,8 +11,9 @@ import pytest_asyncio
 
 from patent_client_agents.uspto_tmsearch import TmsearchClient
 
-# Apply markers to all tests in this module
-pytestmark = [pytest.mark.live_tmsearch, pytest.mark.asyncio]
+# Async fixtures + tests across the module; live_tmsearch is class-scoped
+# below so the unit tests in TestTmsearchClientNoToken still run in CI.
+pytestmark = pytest.mark.asyncio
 
 
 @pytest_asyncio.fixture
@@ -22,6 +23,7 @@ async def client() -> AsyncGenerator[TmsearchClient]:
         yield c
 
 
+@pytest.mark.live_tmsearch
 class TestTmsearchClient:
     """Live tests for TmsearchClient."""
 

@@ -79,6 +79,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=False,
         help="Run tests that hit live EUIPO endpoints (sandbox or production)",
     )
+    parser.addoption(
+        "--run-live-tmsearch",
+        action="store_true",
+        default=False,
+        help="Run tests that hit live USPTO TESS endpoints (requires a WAF token)",
+    )
     try:
         parser.addoption(
             "--vcr-record",
@@ -99,9 +105,27 @@ def pytest_configure(config: pytest.Config) -> None:
         "live_uspto: marks tests that require access to live USPTO services",
         "live_jpo: marks tests that require access to live JPO services",
         "live_euipo: marks tests that require access to live EUIPO services",
+        "live_tmsearch: marks tests that hit live USPTO TESS (need a WAF token)",
         "vcr_cassette: marks tests that use VCR cassette recording",
     ):
         config.addinivalue_line("markers", marker)
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Auto-skip live_tmsearch tests unless --run-live-tmsearch or TMSEARCH_LIVE_TESTS=1."""
+    if config.getoption("--run-live-tmsearch") or os.getenv("TMSEARCH_LIVE_TESTS"):
+        return
+    skip = pytest.mark.skip(
+        reason=(
+            "Live TESS test skipped. Pass --run-live-tmsearch or set "
+            "TMSEARCH_LIVE_TESTS=1 to enable (requires a valid WAF token)."
+        )
+    )
+    for item in items:
+        if "live_tmsearch" in item.keywords:
+            item.add_marker(skip)
 
 
 @pytest.fixture
