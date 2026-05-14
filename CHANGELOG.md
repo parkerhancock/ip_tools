@@ -20,6 +20,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   "actually not found." Removes the dead `if patent is None` branches in
   `download_patent_pdf` and `google_patents.api.fetch`.
 
+## [0.16.0] — 2026-05-14 (unreleased)
+
+### Added
+
+- **European Patent Convention (EPC) connector** (``patent_client_agents.epc``).
+  Corpus-backed access to the Convention Articles (180) and
+  Implementing Regulations Rules (176) as published at
+  ``www.epo.org/en/legal/epc/<year>``. Built via
+  ``patent-client-agents-build-epc-corpus`` into a SQLite/FTS5 db
+  (~13 MB). Accepts ``Article 54`` / ``Art. 54`` / ``a54`` and
+  ``Rule 71`` / ``R. 71`` / ``r71`` citation forms plus URL slugs
+  and full epo.org URLs.
+  - ``EpcClient.search(query, syntax=...)`` and
+    ``EpcClient.get_section(section)``.
+  - MCP tools: ``search_epc`` + ``get_epc_section`` on
+    ``epc_mcp``.
+- **EPO Case Law of the Boards of Appeal connector**
+  (``patent_client_agents.epo_case_law``). The canonical "white
+  book" compilation of Boards-of-Appeal case law, referenced
+  constantly in European patent prosecution and opposition.
+  Source: ``www.epo.org/en/legal/case-law/<year>``. EPO publishes
+  every 2-3 years (2019, 2022, ...).
+  - Built via ``patent-client-agents-build-caselaw-corpus`` from
+    the year's ``index.html`` (~2,600 ``clr_*`` URLs enumerated
+    in one fetch). Direct fetch per URL — no BFS needed.
+  - ``CaseLawClient.search`` and ``CaseLawClient.get_section``
+    with ``I.A.1`` / ``I-A-1`` / ``I A 1`` citation forms plus
+    ``clr_i_a_1`` URL slugs.
+  - MCP tools: ``search_epo_case_law`` + ``get_epo_case_law_section``
+    on ``epo_case_law_mcp``.
+- ``patent-client-agents-build-epc-corpus`` and
+  ``patent-client-agents-build-caselaw-corpus`` CLIs ship with the
+  wheel.
+
+### Tool count
+
+- Default surface: 76 → **80** (4 new tools across EPC + Case Law).
+
 ## [0.15.0] — 2026-05-14
 
 ### Added
