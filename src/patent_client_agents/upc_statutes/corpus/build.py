@@ -45,18 +45,17 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://www.unifiedpatentcourt.org"
 DEFAULT_USER_AGENT = (
-    "patent-client-agents-upc/0.11 "
-    "(+https://github.com/parkerhancock/patent-client-agents)"
+    "patent-client-agents-upc/0.11 (+https://github.com/parkerhancock/patent-client-agents)"
 )
 
 
 @dataclass(frozen=True)
 class InstrumentSource:
-    instrument: str   # stable key
-    short_name: str   # citation form
-    title: str        # full title
-    language: str     # 'en' | 'fr' | 'de'
-    path: str         # path relative to base_url
+    instrument: str  # stable key
+    short_name: str  # citation form
+    title: str  # full title
+    language: str  # 'en' | 'fr' | 'de'
+    path: str  # path relative to base_url
 
 
 # Canonical source list as of 2026-05. Verified live against
@@ -213,9 +212,7 @@ class UpcStatutesFetcher:
         raise RuntimeError("unreachable: default_retryer reraises")
 
 
-def write_corpus(
-    instruments: list[FetchedInstrument], output: Path, *, snapshot_date: str
-) -> int:
+def write_corpus(instruments: list[FetchedInstrument], output: Path, *, snapshot_date: str) -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists():
         output.unlink()
@@ -247,9 +244,7 @@ def write_corpus(
             ("snapshot_date", snapshot_date),
             ("instrument_count", str(len(instruments))),
         ]
-        conn.executemany(
-            "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", meta_rows
-        )
+        conn.executemany("INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)", meta_rows)
         conn.execute("INSERT INTO instruments_fts(instruments_fts) VALUES ('optimize')")
         conn.commit()
         conn.isolation_level = None
@@ -273,9 +268,7 @@ async def build_corpus(
             try:
                 instrument = await fetcher.fetch(source)
             except Exception as exc:
-                logger.warning(
-                    "Skipping %s/%s — %s", source.instrument, source.language, exc
-                )
+                logger.warning("Skipping %s/%s — %s", source.instrument, source.language, exc)
                 continue
             elapsed = time.monotonic() - t0
             logger.info(
@@ -312,9 +305,7 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_BASE_URL,
         help=f"Override UPC base URL (default: {DEFAULT_BASE_URL}).",
     )
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Log per-document progress."
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Log per-document progress.")
     args = parser.parse_args(argv)
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,

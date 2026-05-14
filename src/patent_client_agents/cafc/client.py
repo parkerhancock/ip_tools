@@ -15,7 +15,6 @@ from typing import Any
 
 from law_tools_core import BaseAsyncClient
 from law_tools_core.exceptions import LawToolsCoreError
-
 from patent_client_agents.cafc.classifier import PatentClassifier
 from patent_client_agents.cafc.models import CAFCOpinion
 
@@ -96,7 +95,7 @@ class CAFCClient(BaseAsyncClient):
         self._nonce: str | None = None
         self._draw = 1
 
-    async def __aenter__(self) -> "CAFCClient":
+    async def __aenter__(self) -> CAFCClient:
         await super().__aenter__()
         await self._init_session()
         return self

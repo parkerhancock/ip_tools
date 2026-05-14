@@ -77,7 +77,7 @@ class TmsearchClient:
         self._session: Any = None
         self._token: str | None = None
 
-    async def __aenter__(self) -> "TmsearchClient":
+    async def __aenter__(self) -> TmsearchClient:
         await self._init_session()
         return self
 
@@ -227,9 +227,7 @@ class TmsearchClient:
             return response.results[0]
         return None
 
-    async def get_by_registration(
-        self, registration_number: str
-    ) -> TrademarkSearchResult | None:
+    async def get_by_registration(self, registration_number: str) -> TrademarkSearchResult | None:
         """Get a trademark by its registration number."""
         query = {"term": {"registrationNumber": registration_number}}
         response = await self._search(query, size=1)

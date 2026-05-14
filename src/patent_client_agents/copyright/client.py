@@ -12,7 +12,6 @@ from typing import Any
 
 from law_tools_core import BaseAsyncClient
 from law_tools_core.exceptions import LawToolsCoreError
-
 from patent_client_agents.copyright.models import (
     Claimant,
     CopyrightRecord,

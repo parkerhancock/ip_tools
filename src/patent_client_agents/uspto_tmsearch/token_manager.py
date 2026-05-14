@@ -185,9 +185,7 @@ class WafTokenManager:
         return token
 
     @classmethod
-    def _parse_for_freshest(
-        cls, raw: str, *, source: str
-    ) -> tuple[str, str, str] | None:
+    def _parse_for_freshest(cls, raw: str, *, source: str) -> tuple[str, str, str] | None:
         """Parse a payload and return (acquired, token, source) if valid."""
         token = cls._parse_payload(raw, source=source)
         if token is None:

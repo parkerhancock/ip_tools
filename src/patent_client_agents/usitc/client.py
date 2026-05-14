@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+
 from law_tools_core import BaseAsyncClient
 from law_tools_core.exceptions import AuthenticationError
 

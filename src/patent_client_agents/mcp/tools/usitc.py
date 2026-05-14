@@ -50,9 +50,7 @@ def _parse_iso_date(value: str | None, *, field_name: str) -> _date | None:
     try:
         return _date.fromisoformat(value)
     except ValueError as exc:
-        raise ValidationError(
-            f"{field_name} must be ISO date YYYY-MM-DD; got {value!r}"
-        ) from exc
+        raise ValidationError(f"{field_name} must be ISO date YYYY-MM-DD; got {value!r}") from exc
 
 
 # ---------------------------------------------------------------------------

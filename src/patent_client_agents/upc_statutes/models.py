@@ -18,9 +18,7 @@ class UpcInstrument(BaseModel):
             "Code of Conduct for Representatives."
         )
     )
-    short_name: str = Field(
-        description="Citation-ready short name, e.g. 'UPCA', 'RoP', 'Statute'."
-    )
+    short_name: str = Field(description="Citation-ready short name, e.g. 'UPCA', 'RoP', 'Statute'.")
     title: str = Field(description="Full official title as it appears on the source.")
     language: str = Field(description="ISO 639-1 code: 'en', 'fr', or 'de'.")
     source_url: str

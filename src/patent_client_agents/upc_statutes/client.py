@@ -103,9 +103,7 @@ class UpcStatutesClient:
             self._db = CorpusDB.open(self._corpus_path)
         return self._db
 
-    async def list_instruments(
-        self, *, language: str | None = None
-    ) -> list[UpcInstrument]:
+    async def list_instruments(self, *, language: str | None = None) -> list[UpcInstrument]:
         db = self._open()
         rows = db.list_instruments(language=language)
         return [

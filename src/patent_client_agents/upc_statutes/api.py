@@ -82,9 +82,7 @@ async def get_instrument(params: InstrumentInput | str) -> UpcInstrumentText | N
     if isinstance(params, str):
         params = InstrumentInput(instrument=params)
     async with UpcStatutesClient() as client:
-        return await client.get_instrument(
-            instrument=params.instrument, language=params.language
-        )
+        return await client.get_instrument(instrument=params.instrument, language=params.language)
 
 
 async def list_instruments(language: str | None = None) -> list[UpcInstrument]:

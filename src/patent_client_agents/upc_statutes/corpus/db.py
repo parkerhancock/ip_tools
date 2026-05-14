@@ -78,9 +78,7 @@ class CorpusDB:
     ) -> CorpusDB:
         resolved = _resolve_corpus_path(path)
         if must_exist and not resolved.exists():
-            raise CorpusUnavailable(
-                f"UPC statutes corpus not found at {resolved}. {_INSTALL_HINT}"
-            )
+            raise CorpusUnavailable(f"UPC statutes corpus not found at {resolved}. {_INSTALL_HINT}")
         try:
             conn = sqlite3.connect(f"file:{resolved}?mode=ro", uri=True)
         except sqlite3.OperationalError as exc:
@@ -106,9 +104,7 @@ class CorpusDB:
         rows = self._conn.execute("SELECT key, value FROM meta").fetchall()
         return {row["key"]: row["value"] for row in rows}
 
-    def list_instruments(
-        self, *, language: str | None = None
-    ) -> list[CorpusInstrument]:
+    def list_instruments(self, *, language: str | None = None) -> list[CorpusInstrument]:
         if language is None:
             rows = self._conn.execute(
                 "SELECT * FROM instruments ORDER BY instrument, language"
@@ -120,9 +116,7 @@ class CorpusDB:
             ).fetchall()
         return [_row_to_instrument(r) for r in rows]
 
-    def get_instrument(
-        self, *, instrument: str, language: str = "en"
-    ) -> CorpusInstrument | None:
+    def get_instrument(self, *, instrument: str, language: str = "en") -> CorpusInstrument | None:
         row = self._conn.execute(
             "SELECT * FROM instruments WHERE instrument = ? AND language = ?",
             (instrument, language),

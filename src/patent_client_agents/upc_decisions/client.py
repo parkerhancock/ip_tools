@@ -40,8 +40,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_BASE_URL = "https://www.unifiedpatentcourt.org"
 DEFAULT_LANGUAGE = "en"
 DEFAULT_USER_AGENT = (
-    "patent-client-agents-upc/0.11 "
-    "(+https://github.com/parkerhancock/patent-client-agents)"
+    "patent-client-agents-upc/0.11 (+https://github.com/parkerhancock/patent-client-agents)"
 )
 
 # Accept any of: UPC_CFI_1747/2025, UPC-CFI-478/2025, UPC_CFI_0001695/2025,
@@ -195,12 +194,18 @@ def parse_decisions_page(
                 case_id=case_id,
                 raw_references=raw_refs,
                 detail_url=detail_url,
-                court=_normalize_whitespace(court_cell.text_content()) if court_cell is not None else "",
+                court=_normalize_whitespace(court_cell.text_content())
+                if court_cell is not None
+                else "",
                 type_of_action=_normalize_whitespace(type_cell.text_content())
                 if type_cell is not None
                 else "",
-                parties=_parse_parties(parties_cell.text_content() if parties_cell is not None else ""),
-                pdf_urls=_row_pdf_urls(document_cell, base_url) if document_cell is not None else [],
+                parties=_parse_parties(
+                    parties_cell.text_content() if parties_cell is not None else ""
+                ),
+                pdf_urls=_row_pdf_urls(document_cell, base_url)
+                if document_cell is not None
+                else [],
             )
         )
 
