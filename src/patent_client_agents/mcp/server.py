@@ -9,12 +9,16 @@ extra of the ``patent-client-agents`` distribution), or directly::
 Stdio is the default transport. Pass ``--transport http`` (or use
 ``fastmcp run``) for HTTP mode.
 
-Hosted deployment lives at ``https://mcp.patentclient.com``. Auth is
-env-driven via ``law_tools_core.mcp.auth.make_auth``: set
-``LAW_TOOLS_CORE_GOOGLE_OAUTH_CLIENT_ID`` + ``_SECRET`` to enable
-interactive OAuth (public, no email-domain restriction), and
-``LAW_TOOLS_CORE_API_KEY`` for static bearer access alongside it. Leave
-all three unset for stdio / local use.
+Auth is env-driven via ``law_tools_core.mcp.auth.make_auth``. For stdio
+and local development, leave the auth env vars unset and the server
+runs without authentication. For HTTP deployments, set
+``LAW_TOOLS_CORE_PUBLIC_URL`` plus the Google OAuth or static bearer
+env vars described in :mod:`law_tools_core.mcp.auth`.
+
+Hosted/multi-instance deployments that need persistent OAuth/DCR
+client state (Firestore-backed storage, rate limiting, etc.) belong in
+a separate deploy package (see ``patent-mcp-deploy``) that builds its
+own server from the same ``build_server`` + ``ip_mcp`` building blocks.
 
 Note on naming: the PyPI distribution is ``patent-client-agents``; the import module
 stays ``patent_client_agents`` (PyYAML/yaml, scikit-learn/sklearn style decoupling).
@@ -25,13 +29,11 @@ from __future__ import annotations
 import argparse
 import sys
 
-from law_tools_core.mcp import make_auth, make_firestore_client_storage
+from law_tools_core.mcp import make_auth
 from law_tools_core.mcp.server_factory import build_server
 from patent_client_agents import __version__
 
 from . import ip_mcp
-
-_HOSTED_BASE_URL = "https://mcp.patentclient.com"
 
 mcp = build_server(
     name="patent-client-agents",
@@ -42,16 +44,7 @@ mcp = build_server(
         "(Canadian courts, tribunals, and IP statutes), and WIPO Lex "
         "(global IP statute / treaty / judgment database)."
     ),
-    auth=make_auth(
-        base_url=_HOSTED_BASE_URL,
-        issuer_url=_HOSTED_BASE_URL,
-        # Public server — any verified Google account is welcome.
-        allowed_email_domains=(),
-        # Persist DCR client registrations + auth transactions to Firestore
-        # so clients survive Cloud Run redeploys (vs. FastMCP's default
-        # per-container file store which is wiped every revision).
-        client_storage=make_firestore_client_storage(),
-    ),
+    auth=make_auth(),
 )
 mcp.mount(ip_mcp)
 

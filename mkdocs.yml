@@ -95,6 +95,7 @@ nav:
     - USPTO Bulk Data: api/uspto-bulkdata.md
     - USPTO TSDR: api/uspto-tsdr.md
     - USPTO Trademark Assignments: api/uspto-trademark-assignments.md
+    - USPTO Trademark Search (TESS): api/uspto-tmsearch.md
     - EPO OPS: api/epo-ops.md
     - JPO: api/jpo.md
     - Google Patents: api/google-patents.md
@@ -104,3 +105,6 @@ nav:
     - CanLII: api/canlii.md
     - WIPO Lex: api/wipo-lex.md
     - EUIPO: api/euipo.md
+    - Federal Circuit (CAFC): api/cafc.md
+    - USITC (EDIS/DataWeb/HTS/IDS): api/usitc.md
+    - US Copyright Office: api/copyright.md

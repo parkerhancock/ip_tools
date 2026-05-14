@@ -62,6 +62,7 @@ class BaseAsyncClient:
     DEFAULT_BASE_URL: str = ""
     CACHE_NAME: str = "default"
     DEFAULT_TIMEOUT: float = 30.0
+    HTTP2: bool = False
 
     def __init__(
         self,
@@ -75,6 +76,7 @@ class BaseAsyncClient:
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
         auth: httpx.Auth | None = None,
+        http2: bool | None = None,
     ) -> None:
         """Initialize the client.
 
@@ -88,12 +90,16 @@ class BaseAsyncClient:
             headers: Additional headers to include in requests.
             timeout: Request timeout in seconds (defaults to ``DEFAULT_TIMEOUT``).
             auth: httpx Auth handler (e.g. for OAuth2 token refresh).
+            http2: Enable HTTP/2 for the underlying client. Falls back to
+                the subclass ``HTTP2`` class attribute. Some upstream APIs
+                (e.g. api.publicrecords.copyright.gov) reject HTTP/1.1.
         """
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self._owns_client = client is None
         self._max_retries = max_retries
         self._timeout = timeout or self.DEFAULT_TIMEOUT
         self._cache_manager: CacheManager | None = None
+        resolved_http2 = self.HTTP2 if http2 is None else http2
 
         if client is None:
             cache_dir = cache_path or get_default_cache_dir()
@@ -107,6 +113,7 @@ class BaseAsyncClient:
                 follow_redirects=True,
                 timeout=self._timeout,
                 auth=auth,
+                http2=resolved_http2,
             )
         else:
             self._client = client

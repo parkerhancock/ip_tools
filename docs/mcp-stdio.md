@@ -66,7 +66,7 @@ EPO OPS, and JPO all consume credentials from env (see each connector's
 
 ## Tools exposed
 
-The server mounts `ip_mcp`, which composes 11 sub-servers (always-on
+The server mounts `ip_mcp`, which composes 15 sub-servers (always-on
 plus env-gated):
 
 | Sub-server | Tools | Download path (HTTPS + `pca://`) |
@@ -77,12 +77,16 @@ plus env-gated):
 | `International` (EPO OPS, CPC; + 12 JPO when `JPO_API_USERNAME` and `JPO_API_PASSWORD` are set) | 10 / 22 | `epo/patents/{publication_number}`, `jpo/documents/{ip_type}/{app}/{doc_kind}` |
 | `OfficeActions` (USPTO OA rejections/citations/text) | 1 | — |
 | `PatentAssignments` (USPTO Assignment Center) | 1 | — |
-| `Trademarks` (TSDR — needs `USPTO_TSDR_API_KEY`; TMEP; Trademark Assignments) | 7 | — |
+| `Trademarks` (TESS search — needs `[tmsearch]` extra or `PCA_WAF_TOKEN_*`; TSDR — needs `USPTO_TSDR_API_KEY`; TMEP; Trademark Assignments) | 9 | — |
 | `MPEP` | 2 | — |
+| `CAFC` (Federal Circuit opinions + patent classifier) | 3 | `cafc/opinions/{appeal_number}` |
+| `Copyright` (US Copyright Office — registrations + recorded documents) | 2 | — |
+| `USITC` (EDIS Section 337 — needs `USITC_EDIS_TOKEN` for downloads; DataWeb — needs `USITC_DATAWEB_TOKEN`; HTS; IDS) | 8 | `usitc/documents/{doc_id}/attachments/{att_id}` |
+| `UPC` (Unified Patent Court decisions feed + UPCA/RoP/Fees corpus) | 7 | — |
 | `CanLII` (env-gated on `CANLII_API_KEY`) | 0 / 9 | — |
 | `WIPO Lex` | 2 | — |
 | `EUIPO` (env-gated on `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET`) | 0 / 4 | — |
-| **Total** | **51 default; +12 JPO / +9 CanLII / +4 EUIPO with credentials** | |
+| **Total** | **73 default; +12 JPO / +9 CanLII / +4 EUIPO with credentials** | |
 
 ## Downloads — two transports
 
@@ -109,7 +113,7 @@ URL-comfortable clients (Claude Desktop, Cursor, homegrown
 clients) keep fetching `download_url` directly and ignore the
 resource link.
 
-The six resource templates are advertised via
+The resource templates are advertised via
 `resources/templates/list`:
 
 ```
@@ -118,6 +122,8 @@ pca://publications/{publication_number}
 pca://epo/patents/{publication_number}
 pca://uspto/applications/{application_number}/documents/{document_identifier}
 pca://ptab/documents/{document_identifier}
+pca://cafc/opinions/{appeal_number}
+pca://usitc/documents/{document_id}/attachments/{attachment_id}
 pca://jpo/documents/{ip_type}/{application_number}/{doc_kind}     # env-gated
 ```
 
@@ -158,7 +164,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Expect 51 tools by default. Counts scale with env-gated connectors:
+Expect 73 tools by default. Counts scale with env-gated connectors:
 +12 JPO when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set, +9 CanLII
 when `CANLII_API_KEY` is set, +4 EUIPO when `EUIPO_CLIENT_ID` +
 `EUIPO_CLIENT_SECRET` are set. Title should be

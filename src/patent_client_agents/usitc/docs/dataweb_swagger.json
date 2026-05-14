@@ -1,0 +1,3161 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "USITC Dataweb API",
+    "description": "This page provides API endpoints that provide public data. Note: some endpoints require an API token, which can be generated/copied from the API page in the Dataweb application, https://dataweb.usitc.com/api-key (requires login). To use your API token with swagger, click on the <strong><font color=\"#49cc90\">AUTHORIZE</font></strong> button on the right and paste in the token.",
+    "version": "v0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://datawebws.usitc.gov/dataweb",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearer-jwt": [
+        "read",
+        "write"
+      ],
+      "bearer-key": []
+    }
+  ],
+  "paths": {
+    "/api/v2/tariff/tariffSummaryDetails": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of countries for a given tariff group code.",
+        "operationId": "getTariffSummaryDetails",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TariffSummaryDetails"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/tariffSummaryCounts": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of countries for a given tariff group code.",
+        "operationId": "getTariffSummaryCounts",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffSummaryTableCounts"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/tariffProgramSingle": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of countries for a given tariff group code.",
+        "operationId": "getTariffProgram",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffProgramRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffProgramResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/getNaftaUSMCADetails": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of countries for a given tariff group code.",
+        "operationId": "getNaftaUSMCADetails",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffSummaryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NaftaUSMCADetails"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/futureTariffAgreementSingle": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a tariff information for a give country and commodity ID (HTS number).",
+        "operationId": "getDetails",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffInformation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/futureTariffAgreementLookup": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns the detailed data for a single tariff agreement program.",
+        "operationId": "getAgreements",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TariffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffAgreements"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/currentTariffLookup": {
+      "post": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of HTS numbers.",
+        "operationId": "currentTariffLookup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentTariffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentTariffList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/system-alert": {
+      "get": {
+        "tags": [
+          "System Alerts"
+        ],
+        "operationId": "getAllSystemAlerts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SystemAlertDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "System Alerts"
+        ],
+        "operationId": "updateSystemAlert",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SystemAlertDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v2/savedQuery/getSavedQuery": {
+      "post": {
+        "tags": [
+          "Saved Queries"
+        ],
+        "description": "Returns a user all the parameters of a saved query based on user specific query ID.",
+        "operationId": "getSavedQuery",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedQuery"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/report2/runReport": {
+      "post": {
+        "tags": [
+          "Run Query"
+        ],
+        "description": "Returns import export data based on sent query parameters.",
+        "operationId": "runReport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DTOTokenPairQueryResultsDatasetDataExportTable"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getRPCodesList": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns a list of all rate provision codes.",
+        "operationId": "getRPCodesList",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionsRequestBasic"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getRPCodeGroups": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns a list of all rate provision code groups.",
+        "operationId": "getRPCodeGroups",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionsRequestBasic"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsDTORPCodeGroupDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getImportPrograms": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns a list of all import programs.",
+        "operationId": "getImportPrograms",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionsRequestBasic"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getDistrictUserGroupByHash": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns the list of districts in a user saved district group.",
+        "operationId": "getDistrictUserGroupByHash",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DistrictGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getCountryUserGroupByHash": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns the list of countries in a user saved country group.",
+        "operationId": "getCountryUserGroupByHash",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GroupLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getCommodityUserGroupByHash": {
+      "post": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns the list of commodities in a user saved commodities group.",
+        "operationId": "getCommodityUserGroupByHash",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommodityGroupLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityGroup"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/notification/notification-preferences": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "getNotificationPreferences",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserNotificationPreferencesDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "updateNotificationPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserNotificationPreferencesDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/validateCommoditySearch": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of commodities based on comma separated list of search terms for a given commodity system classification level. Supplying a commodity classification system level of null will search all levels.",
+        "operationId": "validateCommoditySearch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityValidationResultList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/validateCommodityNumbersOnly": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of commodities based on comma separated list of search terms (numbers only) for a given commodity system classification level. Supplying a commodity classification system level of null will search all levels.",
+        "operationId": "validateCommodityNumbersOnly",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityValidationResultList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/getAllUserGroupsWithCommodities": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of the user defined commodities groups along with all the corresponding commodities within the group. Trade type and classification is required.",
+        "operationId": "getAllUserGroupsWithCommodities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommodityGroupReadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/getAllSystemGroupsWithCommodities": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list system commodity groups, i.e. ones administered through the dataweb admin app.",
+        "operationId": "getAllSystemGroupsWithCommodities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllCommoditiesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/commodityTree": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list commodity numbers a particular level, classification system and trade type (import/export).",
+        "operationId": "commodityTree",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommodityTreeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/commodityTranslationLookup": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of translated commodity classification system number i.e. from HTS to SITC.",
+        "operationId": "translateCommodity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommodityTranslationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityTranslationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/commodityDescriptionLookup": {
+      "post": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of all of commodity numbers with descriptions for a commodity classification system.",
+        "operationId": "getDescriptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommodityDescriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityDescriptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/tariffProgramsLookup": {
+      "get": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns a list of tariff programs with descriptions.",
+        "operationId": "getTariffPrograms",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffProgramsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/currentTariffYear": {
+      "get": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns the current year for which the database has tariff information.",
+        "operationId": "currentTariffYear",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentTariffYear"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tariff/currentTariffDetails": {
+      "get": {
+        "tags": [
+          "Tariffs"
+        ],
+        "description": "Returns details about a particular HTS8 number and year.",
+        "operationId": "currentTariffDetails",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hts8",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TariffDetailsWrapper"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/system-alert/alert/{id}": {
+      "get": {
+        "tags": [
+          "System Alerts"
+        ],
+        "operationId": "getSystemAlert",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemAlertDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "System Alerts"
+        ],
+        "operationId": "updateSystemAlert_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v2/savedQuery/getAllSystemSavedQueries": {
+      "get": {
+        "tags": [
+          "Saved Queries"
+        ],
+        "description": "Returns  list of all system defined saved queries.",
+        "operationId": "getAllSystemSavedQueries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedQueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/savedQuery/getAllSharedQueries": {
+      "get": {
+        "tags": [
+          "Saved Queries"
+        ],
+        "description": "Returns a list of all queries a user has shared.",
+        "operationId": "getAllSharedQueries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedQueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/savedQuery/getAllSavedQueries": {
+      "get": {
+        "tags": [
+          "Saved Queries"
+        ],
+        "description": "Returns a list of all queries a user has saved.",
+        "operationId": "getAllSavedQueries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedQueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getUnitConversionList": {
+      "get": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns the list of unit conversion objects.",
+        "operationId": "getUnitConversionList",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversionDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/query/getGlobalVars": {
+      "get": {
+        "tags": [
+          "Query Info"
+        ],
+        "description": "Returns current year, month, and quarter information.",
+        "operationId": "getGlobalVars",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalVars"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/programs": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getAllPrograms",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hts8",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beginYear",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endYear",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Csc2"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/programCountryYears": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getProgramYears",
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "countryCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/programCountries": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getCountriesForProgram",
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CountryProgram"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/getPrograms": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getProgramDetails",
+        "parameters": [
+          {
+            "name": "hts8",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "countryCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/getProgramsAndHtsNums": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getProgramsAndHtsNums",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/program/getProgramsAndCountries": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "operationId": "getProgramsAndCountries",
+        "parameters": [
+          {
+            "name": "hts8",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/district/getAllUserGroupsWithDistricts": {
+      "get": {
+        "tags": [
+          "Districts"
+        ],
+        "description": "Returns as list of user defined district groups along with all the corresponding districts and their respective district in the group.",
+        "operationId": "getAllUserGroupsWithDistricts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DistrictGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/district/getAllDistricts": {
+      "get": {
+        "tags": [
+          "Districts"
+        ],
+        "description": "Returns a list of all districts with their respective district codes.",
+        "operationId": "getAllDistricts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/country/getAllUserGroupsWithCountries": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "description": "Return a list of user defined country groups along with all the corresponding countries and respective country codes in the group.",
+        "operationId": "getAllUserGroupsWithCountries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/country/getAllSystemGroupsWithCountries": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "description": "Return a list of default system defined country groups with their corresponding list of countries.",
+        "operationId": "getAllSystemGroupsWithCountries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/country/getAllCountries": {
+      "get": {
+        "tags": [
+          "Countries"
+        ],
+        "description": "Returns a list of all countries with their respective country codes.",
+        "operationId": "getAllCountries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSON"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/commodity/getAllTotalUserGroupsWithCommodities": {
+      "get": {
+        "tags": [
+          "Commodities"
+        ],
+        "description": "Returns a list of the user defined commodities groups along with all the corresponding commodities within the group.",
+        "operationId": "getAllTotalUserGroupsWithCommodities",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommodityGroupOptions"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TariffSummaryRequest": {
+        "type": "object",
+        "properties": {
+          "htsCode": {
+            "type": "string"
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "htsCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffSummaryDetails": {
+        "type": "object",
+        "properties": {
+          "hts8": {
+            "type": "string"
+          },
+          "text_rate": {
+            "type": "string"
+          },
+          "program_code": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffSummaryTableCounts": {
+        "type": "object",
+        "properties": {
+          "mfn_ntr_zero": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_ntr_not_zero": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_ad_valorem_rate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_ad_valorem_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_ad_valorem_derived": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_ad_valorem_duty_rates": {
+            "type": "string"
+          },
+          "mfn_specific_duty": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_first_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_second_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_first_and_second_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_first_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_second_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_first_and_second_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mfn_all_other_rates": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ntr_zero": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ntr_not_zero": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ad_valorem_rate": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ad_valorem_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ad_valorem_derived": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_ad_valorem_duty_rates": {
+            "type": "string"
+          },
+          "col2_specific_duty": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_first_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_second_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_first_and_second_unit_quant": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_first_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_second_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_first_and_second_unit_customs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "col2_all_other_rates": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "gsp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cbera": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agoa": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ntpp": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nafta_usmca": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "korea_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "jordan_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "singapore_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "chile_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "australia_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bahrain_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cafta_dr": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "oman_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "peru_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "colombia_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "panama_fta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "japan_fta": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TariffProgramRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          }
+        }
+      },
+      "CountryGroup": {
+        "type": "object",
+        "properties": {
+          "group_name": {
+            "type": "string"
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TariffProgram": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "countriesgroups": {
+            "$ref": "#/components/schemas/CountryGroup"
+          }
+        }
+      },
+      "TariffProgramResponse": {
+        "type": "object",
+        "properties": {
+          "program": {
+            "$ref": "#/components/schemas/TariffProgram"
+          }
+        }
+      },
+      "NaftaUSMCADetails": {
+        "type": "object",
+        "properties": {
+          "hts8": {
+            "type": "string"
+          },
+          "nafta_canada": {
+            "type": "string"
+          },
+          "nafta_mexico": {
+            "type": "string"
+          },
+          "usmca": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffRequest": {
+        "type": "object",
+        "properties": {
+          "agreementId": {
+            "type": "string"
+          },
+          "commodityId": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffInformation": {
+        "type": "object",
+        "properties": {
+          "htsNumber": {
+            "type": "string"
+          },
+          "briefDescription": {
+            "type": "string"
+          },
+          "stagedDutyReductions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TariffReduction"
+            }
+          },
+          "finalStagedRate": {
+            "type": "string"
+          },
+          "finalStagedRateYear": {
+            "type": "string"
+          },
+          "legalBasis": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffReduction": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "string"
+          },
+          "stagedRate": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffAgreement": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffAgreements": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TariffAgreement"
+            }
+          }
+        }
+      },
+      "CurrentTariffRequest": {
+        "type": "object",
+        "properties": {
+          "searchTerm": {
+            "type": "string"
+          },
+          "tariffYear": {
+            "type": "string"
+          }
+        }
+      },
+      "CurrentTariffItem": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "desc": {
+            "type": "string"
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isExpired": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CurrentTariffList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurrentTariffItem"
+            }
+          }
+        }
+      },
+      "SystemAlertDTO": {
+        "type": "object",
+        "properties": {
+          "system_alert_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "system_alert_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "system_alert_type": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SavedQueryRequest": {
+        "type": "object",
+        "properties": {
+          "savedQueryID": {
+            "type": "string"
+          }
+        }
+      },
+      "KeyFieldSortOrder": {
+        "type": "object",
+        "properties": {
+          "keyField": {
+            "type": "string"
+          },
+          "orderBy": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useFieldName": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SavedQuery": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          },
+          "dataToReport": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scale": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timeframeSelectType": {
+            "type": "string"
+          },
+          "years": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "endDate": {
+            "type": "string"
+          },
+          "startMonth": {
+            "type": "string"
+          },
+          "endMonth": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "string"
+          },
+          "commodities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commoditiesExpanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "commoditiesManual": {
+            "type": "string"
+          },
+          "commoditiesGroupsSystem": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commoditiesGroupsUser": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "searchGranularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "groupGranularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "commoditiesAgg": {
+            "type": "string"
+          },
+          "commoditiesDesc": {
+            "type": "string"
+          },
+          "commoditySelectType": {
+            "type": "string"
+          },
+          "showHTSValidDetails": {
+            "type": "boolean"
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countriesExpanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "countriesGroupsSystem": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countriesGroupsUser": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countriesAgg": {
+            "type": "string"
+          },
+          "countriesSelectType": {
+            "type": "string"
+          },
+          "importPrograms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "importProgramsAgg": {
+            "type": "string"
+          },
+          "programsSelectType": {
+            "type": "string"
+          },
+          "extendedImportPrograms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "extendedImportProgramsExpanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "extendedImportProgramsAgg": {
+            "type": "string"
+          },
+          "rateProvisionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rateProvisionCodesExpanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "rateProvisionCodesAgg": {
+            "type": "string"
+          },
+          "provisionCodesSelectType": {
+            "type": "string"
+          },
+          "rateProvisionCodeGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "districts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "districtsExpanded": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "districtsGroupsUser": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "districtsAgg": {
+            "type": "string"
+          },
+          "districtsSelectType": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeyFieldSortOrder"
+            }
+          },
+          "columnOrder": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sortYear": {
+            "type": "string"
+          },
+          "totalRecords": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exportCombineTables": {
+            "type": "boolean"
+          },
+          "displayGrid": {
+            "type": "boolean"
+          },
+          "removeDuplicateValues": {
+            "type": "boolean"
+          },
+          "suppressZeroValues": {
+            "type": "boolean"
+          },
+          "displayCommodityList": {
+            "type": "boolean"
+          },
+          "fontSize": {
+            "type": "string"
+          },
+          "exportRawData": {
+            "type": "boolean"
+          },
+          "unitConversion": {
+            "type": "string"
+          },
+          "manualConversions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "username": {
+            "type": "string"
+          },
+          "savedQueryDatabaseId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "savedQueryName": {
+            "type": "string"
+          },
+          "savedQueryDesc": {
+            "type": "string"
+          },
+          "savedQueryType": {
+            "type": "string"
+          },
+          "jobState": {
+            "type": "string"
+          },
+          "folderID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "folderName": {
+            "type": "string"
+          },
+          "expandedCommodityGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "expandedCountryGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "expandedDistrictGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "apiToken": {
+            "type": "string"
+          },
+          "captchaResponse": {
+            "type": "string"
+          },
+          "captchaValid": {
+            "type": "boolean"
+          },
+          "queryJSON": {
+            "type": "string"
+          },
+          "runMonthly": {
+            "type": "boolean"
+          },
+          "deletedCountryUserGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deletedCommodityUserGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deletedDistrictUserGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "savedQueryID": {
+            "type": "string"
+          },
+          "jobID": {
+            "type": "string"
+          }
+        }
+      },
+      "TextValuePair": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "DTOTokenPairQueryResultsDatasetDataExportTable": {
+        "type": "object",
+        "properties": {
+          "dto": {
+            "$ref": "#/components/schemas/QueryResultsDatasetDataExportTable"
+          }
+        }
+      },
+      "DataExportTable": {
+        "type": "object",
+        "properties": {
+          "subheads": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subHeads": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalRowSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "tableInfo": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "column_groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsColumnGroup"
+            }
+          },
+          "row_groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsRowGroup"
+            }
+          },
+          "total": {
+            "$ref": "#/components/schemas/QueryResultsTotal"
+          },
+          "label": {
+            "type": "string"
+          },
+          "tab_name": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "HtsChange": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "year": {
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "impExpInd": {
+            "type": "string"
+          }
+        }
+      },
+      "HtsChangeDTO": {
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HtsChange"
+            }
+          },
+          "validTimeSeriesNums": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "validTimeSeries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HtsDescriptionDTO"
+            },
+            "uniqueItems": true
+          },
+          "isValid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HtsDescriptionDTO": {
+        "type": "object",
+        "properties": {
+          "hts": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "impExpInd": {
+            "type": "string"
+          },
+          "codeLevel": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemSQL": {
+        "type": "object",
+        "properties": {
+          "dataToReport": {
+            "type": "string"
+          },
+          "sql": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryResultsColumn": {
+        "type": "object",
+        "properties": {
+          "fieldName": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryResultsColumnGroup": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsColumn"
+            }
+          }
+        }
+      },
+      "QueryResultsColumnInformation": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "columnLabel": {
+            "type": "string"
+          },
+          "queryResultLabel": {
+            "type": "string"
+          },
+          "columnIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "special": {
+            "type": "boolean"
+          }
+        }
+      },
+      "QueryResultsDatasetDataExportTable": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subtitle": {
+            "type": "string"
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataExportTable"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "complexityThreshold": {
+            "type": "boolean"
+          },
+          "problemSql": {
+            "$ref": "#/components/schemas/ProblemSQL"
+          },
+          "needMoreTime": {
+            "type": "boolean"
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "htsChanges": {
+            "$ref": "#/components/schemas/HtsChangeDTO"
+          },
+          "hts2Selections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "authSuccessful": {
+            "type": "boolean"
+          }
+        }
+      },
+      "QueryResultsRow": {
+        "type": "object",
+        "properties": {
+          "rowEntries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsRowEntry"
+            }
+          }
+        }
+      },
+      "QueryResultsRowEntry": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "eligibility": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          },
+          "suppressed": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "QueryResultsRowGroup": {
+        "type": "object",
+        "properties": {
+          "columnInfo": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsColumnInformation"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "rowsNew": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryResultsRow"
+            }
+          },
+          "subtotals": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "QueryResultsTotal": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "warning": {
+            "type": "string"
+          }
+        }
+      },
+      "OptionsRequestBasic": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryResult": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          }
+        }
+      },
+      "OptionsDTORPCodeGroupDTO": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RPCodeGroupDTO"
+            }
+          }
+        }
+      },
+      "RPCodeGroupDTO": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "rpCodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          }
+        }
+      },
+      "GroupLookupRequest": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          }
+        }
+      },
+      "DistrictGroup": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "groupUUID": {
+            "type": "string"
+          },
+          "districts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          }
+        }
+      },
+      "CommodityGroupLookupRequest": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityGroup": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          },
+          "groupGranularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "groupType": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "groupUUID": {
+            "type": "string"
+          },
+          "commodities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TextValuePair"
+            }
+          }
+        }
+      },
+      "UserNotificationPreferencesDTO": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notify_on_data_update": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OptionsRequest": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          },
+          "search": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommodityValidationResult": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityValidationResultList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommodityValidationResult"
+            }
+          }
+        }
+      },
+      "CommodityGroupReadRequest": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityGroupOptions": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommodityGroup"
+            }
+          }
+        }
+      },
+      "AllCommoditiesRequest": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityTreeRequest": {
+        "type": "object",
+        "properties": {
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          },
+          "chapter": {
+            "type": "string"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommodityTranslationRequest": {
+        "type": "object",
+        "properties": {
+          "classificationFrom": {
+            "type": "string"
+          },
+          "commodityId": {
+            "type": "string"
+          },
+          "year": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityTradeType": {
+        "type": "object",
+        "properties": {
+          "classifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "CommodityTranslationResponse": {
+        "type": "object",
+        "properties": {
+          "classifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "writeOnly": true
+          },
+          "classificationFrom": {
+            "type": "string"
+          },
+          "commodityId": {
+            "type": "string"
+          },
+          "year": {
+            "type": "string"
+          },
+          "import": {
+            "$ref": "#/components/schemas/CommodityTradeType"
+          },
+          "export": {
+            "$ref": "#/components/schemas/CommodityTradeType"
+          }
+        }
+      },
+      "CommodityDescriptionRequest": {
+        "type": "object",
+        "properties": {
+          "codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tradeType": {
+            "type": "string"
+          },
+          "classificationSystem": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CommodityDescription": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CommodityDescriptions": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommodityDescription"
+            }
+          }
+        }
+      },
+      "TariffProgramsResponse": {
+        "type": "object",
+        "properties": {
+          "programs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TariffProgram"
+            }
+          }
+        }
+      },
+      "CurrentTariffYear": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HtsInvestigation": {
+        "type": "object",
+        "properties": {
+          "investigationId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "investigationNumber": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          },
+          "investigationTitle": {
+            "type": "string"
+          },
+          "hts10": {
+            "type": "string"
+          },
+          "hts8": {
+            "type": "string"
+          },
+          "hts6": {
+            "type": "string"
+          },
+          "hts4": {
+            "type": "string"
+          },
+          "hts2": {
+            "type": "string"
+          },
+          "caseId": {
+            "type": "string"
+          }
+        }
+      },
+      "TariffDetailsDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TariffDetailsDTO"
+            }
+          }
+        }
+      },
+      "TariffDetailsWrapper": {
+        "type": "object",
+        "properties": {
+          "desc": {
+            "type": "string"
+          },
+          "isExpired": {
+            "type": "boolean"
+          },
+          "investigations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HtsInvestigation"
+            }
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TariffDetailsDTO"
+            }
+          }
+        }
+      },
+      "SavedQueryResult": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedQuery"
+            }
+          }
+        }
+      },
+      "ConversionDTO": {
+        "type": "object",
+        "properties": {
+          "conversionDesc": {
+            "type": "string"
+          },
+          "conversionValue": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        }
+      },
+      "GlobalVars": {
+        "type": "object",
+        "properties": {
+          "currentYear": {
+            "type": "string"
+          },
+          "currentMonth": {
+            "type": "string"
+          },
+          "currentMonthAbbrev": {
+            "type": "string"
+          },
+          "currentQtr": {
+            "type": "string"
+          },
+          "tariffDatabaseYear": {
+            "type": "string"
+          },
+          "tariffDatabaseDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tradeDataRevDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "digestMonth": {
+            "type": "string"
+          },
+          "digestYear": {
+            "type": "string"
+          },
+          "dataLoadMode": {
+            "type": "boolean"
+          },
+          "currentFullReportingYear": {
+            "type": "string"
+          }
+        }
+      },
+      "Csc2": {
+        "type": "object",
+        "properties": {
+          "csc2": {
+            "type": "string"
+          },
+          "abbr": {
+            "type": "string"
+          },
+          "descrip": {
+            "type": "string"
+          }
+        }
+      },
+      "CountryProgram": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "countryName": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "program": {
+            "type": "string"
+          }
+        }
+      },
+      "DistrictGroupOptions": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistrictGroup"
+            }
+          }
+        }
+      },
+      "CountryGroupOptions": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountryGroup"
+            }
+          }
+        }
+      },
+      "CountryOptionsISO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "iso2": {
+            "type": "string"
+          },
+          "iso3": {
+            "type": "string"
+          }
+        }
+      },
+      "JSON": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountryOptionsISO"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer-key": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

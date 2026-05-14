@@ -7,7 +7,7 @@ matches how you're going to use it:
 |---|---|---|
 | Python library | Import `patent_client_agents` in your own async code | [§1](#1-python-library) |
 | Python library + MCP runtime | Run an MCP server locally or in-process | [§2](#2-python-library-with-mcp-runtime) |
-| Claude Code plugin (from GitHub marketplace) | Add 51 patent + trademark MCP tools to Claude Code with two slash commands (plus +12 JPO / +9 CanLII / +4 EUIPO when those credentials are set) | [§3](#3-claude-code-plugin-from-github) |
+| Claude Code plugin (from GitHub marketplace) | Add 73 patent + trademark + adjacent-IP MCP tools to Claude Code with two slash commands (plus +12 JPO / +9 CanLII / +4 EUIPO when those credentials are set) | [§3](#3-claude-code-plugin-from-github) |
 | Claude Code skill (standalone, library-user) | Install the `ip_research` skill into `~/.claude/skills/` for Python-library guidance | [§4](#4-claude-code-skill-standalone-library-user) |
 | Stdio MCP (any MCP client) | Connect Claude Desktop / Cursor / Cline / CoWork-local / custom client | [§5](#5-stdio-mcp-from-any-mcp-client) |
 | Remote MCP (hosted or self-hosted) | Point an MCP client at a deployed HTTPS endpoint | [§6](#6-remote-mcp) |
@@ -53,9 +53,31 @@ these unlock the full surface:
 | `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO J-PlatPat | Contact JPO (restricted). **Python library only — JPO MCP tools are not available.** |
 | `CANLII_API_KEY` | CanLII | [canlii.org/en/feedback/feedback.html](https://www.canlii.org/en/feedback/feedback.html) (free, by request) |
 | `EUIPO_CLIENT_ID`, `EUIPO_CLIENT_SECRET` | EUIPO Trademark + Design Search | [dev.euipo.europa.eu](https://dev.euipo.europa.eu/) (sandbox auto-approves; production requires ID-document review). Set `EUIPO_ENV=sandbox` to point at the sandbox. |
+| `USITC_EDIS_TOKEN` | USITC EDIS (Section 337) | [edis.usitc.gov](https://edis.usitc.gov) → API Token Generator (free Login.gov account). JWT, ~2 wk lifetime. Required for attachment downloads even on public documents. |
+| `USITC_DATAWEB_TOKEN` | USITC DataWeb (US trade statistics) | [dataweb.usitc.gov](https://dataweb.usitc.gov) account page (free). Needed only for `run_dataweb_report`. |
+| `PCA_WAF_TOKEN_PATH` *or* `PCA_WAF_TOKEN_JSON` | USPTO Trademark Search (TESS) | Bring-your-own AWS WAF token (~4 day lifetime), *or* install the `[tmsearch]` extra to mint via Playwright in-process. See [`tmsearch` extra below](#tmsearch-extra-playwright--curl_cffi). |
 
 Google Patents, USPTO Publications, USPTO Assignments, USPTO Trademark
-Assignments, MPEP, TMEP, and WIPO Lex need no credentials.
+Assignments, MPEP, TMEP, WIPO Lex, Federal Circuit (CAFC), US Copyright
+Office, USITC HTS, USITC IDS, and the UPC decisions feed need no
+credentials.
+
+### `tmsearch` extra (Playwright + curl_cffi)
+
+USPTO TESS sits behind AWS WAF. To mint the WAF token in-process,
+install the optional extra and bootstrap Chromium once:
+
+```bash
+pip install 'patent-client-agents[tmsearch]'
+playwright install chromium
+```
+
+On headless server deployments where Playwright isn't installed, set
+`PCA_WAF_TOKEN_JSON` to a token JSON payload (Secret Manager mount) or
+`PCA_WAF_TOKEN_PATH` to a path on disk — the client will reuse the
+cached token until it expires (~4 days). A typical pattern is to run a
+Playwright job on a workstation, write the token JSON into a secret,
+and mount it into the server container at runtime.
 
 ### Verify
 
@@ -95,7 +117,7 @@ of the base dependencies.
 
 Two new console scripts on your PATH:
 
-- `patent-client-agents-mcp` — launches the stdio MCP server (51 patent + trademark tools by default; +12 JPO / +9 CanLII / +4 EUIPO when those credentials are set)
+- `patent-client-agents-mcp` — launches the stdio MCP server (73 patent + trademark + adjacent-IP tools by default; +12 JPO / +9 CanLII / +4 EUIPO when those credentials are set)
 - `patent-client-agents-skill-install` — symlinks the `ip_research` skill into `~/.claude/skills/` (see §4)
 
 Plus the Python-importable MCP surface:
@@ -121,9 +143,10 @@ This is exactly how `law-tools` consumes `patent-client-agents` in the monorepo.
 
 ## 3. Claude Code plugin (from GitHub)
 
-Use this when you use Claude Code and want the 51 patent + trademark MCP
-tools dropped in with two slash commands (plus +12 JPO / +9 CanLII /
-+4 EUIPO when the corresponding credentials are in the environment).
+Use this when you use Claude Code and want the 73 patent + trademark +
+adjacent-IP MCP tools dropped in with two slash commands (plus +12 JPO /
++9 CanLII / +4 EUIPO when the corresponding credentials are in the
+environment).
 
 The plugin ships **only the MCP server** — no skill, no agents, no
 hooks. The MCP tools' in-schema descriptions already carry the
@@ -235,26 +258,30 @@ still work; USPTO ODP, USPTO TSDR, and EPO tools will return auth
 errors. MPEP and TMEP no longer hit USPTO at runtime — see "MPEP /
 TMEP corpus setup" below for the one-time build step.
 
-### MPEP / TMEP corpus setup
+### MPEP / TMEP / UPC-statutes corpus setup
 
-`MpepClient` and `TmepClient` read from local SQLite/FTS5 snapshots
-instead of calling USPTO. The wheel ships the builders; build each
-corpus once into the default cache:
+`MpepClient`, `TmepClient`, and the UPC statutes tools read from local
+SQLite/FTS5 snapshots instead of calling upstream sources. The wheel
+ships the builders; build each corpus once into the default cache:
 
 ```bash
 patent-client-agents-build-mpep-corpus \
     --output ~/.cache/patent_client_agents/mpep.db
 patent-client-agents-build-tmep-corpus \
     --output ~/.cache/patent_client_agents/tmep.db
+patent-client-agents-build-upc-statutes-corpus \
+    --output ~/.cache/patent_client_agents/upc_statutes.db
 ```
 
-MPEP is ~50MB and takes ~4 minutes; TMEP is ~16MB and takes ~2 minutes.
-Re-run periodically to pick up USPTO revisions.
+MPEP is ~50MB and takes ~4 minutes; TMEP is ~16MB and takes ~2 minutes;
+UPC statutes (UPCA + Rules of Procedure + Table of Fees, EN/FR/DE) is
+~2MB and takes well under a minute. Re-run periodically to pick up
+revisions.
 
-For cloud deployments, build the corpus into the container image and
-set `MPEP_CORPUS_PATH` / `TMEP_CORPUS_PATH` in the runtime env to point
-at the output paths. The published wheel stays small (no corpus
-bundled); refresh becomes "rebuild + redeploy."
+For cloud deployments, build the corpora into the container image and
+set `MPEP_CORPUS_PATH` / `TMEP_CORPUS_PATH` / `UPC_STATUTES_CORPUS_PATH`
+in the runtime env to point at the output paths. The published wheel
+stays small (no corpus bundled); refresh becomes "rebuild + redeploy."
 
 If a call is made before the corpus exists, the client raises
 `CorpusUnavailable` with the build command in the message — there is
@@ -268,7 +295,7 @@ List MCP tools from within a Claude Code session:
 /mcp
 ```
 
-Expect `patent-client-agents` with 51 tools by default. Add +12 JPO
+Expect `patent-client-agents` with 73 tools by default. Add +12 JPO
 (`JPO_API_USERNAME` + `JPO_API_PASSWORD`), +9 CanLII (`CANLII_API_KEY`),
 and +4 EUIPO (`EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET`) when the
 corresponding env vars are set. Or call one directly by asking something
@@ -344,7 +371,7 @@ replaces with the symlink.
 
 |  | Plugin (§3) | Standalone skill (§4) |
 |---|---|---|
-| What it installs | MCP server only (51 default + env-gated families: +12 JPO, +9 CanLII, +4 EUIPO) | Skill markdown for Python library usage |
+| What it installs | MCP server only (73 default + env-gated families: +12 JPO, +9 CanLII, +4 EUIPO) | Skill markdown for Python library usage |
 | Command | `/plugin install patent-client-agents@patent-client-agents` | `patent-client-agents-skill-install` |
 | Source | Cloned marketplace repo | pip-installed package (symlinked) |
 | Updates | `/plugin marketplace update` + `/reload-plugins` | Reinstall `patent-client-agents` to pick up new skill content |
@@ -452,7 +479,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Expect **51 tools** by default, with env-gated families adding
+Expect **73 tools** by default, with env-gated families adding
 **+12 JPO** / **+9 CanLII** / **+4 EUIPO** when their credentials are
 present. Title starts with `2106 ... Patent Subject Matter Eligibility`.
 

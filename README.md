@@ -63,7 +63,7 @@ Ask Claude to research patents and trademarks in natural language:
 
 > "Search the TMEP for guidance on Section 2(d) likelihood-of-confusion refusals"
 
-`patent-client-agents` connects Claude Code to USPTO (patents and trademarks), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO, giving your agent the ability to search, analyze, and report on intellectual property worldwide. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry these credentials, so those tool families don't appear there.
+`patent-client-agents` connects Claude Code to USPTO (patents, trademark search via TESS, and trademark prosecution), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO — plus the Federal Circuit, US International Trade Commission (Section 337), the US Copyright Office, and the Unified Patent Court (decisions feed + statutes corpus) for the litigation and adjacent-IP slice. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry those credentials, so those tool families don't appear there.
 
 ## Coverage
 
@@ -75,6 +75,7 @@ Ask Claude to research patents and trademarks in natural language:
 | **USPTO Assignments** | Patent ownership transfers and reel/frame lookups |
 | **USPTO Office Actions** | Rejection analytics, cited references, full-text OA retrieval |
 | **USPTO TSDR** | Trademark Status & Document Retrieval — status, docs, mark images |
+| **USPTO Trademark Search (TESS)** | Live trademark register — search by wordmark, owner, goods/services — *requires the `[tmsearch]` extra (Playwright + curl_cffi) or a bring-your-own WAF token via `PCA_WAF_TOKEN_*`* |
 | **USPTO Trademark Assignments** | Trademark ownership transfers (Assignment Center) |
 | **EPO OPS** | European patents, Inpadoc families, legal events, EP Register |
 | **JPO** | Japanese patents, examination history, PCT national phase — *MCP tools register when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set; not exposed by the hosted demo* |
@@ -84,6 +85,10 @@ Ask Claude to research patents and trademarks in natural language:
 | **CanLII** | Canadian courts, tribunals, and IP statutes — Federal Court / FCA / Supreme Court IP rulings, Trade-marks Opposition Board, Patent Appeal Board, Patent Act, Trademarks Act with point-in-time queries — *MCP tools register when `CANLII_API_KEY` is set; not exposed by the hosted demo* |
 | **WIPO Lex** | Global IP statute / treaty / judgment database curated by WIPO — ~50k legal documents across ~200 jurisdictions, six UN languages. v0.9 scope: legislation collection (search + detail with PDF links) |
 | **EUIPO** | EU Trade Marks (~2.3M EUTMs since 1996) + Registered Community Designs (~1.5M RCDs since 2003). RSQL search, full prosecution records, multilingual goods-and-services / product indications, sandbox toggle — *MCP tools register when `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET` are set; not exposed by the hosted demo* |
+| **Federal Circuit (CAFC)** | Every patent appeal in the US is appealable to the Federal Circuit. Search opinions by date / origin (PTO, DCT, ITC, CFC), classify as patent vs. non-patent, download opinion PDFs |
+| **USITC** | EDIS (Section 337 patent enforcement investigations + dockets + attachments), DataWeb (US trade statistics), HTS (Harmonized Tariff Schedule), IDS (IP investigation index) — *EDIS and DataWeb need free user-minted tokens; HTS and IDS are public* |
+| **US Copyright Office** | Copyright registrations (post‑1978 + digitized card catalog) and recorded documents (transfers, assignments, licenses) via the Public Records System — *public, no auth* |
+| **UPC (Unified Patent Court)** | Decisions-and-orders feed (CFI + CoA + Central / Local / Regional Divisions, with canonical case IDs and PDF/A URLs) plus a corpus-backed view of the UPC Agreement, consolidated Rules of Procedure, and Table of Court Fees in EN/FR/DE — *public, no auth; statutes run against a local SQLite/FTS5 snapshot built by `patent-client-agents-build-upc-statutes-corpus`* |
 
 All sources include automatic caching (hishel + SQLite with WAL), rate limiting,
 and retry logic via `law_tools_core`.
@@ -98,7 +103,7 @@ For Claude Code users — run these inside a Claude Code session:
 /reload-plugins
 ```
 
-Three slash commands (not shell). You get 51 patent + IP MCP tools
+Three slash commands (not shell). You get 73 patent + IP MCP tools
 exposed to the agent by default, plus additional families that
 register when their credentials are present: +12 JPO, +9 CanLII,
 +4 EUIPO. Prereq:
@@ -120,9 +125,28 @@ how you'll use it.
 | `JPO_API_USERNAME`, `JPO_API_PASSWORD` | JPO | All JPO library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [j-platpat.inpit.go.jp](https://www.j-platpat.inpit.go.jp/) |
 | `CANLII_API_KEY` | CanLII | All CanLII library + MCP tools (env-gated on the stdio server / plugin; not set on the hosted demo) | [canlii.org/en/feedback/feedback.html](https://www.canlii.org/en/feedback/feedback.html) (free, by request) |
 | `EUIPO_CLIENT_ID`, `EUIPO_CLIENT_SECRET` | EUIPO | All EUIPO library + MCP tools (env-gated; not set on the hosted demo). Set `EUIPO_ENV=sandbox` to use the open sandbox environment instead of production. | [dev.euipo.europa.eu](https://dev.euipo.europa.eu/) (sandbox auto-approves; production requires ID-document review) |
+| `USITC_EDIS_TOKEN` | USITC EDIS | EDIS document/attachment downloads (also rejected for *public* docs without a token); investigation+document search itself works without one | [edis.usitc.gov](https://edis.usitc.gov) → API Token Generator (free, Login.gov account). JWT, ~2 wk lifetime |
+| `USITC_DATAWEB_TOKEN` | USITC DataWeb | `run_dataweb_report` only | [dataweb.usitc.gov](https://dataweb.usitc.gov) account page (free) |
+| `PCA_WAF_TOKEN_PATH` *or* `PCA_WAF_TOKEN_JSON` | USPTO TESS | Trademark search via TESS — bring-your-own WAF token *or* install `[tmsearch]` extra to mint via Playwright | See [USPTO Trademark Search docs](https://docs.patentclient.com/api/uspto-tmsearch/) |
 
 **No API key needed:** Google Patents, USPTO Publications (PPUBS), USPTO
-Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC, WIPO Lex.
+Assignments, USPTO Trademark Assignments, MPEP, TMEP, CPC, WIPO Lex,
+Federal Circuit (CAFC), USITC HTS, USITC IDS, US Copyright Office.
+
+### `tmsearch` extra (Playwright + curl_cffi)
+
+USPTO TESS sits behind AWS WAF. To mint the WAF token in-process, install
+the optional extra and bootstrap Chromium once:
+
+```bash
+pip install 'patent-client-agents[tmsearch]'
+playwright install chromium
+```
+
+On headless server deployments where Playwright isn't installed, set
+`PCA_WAF_TOKEN_JSON` to a token JSON payload (Secret Manager mount) or
+`PCA_WAF_TOKEN_PATH` to a path on disk — the client will reuse the
+cached token until it expires (~4 days).
 
 ## Quickstart — Python library
 

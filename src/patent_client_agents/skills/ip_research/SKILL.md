@@ -13,6 +13,10 @@ description: |
   - Finding patent or trademark assignments / ownership history
   - Fetching USPTO publication full-text data
   - Checking U.S. trademark status, prosecution documents, or mark images (TSDR)
+  - Searching the U.S. trademark register (TESS) by wordmark, owner, or goods/services
+  - Federal Circuit (CAFC) appellate opinions and PTAB/district/ITC appeals
+  - USITC Section 337 patent enforcement investigations (EDIS) and tariff codes (HTS)
+  - U.S. Copyright Office registrations and recorded documents (transfers, assignments)
 ---
 
 # IP Research
@@ -35,6 +39,7 @@ managers. All shared scaffolding (HTTP, cache, retry, errors) lives in
 | USPTO publications (PPUBS) full-text | `uspto_publications.PublicSearchClient` | [uspto_publications.md](references/uspto_publications.md) |
 | USPTO office actions | `patent_client_agents.uspto_office_actions` | [uspto_office_actions.md](references/uspto_office_actions.md) |
 | USPTO trademark status / documents (TSDR) | `uspto_tsdr.TsdrClient` | [uspto_tsdr.md](references/uspto_tsdr.md) |
+| USPTO trademark search (TESS — live trademark register) | `uspto_tmsearch.TmsearchClient` | [uspto_tmsearch.md](references/uspto_tmsearch.md) |
 | USPTO trademark assignments | `uspto_trademark_assignments.TrademarkAssignmentClient` | [uspto_trademark_assignments.md](references/uspto_trademark_assignments.md) |
 | EPO bibliographic / family / legal events | `epo_ops.EpoOpsClient` | [epo_ops.md](references/epo_ops.md) |
 | JPO application status | `jpo.JpoClient` | [jpo.md](references/jpo.md) |
@@ -45,6 +50,9 @@ managers. All shared scaffolding (HTTP, cache, retry, errors) lives in
 | Global IP statutes via WIPO Lex (~200 jurisdictions) | `patent_client_agents.wipo_lex` | [wipo_lex.md](references/wipo_lex.md) |
 | EU Trade Marks (EUTM register, ~2.3M marks) | `patent_client_agents.euipo_trademarks` | [euipo.md](references/euipo.md) |
 | EU Registered Community Designs (~1.5M designs) | `patent_client_agents.euipo_designs` | [euipo.md](references/euipo.md) |
+| Federal Circuit (CAFC) opinions — appellate patent law | `patent_client_agents.cafc` | [cafc.md](references/cafc.md) |
+| USITC Section 337 patent enforcement (EDIS), DataWeb trade stats, HTS, IDS IP investigations | `patent_client_agents.usitc` | [usitc.md](references/usitc.md) |
+| US Copyright Office — registrations, recorded transfers | `patent_client_agents.copyright` | [copyright.md](references/copyright.md) |
 
 ## Quick Examples
 

@@ -13,6 +13,10 @@ Two entry points:
     Drop-in replacement for the legacy ``BearerTokenAuth`` middleware.
   - Neither set → ``None``. Stdio / local dev.
 
+  Deployments that need persistent OAuth/DCR state (multi-instance,
+  Cloud Run cold starts, etc.) build their own ``AsyncKeyValue`` store
+  and pass it via ``client_storage=`` — see ``patent-mcp-deploy``.
+
 - :func:`make_domain_gate_middleware` rejects tool calls whose Google
   claims don't match an allowed email domain. Static-token callers bypass
   (no claims attached). Empty allowlist disables the gate.
@@ -50,47 +54,6 @@ _DEFAULT_MCP_REDIRECT_URIS: tuple[str, ...] = (
     "http://localhost:*",
     "http://127.0.0.1:*",
 )
-
-
-def make_firestore_client_storage() -> AsyncKeyValue | None:
-    """Build a Firestore-backed OAuth state store from env, or return None.
-
-    OAuth state (DCR client registrations, in-flight auth transactions,
-    refresh-token metadata) defaults to FastMCP's per-container file store,
-    which is wiped on every Cloud Run revision. Pass the returned store as
-    ``client_storage`` to :func:`make_auth` to survive redeploys.
-
-    Env vars:
-        ``LAW_TOOLS_CORE_OAUTH_FIRESTORE_PROJECT`` (required to enable)
-            GCP project hosting the Firestore database. Presence of this
-            var is the on/off switch — leave unset for stdio / local dev.
-        ``LAW_TOOLS_CORE_OAUTH_FIRESTORE_COLLECTION`` (default: ``mcp_oauth_clients``)
-            Collection name. Namespace per deployment so two MCP servers
-            sharing a Firestore project don't collide on DCR client IDs.
-        ``LAW_TOOLS_CORE_OAUTH_FIRESTORE_DATABASE`` (default: ``(default)``)
-            Firestore database name; rarely needs overriding.
-
-    Auth uses Application Default Credentials, which Cloud Run supplies via
-    the attached service account. Grant ``roles/datastore.user`` to that SA.
-
-    Returns:
-        Configured :class:`AsyncKeyValue` or ``None`` if the project env
-        var is not set.
-    """
-    project = _env.get("OAUTH_FIRESTORE_PROJECT")
-    if not project:
-        return None
-    # Lazy import: the firestore extra is optional and only required in
-    # deployments that actually wire this in.
-    from key_value.aio.stores.firestore import FirestoreStore
-
-    collection = _env.get("OAUTH_FIRESTORE_COLLECTION") or "mcp_oauth_clients"
-    database = _env.get("OAUTH_FIRESTORE_DATABASE") or None
-    return FirestoreStore(
-        project=project,
-        database=database,
-        default_collection=collection,
-    )
 
 
 def make_auth(

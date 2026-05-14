@@ -20,6 +20,124 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   "actually not found." Removes the dead `if patent is None` branches in
   `download_patent_pdf` and `google_patents.api.fetch`.
 
+## [0.12.0] — 2026-05-14
+
+### Added
+
+- **US Copyright Office connector** (`patent_client_agents.copyright`).
+  Read-only search over the Copyright Public Records System
+  (`publicrecords.copyright.gov`) — registrations (post‑1978 + digitized
+  card catalog) and recorded documents (transfers, assignments,
+  licenses). `CopyrightClient` exposes `search`, `search_by_title`,
+  `search_by_name`, `get_record`. Public API, no auth. Requires HTTP/2 —
+  the new `BaseAsyncClient.HTTP2` class attribute handles it
+  automatically. MCP tools: `search_copyright`, `get_copyright_record`.
+- **Federal Circuit (CAFC) connector** (`patent_client_agents.cafc`).
+  Wraps the court's WordPress DataTables API at `cafc.uscourts.gov`,
+  classifies each opinion as patent-related via a keyword `PatentClassifier`
+  (strong indicators, statute references, technical terms — with
+  false-positive filters for "patient care" / "patent leather"), and
+  serves opinion PDFs over `pca://cafc/opinions/{appeal_number}`.
+  `CAFCClient` exposes `search`, `search_patent_opinions`, `recent`,
+  `download_pdf`. No auth — the client scrapes the WordPress nonce on
+  session init. MCP tools: `search_cafc_opinions`,
+  `search_cafc_patent_opinions`, `download_cafc_pdf`.
+- **USITC connector** (`patent_client_agents.usitc`). Four sub-clients
+  in one module: `EdisClient` (Section 337 patent enforcement
+  investigations, dockets, and attachments — needs `USITC_EDIS_TOKEN`),
+  `DataWebClient` (US import/export trade statistics — needs
+  `USITC_DATAWEB_TOKEN`), `HtsClient` (Harmonized Tariff Schedule —
+  public), `IdsClient` (Intellectual-property investigation index —
+  public). MCP tools: `search_usitc_investigations`,
+  `search_usitc_documents`, `list_usitc_attachments`,
+  `download_usitc_attachment`, `download_usitc_investigation_documents`,
+  `search_hts_tariffs`, `run_dataweb_report`, `list_ids_investigations`.
+  EDIS attachments are addressable as
+  `pca://usitc/documents/{doc_id}/attachments/{att_id}`.
+- **USPTO Trademark Search (TESS) connector**
+  (`patent_client_agents.uspto_tmsearch`). Wraps the TESS Elasticsearch
+  backend behind AWS WAF at `tmsearch.uspto.gov`. `TmsearchClient`
+  exposes `search`, `search_wordmark`, `search_owner`,
+  `search_goods_services`, `get_by_serial`, `get_by_registration`,
+  `search_all` (auto-paginating). Requires the new `[tmsearch]` optional
+  extra (`curl_cffi` + `playwright`) for in-process WAF-token minting,
+  OR a bring-your-own token via `PCA_WAF_TOKEN_JSON` / `PCA_WAF_TOKEN_PATH`.
+  MCP tools: `search_trademarks`, `get_trademark` (now on PCA's
+  `trademarks_mcp` alongside TSDR / TMEP / trademark assignments).
+- **`http2` parameter on `BaseAsyncClient`**. Sub-classes can opt in via
+  the `HTTP2: bool = True` class attribute (used by `CopyrightClient`)
+  or pass `http2=True` per-instance. Wired through
+  `build_cached_http_client` to httpx. h2 is already in PCA's
+  dependencies for this purpose.
+- **Catalog + skill docs** for copyright, cafc, usitc, uspto_tmsearch:
+  three surfaces each (`docs/api/<name>.md`,
+  `src/patent_client_agents/catalog/sources/<name>.md`,
+  `src/patent_client_agents/skills/ip_research/references/<name>.md`).
+  `mkdocs.yml` nav and the `ip_research` skill's routing table are
+  updated.
+- **UPC decisions-and-orders connector**
+  (`patent_client_agents.upc_decisions`). Parses the Drupal listing at
+  `unifiedpatentcourt.org/.../decisions-and-orders` into typed rows —
+  canonical case IDs (`UPC_CFI_<n>/<yyyy>`, `UPC_CoA_<n>/<yyyy>`,
+  `ACT_<n>/<yyyy>` — hyphenated variants normalized), court, type of
+  action, parties, and direct PDF/A URLs. Per-decision detail pages
+  sit behind Cloudflare's interactive challenge, but every needed
+  field is already in the listing row and the PDF binaries are
+  unchallenged, so the harvester reads only the listing.
+  `UpcDecisionsClient` exposes `search`, `get_decision` (by case ID),
+  `list_divisions`, `list_languages`, `download_pdf`. Public, no
+  auth. MCP tools: `search_upc_decisions`, `get_upc_decision`,
+  `list_upc_divisions`, `list_upc_languages`.
+- **UPC statutes corpus**
+  (`patent_client_agents.upc_statutes`). SQLite/FTS5 corpus over the
+  Unified Patent Court Agreement (including Statute Annex I), the
+  consolidated Rules of Procedure, and the consolidated Table of
+  Court Fees and Recoverable Costs — each mirrored in English,
+  French, and German. Mirrors the `mpep` / `tmep` shape: the wheel
+  ships the builder
+  (`patent-client-agents-build-upc-statutes-corpus`), runtime reads
+  from `~/.cache/patent_client_agents/upc_statutes.db` (override via
+  `UPC_STATUTES_CORPUS_PATH`). MCP tools: `search_upc_statutes`,
+  `get_upc_section`, `list_upc_instruments`. Per-Article / per-Rule
+  retrieval is on the v0.13.0 roadmap; v0.12.0 supports full-instrument
+  fetch plus FTS5 search (`Article 33`, `opt-out`).
+
+### Changed
+
+- **Public MCP server is now deploy-agnostic.**
+  `patent_client_agents.mcp.server` no longer hard-codes the hosted URL
+  (`_HOSTED_BASE_URL = "https://mcp.patentclient.com"` removed) or
+  passes a Firestore-backed OAuth `client_storage`. The stdio entry
+  point uses `make_auth()` with env-only URL resolution. Deployments
+  that need persistent OAuth/DCR state build their own server in a
+  separate deploy package (see `patent-mcp-deploy`).
+- **WAF token env vars renamed.** `PCA_WAF_TOKEN_JSON` /
+  `PCA_WAF_TOKEN_PATH` are the canonical names; the legacy
+  `LAW_TOOLS_WAF_TOKEN_JSON` / `WAF_TOKEN_PATH` are honored as
+  fallbacks for one release. Default cache path moves from
+  `~/.law-tools/waf_token.json` to
+  `~/.cache/patent_client_agents/waf_token.json`; the legacy path is
+  still read as a fallback when neither env nor an explicit path is
+  supplied.
+
+### Removed
+
+- `make_firestore_client_storage` removed from
+  `law_tools_core.mcp.auth` (and from the `law_tools_core.mcp`
+  re-exports). The helper was deploy-only — `patent-mcp-deploy`
+  constructs its own `FirestoreStore` directly, and the BB-internal
+  `law-tools` server now has the helper inlined locally
+  (`law_tools.mcp.firestore_storage`). The public PCA wheel has zero
+  GCP dependencies.
+
+### Migrated from `law-tools`
+
+The CAFC, USITC, USPTO Trademark Search, and Copyright connectors
+previously lived in the BB-internal `law-tools` package. They are now
+part of the public `patent-client-agents` wheel. `law_tools.{cafc,
+usitc, uspto_tmsearch, copyright}` remain as re-export shims for one
+release so existing internal callers don't break.
+
 ## [0.10.0] — 2026-05-13
 
 ### Added
