@@ -2,7 +2,11 @@
 
 The `[mcp]` extra ships a ready-to-run stdio MCP server that exposes
 all patent and IP tools to any MCP-speaking client — Claude Code,
-Claude Desktop, Cursor, Cline, CoWork, or a homegrown fastmcp Client.
+Claude Desktop, OpenAI Codex CLI, Google Gemini CLI, Cursor, Windsurf,
+Cline, Zed, Continue.dev, VS Code Copilot Chat, JetBrains AI Assistant,
+CoWork, or a homegrown fastmcp Client. See
+[installation.md §5](installation.md#5-stdio-mcp-from-any-mcp-client)
+for per-client config snippets.
 
 ## Install
 
@@ -27,10 +31,15 @@ python -m patent_client_agents.mcp.server
 fastmcp run patent_client_agents.mcp.server:mcp
 ```
 
-## Claude Code configuration
+## MCP client configuration (example: Claude Code)
 
-Add one of the following blocks to your MCP config (`.mcp.json` at the
-project root or `~/.claude.json` for user-scope):
+Per-client config locations and exact syntax for Codex CLI, Gemini CLI,
+Cursor, Windsurf, Cline, Zed, Continue.dev, VS Code Copilot Chat,
+JetBrains AI, and Claude Desktop are in
+[installation.md §5](installation.md#5-stdio-mcp-from-any-mcp-client).
+For Claude Code specifically — add one of the following blocks to your
+MCP config (`.mcp.json` at the project root or `~/.claude.json` for
+user-scope):
 
 ```json
 {
@@ -66,7 +75,7 @@ EPO OPS, and JPO all consume credentials from env (see each connector's
 
 ## Tools exposed
 
-The server mounts `ip_mcp`, which composes 15 sub-servers (always-on
+The server mounts `ip_mcp`, which composes 16 sub-servers (always-on
 plus env-gated):
 
 | Sub-server | Tools | Download path (HTTPS + `pca://`) |
@@ -83,10 +92,11 @@ plus env-gated):
 | `Copyright` (US Copyright Office — registrations + recorded documents) | 2 | — |
 | `USITC` (EDIS Section 337 — needs `USITC_EDIS_TOKEN` for downloads; DataWeb — needs `USITC_DATAWEB_TOKEN`; HTS; IDS) | 8 | `usitc/documents/{doc_id}/attachments/{att_id}` |
 | `UPC` (Unified Patent Court decisions feed + UPCA/RoP/Fees corpus) | 7 | — |
+| `EPO Statutes & Case Law` (EPC + Implementing Regulations; Guidelines for Examination; PCT-EPO Guidelines; UP Guidelines; Case Law of the Boards of Appeal "white book") | 10 | — |
 | `CanLII` (env-gated on `CANLII_API_KEY`) | 0 / 9 | — |
 | `WIPO Lex` | 2 | — |
 | `EUIPO` (env-gated on `EUIPO_CLIENT_ID` + `EUIPO_CLIENT_SECRET`) | 0 / 4 | — |
-| **Total** | **73 default; +12 JPO / +9 CanLII / +4 EUIPO with credentials** | |
+| **Total** | **86 default; +12 JPO / +9 CanLII / +4 EUIPO with credentials** | |
 
 ## Downloads — two transports
 
@@ -164,7 +174,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Expect 73 tools by default. Counts scale with env-gated connectors:
+Expect 86 tools by default. Counts scale with env-gated connectors:
 +12 JPO when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set, +9 CanLII
 when `CANLII_API_KEY` is set, +4 EUIPO when `EUIPO_CLIENT_ID` +
 `EUIPO_CLIENT_SECRET` are set. Title should be

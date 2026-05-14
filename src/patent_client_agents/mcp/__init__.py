@@ -24,6 +24,8 @@ from .tools.copyright import copyright_mcp
 from .tools.epc import epc_mcp
 from .tools.epo_case_law import epo_case_law_mcp
 from .tools.epo_guidelines import epo_guidelines_mcp
+from .tools.epo_pct_guidelines import epo_pct_guidelines_mcp
+from .tools.epo_up_guidelines import epo_up_guidelines_mcp
 from .tools.euipo import euipo_mcp
 from .tools.international import international_mcp
 from .tools.mpep import mpep_mcp
@@ -66,6 +68,8 @@ ip_mcp.mount(trademarks_mcp)
 ip_mcp.mount(mpep_mcp)
 ip_mcp.mount(ukipo_mopp_mcp)
 ip_mcp.mount(epo_guidelines_mcp)
+ip_mcp.mount(epo_pct_guidelines_mcp)
+ip_mcp.mount(epo_up_guidelines_mcp)
 ip_mcp.mount(epc_mcp)
 ip_mcp.mount(epo_case_law_mcp)
 ip_mcp.mount(cafc_mcp)

@@ -35,7 +35,15 @@ verified Google account works. Usage is rate-limited per account
 This is a public demo — don't send confidential material through it.
 See the [Terms of Use](https://mcp.patentclient.com/terms).
 
-## Or install locally (Claude Code plugin)
+## Or install locally
+
+`patent-client-agents` is an MCP server, so it works with **any
+MCP-speaking client** — Claude Code, OpenAI Codex CLI, Google Gemini
+CLI, Cursor, Windsurf, Cline, Zed, Continue.dev, VS Code Copilot Chat,
+JetBrains AI Assistant, Claude Desktop, ChatGPT (remote URL), and
+Replit Agent (remote URL). Three install paths cover everything:
+
+### Path A — Claude Code plugin (one-liner)
 
 ```
 /plugin marketplace add parkerhancock/patent-client-agents
@@ -43,13 +51,157 @@ See the [Terms of Use](https://mcp.patentclient.com/terms).
 /reload-plugins
 ```
 
-See [docs.patentclient.com/installation](https://docs.patentclient.com/installation/) for all seven install modes.
+### Path B — Any other MCP client
+
+```bash
+pip install 'patent-client-agents[mcp]'
+```
+
+This puts `patent-client-agents-mcp` on PATH. Point your client's MCP
+config at it:
+
+<details>
+<summary><strong>OpenAI Codex CLI</strong> — <code>~/.codex/config.toml</code></summary>
+
+```toml
+[mcp_servers.patent-client-agents]
+command = "patent-client-agents-mcp"
+env = { USPTO_ODP_API_KEY = "…" }
+```
+
+Or use the CLI: `codex mcp add patent-client-agents --env USPTO_ODP_API_KEY=… -- patent-client-agents-mcp`.
+</details>
+
+<details>
+<summary><strong>Google Gemini CLI</strong> — <code>~/.gemini/settings.json</code></summary>
+
+```json
+{
+  "mcpServers": {
+    "patent-client-agents": {
+      "command": "patent-client-agents-mcp",
+      "env": { "USPTO_ODP_API_KEY": "$USPTO_ODP_API_KEY" }
+    }
+  }
+}
+```
+
+Gemini interpolates `$VAR` / `${VAR}` from the parent shell (note: `.env`
+files in the project root are *not* loaded — variables must be in the
+actual environment).
+</details>
+
+<details>
+<summary><strong>Cursor / Windsurf / Cline / Claude Desktop / JetBrains AI</strong> — same JSON shape</summary>
+
+All five use the same `mcpServers` schema; only the config file path differs:
+
+| Client | Config file |
+|---|---|
+| Cursor | `~/.cursor/mcp.json` (or project-level `.cursor/mcp.json`) |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` (uses `serverUrl` instead of `url` for remote) |
+| Cline | extension UI → "Configure MCP Servers" |
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS), `%APPDATA%\Claude\claude_desktop_config.json` (Windows) |
+| JetBrains AI Assistant | Settings → Tools → AI Assistant → MCP → Add |
+
+```json
+{
+  "mcpServers": {
+    "patent-client-agents": {
+      "command": "patent-client-agents-mcp",
+      "env": { "USPTO_ODP_API_KEY": "…" }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>VS Code Copilot Chat (Agent mode)</strong> — <code>.vscode/mcp.json</code></summary>
+
+VS Code uses `servers` (not `mcpServers`) and requires a `type` field:
+
+```json
+{
+  "servers": {
+    "patent-client-agents": {
+      "type": "stdio",
+      "command": "patent-client-agents-mcp",
+      "env": { "USPTO_ODP_API_KEY": "${input:uspto-odp-key}" }
+    }
+  },
+  "inputs": [
+    { "id": "uspto-odp-key", "type": "promptString", "description": "USPTO ODP API key", "password": true }
+  ]
+}
+```
+
+Tools only appear in Copilot's **Agent mode**, not in Ask or Edit.
+</details>
+
+<details>
+<summary><strong>Zed</strong> — <code>~/.config/zed/settings.json</code></summary>
+
+Zed calls them "context servers":
+
+```json
+{
+  "context_servers": {
+    "patent-client-agents": {
+      "source": "custom",
+      "command": "patent-client-agents-mcp",
+      "env": { "USPTO_ODP_API_KEY": "…" }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><strong>Continue.dev</strong> — <code>~/.continue/config.yaml</code></summary>
+
+YAML, with `${{ secrets.NAME }}` for secret references:
+
+```yaml
+mcpServers:
+  - name: patent-client-agents
+    command: patent-client-agents-mcp
+    env:
+      USPTO_ODP_API_KEY: ${{ secrets.USPTO_ODP_API_KEY }}
+```
+</details>
+
+<details>
+<summary><strong>ChatGPT Apps / Replit Agent</strong> (remote URL only)</summary>
+
+These clients are cloud-hosted and can't spawn local subprocesses. Either
+point them at the hosted demo via their UI:
+
+```
+https://mcp.patentclient.com/mcp
+```
+
+…or self-host `patent-client-agents-mcp` behind an HTTPS endpoint. For
+ChatGPT: Settings → Connectors → enable Developer mode → Create. For
+Replit: Integrations → MCP Servers for Replit Agent → Add MCP server.
+</details>
+
+### Path C — Python library
+
+```bash
+pip install patent-client-agents
+```
+
+Direct async use from your own Python — no MCP runtime needed.
+
+See [docs.patentclient.com/installation](https://docs.patentclient.com/installation/)
+for the full per-client reference, remote-MCP setup, and corpus-build steps.
 
 ---
 
 ## What You Can Do
 
-Ask Claude to research patents and trademarks in natural language:
+Ask your agent to research patents and trademarks in natural language:
 
 > "Find [Company]'s recent battery patents and summarize the key innovations"
 
@@ -63,7 +215,7 @@ Ask Claude to research patents and trademarks in natural language:
 
 > "Search the TMEP for guidance on Section 2(d) likelihood-of-confusion refusals"
 
-`patent-client-agents` connects Claude Code to USPTO (patents, trademark search via TESS, and trademark prosecution), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO — plus the Federal Circuit, US International Trade Commission (Section 337), the US Copyright Office, and the Unified Patent Court (decisions feed + statutes corpus) for the litigation and adjacent-IP slice. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry those credentials, so those tool families don't appear there.
+`patent-client-agents` connects your MCP-speaking agent to USPTO (patents, trademark search via TESS, and trademark prosecution), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO — plus the Federal Circuit, US International Trade Commission (Section 337), the US Copyright Office, and the Unified Patent Court (decisions feed + statutes corpus) for the litigation and adjacent-IP slice. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry those credentials, so those tool families don't appear there.
 
 ## Coverage
 
@@ -89,33 +241,16 @@ Ask Claude to research patents and trademarks in natural language:
 | **USITC** | EDIS (Section 337 patent enforcement investigations + dockets + attachments), DataWeb (US trade statistics), HTS (Harmonized Tariff Schedule), IDS (IP investigation index) — *EDIS and DataWeb need free user-minted tokens; HTS and IDS are public* |
 | **US Copyright Office** | Copyright registrations (post‑1978 + digitized card catalog) and recorded documents (transfers, assignments, licenses) via the Public Records System — *public, no auth* |
 | **UPC (Unified Patent Court)** | Decisions-and-orders feed (CFI + CoA + Central / Local / Regional Divisions, with canonical case IDs and PDF/A URLs) plus a corpus-backed view of the UPC Agreement, consolidated Rules of Procedure, and Table of Court Fees in EN/FR/DE — *public, no auth; statutes run against a local SQLite/FTS5 snapshot built by `patent-client-agents-build-upc-statutes-corpus`* |
+| **EPO Statutes & Case Law** | The five canonical EPO legal corpora: **EPC** (180 Articles + 176 Implementing Regulations), **Guidelines for Examination** (~1,800 sections), **PCT-EPO Guidelines** (~750 sections — applies when the EPO acts as ISA/IPEA), **Unitary Patent Guidelines** (~140 sections — UP opt-in, fees, renewals), and **Case Law of the Boards of Appeal** "white book" (~2,600 sections). Each corpus accepts native citation forms (`Art. 54`, `R. 71`, `G-II, 3.1`, `I.A.1`, dotted `1.2.1`). All five run against local SQLite/FTS5 snapshots built by `patent-client-agents-build-{epc,guidelines,pct-guidelines,up-guidelines,caselaw}-corpus`. |
 
 All sources include automatic caching (hishel + SQLite with WAL), rate limiting,
 and retry logic via `law_tools_core`.
 
-## Install
+## API keys
 
-For Claude Code users — run these inside a Claude Code session:
-
-```
-/plugin marketplace add parkerhancock/patent-client-agents
-/plugin install patent-client-agents@patent-client-agents
-/reload-plugins
-```
-
-Three slash commands (not shell). You get 73 patent + IP MCP tools
-exposed to the agent by default, plus additional families that
-register when their credentials are present: +12 JPO, +9 CanLII,
-+4 EUIPO. Prereq:
-[uv](https://docs.astral.sh/uv/) on PATH — the MCP server runs under
-`uvx` so you don't `pip install` anything yourself.
-
-**Seven install modes are documented at [docs.patentclient.com/installation](https://docs.patentclient.com/installation/)**
-— Python library, Python+MCP runtime, Claude Code plugin, dev symlink, stdio
-MCP, Cowork remote MCP, and generic remote MCP. Pick the one that matches
-how you'll use it.
-
-### API keys
+86 patent + IP MCP tools are exposed by default, plus additional
+families that register when their credentials are present: +12 JPO,
++9 CanLII, +4 EUIPO.
 
 | Variable | Source | Required | How to get |
 |----------|--------|----------|------------|
@@ -329,7 +464,9 @@ No API key required, but requires a one-time corpus build —
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                         Claude Code Agent                             │
+│     Any MCP-speaking agent — Claude Code, Codex CLI, Gemini CLI,     │
+│     Cursor, Windsurf, Cline, Zed, Continue, Copilot Chat, JetBrains, │
+│     Claude Desktop, ChatGPT (remote), Replit Agent (remote)          │
 ├──────────────────────────────────────────────────────────────────────┤
 │                   patent-client-agents MCP Server                     │
 │                  (Natural language → API calls)                       │

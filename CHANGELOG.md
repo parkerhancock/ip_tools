@@ -20,6 +20,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   "actually not found." Removes the dead `if patent is None` branches in
   `download_patent_pdf` and `google_patents.api.fetch`.
 
+## [0.17.0] — 2026-05-14 (unreleased)
+
+### Added
+
+- **EPO PCT-EPO Guidelines connector**
+  (``patent_client_agents.epo_pct_guidelines``). The Guidelines that
+  apply when the EPO acts as ISA / IPEA / RO under the Patent
+  Cooperation Treaty. Same URL shape as the EPC Guidelines
+  (``a_i.html``, ``g_ii_3_1.html``); cloned scraper + citation parser.
+  2024 edition: **756 leaf sections, ~9.7 MB**.
+  - ``PctGuidelinesClient.search`` + ``.get_section`` with citation
+    forms ``G-II, 3.1`` / ``g_ii_3_1`` / full URL.
+  - MCP tools: ``search_epo_pct_guidelines`` + ``get_epo_pct_guidelines_section``.
+- **EPO Unitary Patent (UP) Guidelines connector**
+  (``patent_client_agents.epo_up_guidelines``). Guidelines for the
+  Unitary Patent regime (opt-in, fees, renewals, UPP register).
+  Different URL shape than EPC/PCT Guidelines — flat ``section_N_M_P``
+  matching dotted ``N.M.P`` citation form. Pages don't have ``<main>``;
+  custom extractor walks h1 → ``content-wrapper``. 2026 edition:
+  **142 leaf sections, ~1.4 MB**.
+  - ``UpGuidelinesClient.search`` + ``.get_section`` with citation
+    forms ``1.2.1`` / ``Section 1.2.1`` / ``§ 1.2.1`` / ``section_1_2_1``.
+  - MCP tools: ``search_epo_up_guidelines`` + ``get_epo_up_guidelines_section``.
+- ``patent-client-agents-build-pct-guidelines-corpus`` and
+  ``patent-client-agents-build-up-guidelines-corpus`` CLIs ship with
+  the wheel.
+
+### EPO completeness
+
+This release brings the EPO static-corpus coverage to a defensible
+"complete" set:
+
+| Source | Module | Sections | Size |
+|---|---|---|---|
+| EPC Convention + Implementing Regulations | ``epc`` | 356 | 13 MB |
+| EPO Guidelines for Examination (EPC) | ``epo_guidelines`` | 1,771 | 26 MB |
+| EPO PCT-EPO Guidelines | ``epo_pct_guidelines`` (new) | 756 | 9.7 MB |
+| EPO UP Guidelines | ``epo_up_guidelines`` (new) | 142 | 1.4 MB |
+| Case Law of the Boards of Appeal ("white book") | ``epo_case_law`` | 2,631 | 111 MB |
+
+**Still missing** for true completeness (queued for later releases):
+
+- **RPBA** (Rules of Procedure of the Boards of Appeal) — single
+  HTML page; could be added as a one-row corpus or split via internal
+  anchors. Deferred.
+- **Official Journal of the EPO (OJ EPO)** — 7,693 URLs in the legal
+  sitemap; live monthly publication. Different update pattern than
+  the static corpora; deferred to its own release.
+- **Boards of Appeal raw decisions database** (G/T/D cases by number)
+  — live search interface, not a static corpus.
+- **National Law Relating to the EPC** — annual EPO publication
+  tracking member-state implementations. URL needs investigation.
+
+### Tool count
+
+- Default surface: 80 → **84** (4 new tools across PCT + UP Guidelines).
+
 ## [0.16.0] — 2026-05-14 (unreleased)
 
 ### Added
