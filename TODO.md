@@ -4,6 +4,39 @@ Things flagged but not yet done. Sorted by how much they'd hurt if we
 left them unchecked. Add items as you find them; check them off in PRs
 that fix them.
 
+## External blockers (waiting on someone)
+
+Connector work blocked on a response from an outside party (API key
+issuance, support ticket, ToS clarification). Check periodically —
+when these clear, the downstream task usually unblocks in days, not
+weeks.
+
+- [ ] **UPC CMS Public Read API enrollment.** Awaiting a response from
+      UPC IT support on how external developers obtain OAuth2 client
+      credentials for the read-only Public API at
+      `api-prod.unified-patent-court.org`. Auth scheme is documented
+      (OAuth2 + Bearer JWT, token endpoint at 1800s lifetime) but the
+      enrollment path is documented nowhere on UPC public pages —
+      probes show the host rejects TLS handshakes from arbitrary
+      clients before any HTTP layer, suggesting an IP allowlist
+      and/or mTLS in front of OAuth. Investigation summary in
+      `research/connectors/upc.md` §14; verbatim Athena-form ticket
+      body in §14.6 of that file. **Ticket not yet submitted** —
+      Athena form's `formcreator` plugin has aggressive conditional
+      reveals + CAPTCHA that made automated submission flaky, so it
+      stays a manual paste-and-send. Blocks task: `upc_cms` connector
+      build (v0.12.0 target). Last checked: 2026-05-13.
+
+- [ ] **IP Australia developer API key.** Awaiting issuance of a
+      client_id / client_secret pair from IP Australia's developer
+      portal (`portal.api.ipaustralia.gov.au`) to access the
+      OAuth2-secured Patents / Trade Marks / Designs Search APIs.
+      Blocks task: `ip_australia` connector build, which is otherwise
+      the highest-leverage Tier-1+2 connector on the roadmap
+      (four IP rights from one OAuth stack + weekly CC-BY bulk dumps
+      via IP RAPID — see `research/sprint_1.md` §"Connector 1:
+      `ip_australia`"). Last checked: 2026-05-13.
+
 ## User-decision / enablement
 
 - [ ] **Publish `patent-client-agents` to PyPI.** Install-from-GitHub works fine and

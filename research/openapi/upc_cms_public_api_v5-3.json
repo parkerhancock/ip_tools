@@ -1,0 +1,2069 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "Version 5 of Public Api to access UPC CMS data",
+    "version" : "v5",
+    "title" : "UPC CMS Public API V5",
+    "contact" : {
+      "name" : "UPC info",
+      "url" : "http://www.netserv.it",
+      "email" : "upc-info@netserv.it"
+    }
+  },
+  "host" : "upcbe",
+  "basePath" : "/api",
+  "schemes" : [ "http" ],
+  "paths" : {
+    "/v5/caseTypes" : {
+      "get" : {
+        "summary" : "Search case types",
+        "description" : "Search the cases types ",
+        "operationId" : "caseTypes",
+        "produces" : [ "application/json" ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/cases" : {
+      "get" : {
+        "summary" : "Search cases",
+        "description" : "Search the cases inside the CMS",
+        "operationId" : "search",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "number",
+          "in" : "query",
+          "description" : "number of the case",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "year",
+          "in" : "query",
+          "description" : "year of the case",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "type",
+          "in" : "query",
+          "description" : "type of the case ( as /types api returned list",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "modifiedSince",
+          "in" : "query",
+          "description" : "modified since",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "receiptDateFrom",
+          "in" : "query",
+          "description" : "formal receipt date from",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "receiptDateTo",
+          "in" : "query",
+          "description" : "formal receipt date to",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "patentNumber",
+          "in" : "query",
+          "description" : "number of the patent",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "decisionNumber",
+          "in" : "query",
+          "description" : "number of the decision",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "decisionFullText",
+          "in" : "query",
+          "description" : "decision full text search",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "language",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "judge",
+          "in" : "query",
+          "description" : "judge",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "partyName",
+          "in" : "query",
+          "description" : "partyName",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "partyType",
+          "in" : "query",
+          "description" : "partyType",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "partyDescription",
+          "in" : "query",
+          "description" : "partyDescription",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "representative",
+          "in" : "query",
+          "description" : "representative",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "pageNumber",
+          "in" : "query",
+          "description" : "page number. Start from 1. Default is 1.",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "description" : "number of result for page. Default is 10. Can be max 100.",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "creationDate",
+          "in" : "query",
+          "description" : "creation date",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/Case"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/documents/download/{id}" : {
+      "get" : {
+        "summary" : "Download a document",
+        "description" : "Download a document",
+        "operationId" : "download",
+        "produces" : [ "application/octet-stream" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "description" : "id of the document",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "successful operation"
+          }
+        }
+      }
+    },
+    "/v5/documents/{caseType}/{number}/{year}" : {
+      "get" : {
+        "summary" : "Search all documents of a specific case",
+        "description" : "Search the documents of a specific case",
+        "operationId" : "search",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "caseType",
+          "in" : "path",
+          "description" : "case type",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "number",
+          "in" : "path",
+          "description" : "number of the case",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "year",
+          "in" : "path",
+          "description" : "year of the case",
+          "required" : true,
+          "type" : "string"
+        }, {
+          "name" : "onlyCover",
+          "in" : "query",
+          "description" : "get only cover documents",
+          "required" : false,
+          "type" : "boolean"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/Document"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/languages" : {
+      "get" : {
+        "summary" : "List of languages",
+        "description" : "List of languages",
+        "operationId" : "languages",
+        "produces" : [ "application/json" ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/opt-out/list" : {
+      "get" : {
+        "summary" : "OptOut related cases to a patent number",
+        "description" : "Returns OptOut related cases to a specific patent number",
+        "operationId" : "search",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "patentNumber",
+          "in" : "query",
+          "description" : "patentNumber",
+          "required" : true,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/OptOutResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/opt-out/patentStatus" : {
+      "get" : {
+        "summary" : "Check if a patent is OptedOut or Withdrawn",
+        "description" : "Check if a patent is OptedOut or Withdrawn",
+        "operationId" : "getPatentStatus",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "patentNumber",
+          "in" : "query",
+          "description" : "patentNumber",
+          "required" : false,
+          "type" : "String"
+        }, {
+          "name" : "optOutStatusType",
+          "in" : "query",
+          "description" : "optOutStatusType",
+          "required" : false,
+          "type" : "String"
+        }, {
+          "name" : "pageNumber",
+          "in" : "query",
+          "description" : "Page number. Start from 1. Default is 1.",
+          "required" : false,
+          "type" : "Integer",
+          "default" : "1",
+          "minimum" : 1,
+          "format" : "int32"
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "description" : "Number of results for page. Default is 10. Can be max 100.",
+          "required" : false,
+          "type" : "Integer",
+          "default" : "10",
+          "format" : "int32"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/PaginatedResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/opt-out/statusTypes" : {
+      "get" : {
+        "summary" : "Search status types",
+        "description" : "Search OPT-OUT statuses in the CMS",
+        "operationId" : "getStatusTypes",
+        "produces" : [ "application/json" ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/representatives" : {
+      "get" : {
+        "summary" : "Search representatives",
+        "description" : "Search the representatives inside the CMS",
+        "operationId" : "search",
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "name" : "name",
+          "in" : "query",
+          "description" : "name",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "surname",
+          "in" : "query",
+          "description" : "surname",
+          "required" : false,
+          "type" : "string"
+        }, {
+          "name" : "representationEntitlement",
+          "in" : "query",
+          "description" : "representationEntitlement",
+          "required" : false,
+          "type" : "string"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/EpaRepresentative"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v5/representatives/representationEntitlements" : {
+      "get" : {
+        "summary" : "Search Representation Entitlement Type",
+        "description" : "Search the Representation Entitlement Type inside the CMS",
+        "operationId" : "representationEntitlements",
+        "produces" : [ "application/json" ],
+        "responses" : {
+          "200" : {
+            "description" : "successful operation",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "Case" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "dfa" : {
+          "$ref" : "#/definitions/Dfa"
+        },
+        "officialCaseNumber" : {
+          "type" : "string"
+        },
+        "receiptDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "firstLodgeDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "actorId" : {
+          "type" : "string"
+        },
+        "clerkVisible" : {
+          "type" : "boolean"
+        },
+        "dismissalDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "idRelatedCase" : {
+          "type" : "string"
+        },
+        "orderClaims" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/OrderClaim"
+          }
+        },
+        "orders" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Order"
+          }
+        },
+        "upcNumber" : {
+          "type" : "string"
+        },
+        "officialUpcNumber" : {
+          "type" : "string"
+        },
+        "idRelevantCase" : {
+          "type" : "string"
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/CaseSearch"
+        },
+        "viewDto" : {
+          "$ref" : "#/definitions/CaseViewDto"
+        },
+        "parts" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/PartAssignmentToCase"
+          }
+        },
+        "caseType" : {
+          "type" : "string",
+          "enum" : [ "INFRINGEMENT_ACTION", "NON_INFRINGEMENT", "COMPENSATION_FOR_LICENSE", "REVOCATION_ACTION", "ACTION_AGAINST_EPO_DECISION_R97", "DISJOIN_CASE", "ACTION_AGAINST_EPO_DECISION_R88", "COUNTERCLAIM_INFRINGEMENT", "COUNTERCLAIM_REVOCATION", "DECISION_BY_DEFAULT", "ORDER_FOR_WITHDRAWAL_OF_LEGAL_AID", "GENERIC_ORDER", "RULE_264_ORDER", "APPEAL_220_1", "APPEAL_220_2", "APPEAL_220_3", "APPEAL_381", "APPEAL_221", "APPEAL_237", "APPLICATION_ROP_234", "APPLICATION_ROP_223", "APPOINTMENT_COURT_EXPERT", "APPLICATION_ROP_33", "APPLICATION_ROP_333", "APPOINTMENT_OF_COURT_EXPERT_PURSUANT_ROP_196_4", "EXPERT_REPORT_TO_ROP185_8", "APPEAL_AGAINST_EPO_DECISION_ROP97_5", "ACK_REFERRAL_FROM_APPEAL", "OPT_OUT", "WITHDRAW", "WITHDRAWAL_OF_OO_5_9", "AMEND_DOCUMENT", "REGENERATE_DOCUMENT", "DEFAULT_DECISION", "LEGAL_AID", "LEGAL_AID_WITHDRAWL", "REG_REPRESENTATIVE", "GENERIC", "APPLICATION_ROP262_2", "APPLICATION_ROP262_1_b", "APPLICATION_ROP262A", "APPLICATION_ROP262_OTHER_PARTY", "APPLICATION_ROP262_3", "APP_OF_INTENTION_TO_ENFOCE", "APPLICATION_ROP305", "REMOVE_CONFIDENTIALITY", "REGISTER_PHYSICAL_EVIDENCE", "SIMULTANEOUS_INTERPRETATION", "HEARING", "CORRECTION_OF_OPT_OUT", "CORRECTION_OF_WITHDRAW", "MODIFY_PANEL", "REMOVE_REPRESENTATIVE_FROM_LIST", "NO_TRANSLATION", "REQUEST_TO_THE_REGISTRAR_37_1", "PRELIMINARY_OBJECTION", "AMEND_PATENT_APPLICATION", "TRANSLATION_OF_AMEND_APPLICATION", "EPO_CASES", "EPO_CASE_ACCELERATION", "PROTECTIVE_LETTER", "EXTEND_PROTECTIVE_LETTER", "EPO_INTERLOCUTORY_REVISION", "EPO_REQUEST_COMMENT_R88", "WITHDRAWAL", "PROVISIONAL_MEASURES_R_206", "SIGNUP", "LOST_SMART_CARD", "CHANGE_SMART_CARD", "REFER_TO_FULL_COURT", "DETERMINATION_OF_DAMAGES", "APP_CHANGE_REP_R_293", "APPLICATION_CEASE_BE_REP_R_294", "SUBSTITUTE_REPRESENTATIVE", "ADD_PARTY", "ADD_MISSING_PARTY", "REMOVE_PARTY", "SUBSTITUTE_PARTY", "PROVISIONAL_MEASURES_R_192", "PROVISIONAL_MEASURES_R_199", "PROVISIONAL_MEASURES_R_200", "REMOVAL_OPTOUT", "REMOVAL_WITHDRAWAL", "REVIEW_REGISTRAR_DECISION", "PETITION_FOR_REVIEW", "REQUEST_REVOKE_ORDER", "REQUEST_REVIEW_ORDER", "ORDER_COMMUNICATE_INFORMATION", "URGENT_ORDER_WITHOUT_FORMALITIES", "ORDER_PRODUCE_EVIDENCE", "JOIN_CASE", "START_ORDER_WITH_GROUNDS", "HEADNOTE_AND_KEYWORDS", "APPLICATION_ROP_379A", "ACCESS_TO_CASE", "BIFURCATION", "ORDER_185_8", "ORDER_340_2", "ORDER_340_1", "APPLICATION_ROP322", "ORDER_322", "GIVE_USERS_ACCESS_TO_DOCUMENTS", "MANAGE_EXPERT_REPORT_CONFIDENTIALITY_ORDER", "REQUEST_EXPERT_REPORT_CONFIDENTIALITY", "ORDER_ROP_34", "APPLICATION_ROP106", "APPLICATION_ROP115", "APPLICATION_ROP225_E" ]
+        },
+        "patentClaims" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/PatentClaim"
+          }
+        },
+        "caseFamily" : {
+          "type" : "string",
+          "enum" : [ "ACTION", "APPLICATION", "ORDER", "APPEAL", "AUTH" ]
+        },
+        "spcclaims" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/SPCClaim"
+          }
+        },
+        "measures" : {
+          "type" : "boolean"
+        },
+        "oo_Related" : {
+          "type" : "boolean"
+        },
+        "partsAsMap" : {
+          "type" : "object",
+          "additionalProperties" : {
+            "$ref" : "#/definitions/Part"
+          }
+        },
+        "allPatentsNumber" : {
+          "type" : "string"
+        },
+        "documentClaims" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DocumentClaim"
+          }
+        },
+        "listViewPartToRepresentative" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ViewPartToRepresentative"
+          }
+        },
+        "public" : {
+          "type" : "boolean"
+        },
+        "year" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "caseNumber" : {
+          "type" : "string"
+        },
+        "language" : {
+          "type" : "string"
+        },
+        "fullCaseNumber" : {
+          "type" : "string"
+        },
+        "idalfresco" : {
+          "type" : "string"
+        },
+        "idMaster" : {
+          "type" : "string"
+        },
+        "idActiviti" : {
+          "type" : "string"
+        },
+        "closingDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "caseData" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/CaseData"
+          }
+        },
+        "idProcessDefinition" : {
+          "type" : "string"
+        },
+        "processDefinitionCustomName" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CaseData" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "dataKey" : {
+          "type" : "string"
+        },
+        "dataValue" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CaseSearch" : {
+      "type" : "object",
+      "properties" : {
+        "patentNumber" : {
+          "type" : "string"
+        },
+        "modifiedSince" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CaseService" : {
+      "type" : "object",
+      "properties" : {
+        "allActiveAppeal" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Case"
+          }
+        },
+        "availableCaseType" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string",
+            "enum" : [ "INFRINGEMENT_ACTION", "NON_INFRINGEMENT", "COMPENSATION_FOR_LICENSE", "REVOCATION_ACTION", "ACTION_AGAINST_EPO_DECISION_R97", "DISJOIN_CASE", "ACTION_AGAINST_EPO_DECISION_R88", "COUNTERCLAIM_INFRINGEMENT", "COUNTERCLAIM_REVOCATION", "DECISION_BY_DEFAULT", "ORDER_FOR_WITHDRAWAL_OF_LEGAL_AID", "GENERIC_ORDER", "RULE_264_ORDER", "APPEAL_220_1", "APPEAL_220_2", "APPEAL_220_3", "APPEAL_381", "APPEAL_221", "APPEAL_237", "APPLICATION_ROP_234", "APPLICATION_ROP_223", "APPOINTMENT_COURT_EXPERT", "APPLICATION_ROP_33", "APPLICATION_ROP_333", "APPOINTMENT_OF_COURT_EXPERT_PURSUANT_ROP_196_4", "EXPERT_REPORT_TO_ROP185_8", "APPEAL_AGAINST_EPO_DECISION_ROP97_5", "ACK_REFERRAL_FROM_APPEAL", "OPT_OUT", "WITHDRAW", "WITHDRAWAL_OF_OO_5_9", "AMEND_DOCUMENT", "REGENERATE_DOCUMENT", "DEFAULT_DECISION", "LEGAL_AID", "LEGAL_AID_WITHDRAWL", "REG_REPRESENTATIVE", "GENERIC", "APPLICATION_ROP262_2", "APPLICATION_ROP262_1_b", "APPLICATION_ROP262A", "APPLICATION_ROP262_OTHER_PARTY", "APPLICATION_ROP262_3", "APP_OF_INTENTION_TO_ENFOCE", "APPLICATION_ROP305", "REMOVE_CONFIDENTIALITY", "REGISTER_PHYSICAL_EVIDENCE", "SIMULTANEOUS_INTERPRETATION", "HEARING", "CORRECTION_OF_OPT_OUT", "CORRECTION_OF_WITHDRAW", "MODIFY_PANEL", "REMOVE_REPRESENTATIVE_FROM_LIST", "NO_TRANSLATION", "REQUEST_TO_THE_REGISTRAR_37_1", "PRELIMINARY_OBJECTION", "AMEND_PATENT_APPLICATION", "TRANSLATION_OF_AMEND_APPLICATION", "EPO_CASES", "EPO_CASE_ACCELERATION", "PROTECTIVE_LETTER", "EXTEND_PROTECTIVE_LETTER", "EPO_INTERLOCUTORY_REVISION", "EPO_REQUEST_COMMENT_R88", "WITHDRAWAL", "PROVISIONAL_MEASURES_R_206", "SIGNUP", "LOST_SMART_CARD", "CHANGE_SMART_CARD", "REFER_TO_FULL_COURT", "DETERMINATION_OF_DAMAGES", "APP_CHANGE_REP_R_293", "APPLICATION_CEASE_BE_REP_R_294", "SUBSTITUTE_REPRESENTATIVE", "ADD_PARTY", "ADD_MISSING_PARTY", "REMOVE_PARTY", "SUBSTITUTE_PARTY", "PROVISIONAL_MEASURES_R_192", "PROVISIONAL_MEASURES_R_199", "PROVISIONAL_MEASURES_R_200", "REMOVAL_OPTOUT", "REMOVAL_WITHDRAWAL", "REVIEW_REGISTRAR_DECISION", "PETITION_FOR_REVIEW", "REQUEST_REVOKE_ORDER", "REQUEST_REVIEW_ORDER", "ORDER_COMMUNICATE_INFORMATION", "URGENT_ORDER_WITHOUT_FORMALITIES", "ORDER_PRODUCE_EVIDENCE", "JOIN_CASE", "START_ORDER_WITH_GROUNDS", "HEADNOTE_AND_KEYWORDS", "APPLICATION_ROP_379A", "ACCESS_TO_CASE", "BIFURCATION", "ORDER_185_8", "ORDER_340_2", "ORDER_340_1", "APPLICATION_ROP322", "ORDER_322", "GIVE_USERS_ACCESS_TO_DOCUMENTS", "MANAGE_EXPERT_REPORT_CONFIDENTIALITY_ORDER", "REQUEST_EXPERT_REPORT_CONFIDENTIALITY", "ORDER_ROP_34", "APPLICATION_ROP106", "APPLICATION_ROP115", "APPLICATION_ROP225_E" ]
+          }
+        }
+      }
+    },
+    "CaseViewDto" : {
+      "type" : "object",
+      "properties" : {
+        "internalReference" : {
+          "type" : "string"
+        },
+        "divisionDescription" : {
+          "type" : "string"
+        },
+        "divisionView" : {
+          "$ref" : "#/definitions/DivisionView"
+        }
+      }
+    },
+    "ClaimObject" : {
+      "type" : "object",
+      "properties" : {
+        "decisionOutcome" : {
+          "type" : "string",
+          "enum" : [ "INFRINGED", "NOT_INFRINGED", "VALID_AMENDED", "VALID_UNAMENDED", "REVOKED_IN_PART", "REVOKED_WHOLLY", "VALID", "NOT_VALID", "ANNULLED", "NOT_ANNULLED", "REJECT_APPEAL", "SET_ASIDE_TOTALLY", "SET_ASIDE_PARTIALLY", "REFER_TO_FIRST_INSTANCE", "REFER_TO_FULL_COURT", "ACTION_REJECTED", "GRANTED", "GRANTED_IN_PART", "REFUSED", "APPROVED", "VARIED", "NOT_REVOKED", "APPEAL_INADMISSIBLE", "APPEAL_ADMISSIBLE", "REFERRAL", "NO_REFERRAL", "APPLICATION_ACCEPTED", "APPLICATION_REJECTED", "DECISION_CONFIRMED", "DECISION_OVERRULED", "ORDER_CONFIRMED", "ORDER_MODIFIED", "ORDER_REVOKED", "ORDER_NOT_REVOKED", "AWARDED", "AWARDED_INPART", "NOT_AWARDED", "APPEAL_ALLOWED", "APPEAL_DISMISSED", "ACCESSED", "REDACTED_FOR_GDPR", "PROCEEDING_CONTINUE", "PROCEEDING_TERMINATED" ]
+        }
+      }
+    },
+    "Classification" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "idClassification" : {
+          "type" : "string"
+        },
+        "text" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ClassificationsIpcr" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "changeGazetteNum" : {
+          "type" : "string"
+        },
+        "classifications" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Classification"
+          }
+        }
+      }
+    },
+    "Contact" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "address" : {
+          "type" : "string"
+        },
+        "state" : {
+          "type" : "string"
+        },
+        "city" : {
+          "type" : "string"
+        },
+        "zipCode" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Country" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Decision" : {
+      "type" : "object",
+      "properties" : {
+        "number" : {
+          "type" : "string"
+        },
+        "date" : {
+          "type" : "string"
+        }
+      }
+    },
+    "DecisionOnDocumentClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "claimObject" : {
+          "$ref" : "#/definitions/ClaimObject"
+        }
+      }
+    },
+    "DecisionOnPatentClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "claimObject" : {
+          "$ref" : "#/definitions/ClaimObject"
+        }
+      }
+    },
+    "DecisionOnSpcClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "claimObject" : {
+          "$ref" : "#/definitions/ClaimObject"
+        }
+      }
+    },
+    "Dfa" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "idActiviti" : {
+          "type" : "string"
+        },
+        "idProcessDefinition" : {
+          "type" : "string"
+        },
+        "processDefinitionSimpleName" : {
+          "type" : "string"
+        },
+        "processDefinitionCustomName" : {
+          "type" : "string"
+        },
+        "searchable" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "lodgeDocumentDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "openingDfa" : {
+          "type" : "boolean"
+        },
+        "hasCurrentDocuments" : {
+          "type" : "boolean"
+        },
+        "searchDfaChildrenOrParent" : {
+          "type" : "string"
+        },
+        "creationDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "idalfresco" : {
+          "type" : "string"
+        },
+        "idMaster" : {
+          "type" : "string"
+        },
+        "idParent" : {
+          "type" : "string"
+        },
+        "dfaData" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DfaData"
+          }
+        }
+      }
+    },
+    "DfaData" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "dataKey" : {
+          "type" : "string"
+        },
+        "dataValue" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Division" : {
+      "type" : "object",
+      "properties" : {
+        "courtType" : {
+          "type" : "string"
+        },
+        "divisionType" : {
+          "type" : "string"
+        }
+      }
+    },
+    "DivisionSearch" : {
+      "type" : "object",
+      "properties" : {
+        "languageId" : {
+          "type" : "string"
+        }
+      }
+    },
+    "DivisionView" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "courtType" : {
+          "type" : "string"
+        },
+        "divisionType" : {
+          "type" : "string"
+        },
+        "casePrefix" : {
+          "type" : "string"
+        },
+        "timeZone" : {
+          "type" : "string"
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/DivisionSearch"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "masterGroup" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Document" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "documentInstances" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DocumentInstance"
+          }
+        },
+        "referenceOrderCourt" : {
+          "type" : "string"
+        },
+        "physicalExhibit" : {
+          "$ref" : "#/definitions/PhysicalExhibit"
+        },
+        "documentType" : {
+          "type" : "string",
+          "enum" : [ "COVER", "REDACTED_SENSITIVE_PERSONAL_DATA", "AGREEMENT", "DECISION", "EXHIBIT", "HEARING_CONFERENCE_RECORDING", "HEARING_RECORDING_REDACTED", "ORDER", "ORDER_TEMPLATE", "ORDER_WITH_REASONS", "ORDER_OUTCOME", "PHYSICAL_EXHIBIT", "PLEADING", "COMMENT_ON_PRELIMINARY_OBJECTION", "ENTITLEMENT_PROOF", "OTHER", "REQUEST_FOR_AMENDMENTS", "SERVICE_RECEIPT", "TEMPLATE", "APPEAL_DOC_TYPE", "APPLICATION", "REQUEST", "RESPONSE_TO_ORDER", "REQUEST_EPO_OPP_ACCELERATION", "REQUEST_EPO_APPEAL_ACCELERATION", "RESPONSE_EPO_OPP_ACCELERATION", "RESPONSE_EPO_APPEAL_ACCELERATION", "EPO_REQUEST_OF_CASE_PENDING", "RESPONSE_EPO_CASE_PENDING", "EPO_DECISION_ON_EPO_CASE", "NEW_EPO_CASE", "REQUEST_TO_COMMENT", "REQUEST_TO_REPLY", "EPO_COMMENT", "NOTIFY_TIME_TO_COMMENT_EXPIRED", "NOTIFY_TIME_TO_REPLY_EXPIRED", "REQUEST_TO_RESPONSE_TO_ORDER", "NOTIFY_TIME_TO_RESPOND_TO_ORDER_EXPIRED", "EPO_RESPONSE_TO_ORDER", "EPO_INTERLOCUTORY_REVISION", "EPO_REQUEST_TO_COMMENT_R88", "AUTH_SIGNED_DOCUMENT", "SUBMISSION_R_264", "REPLY_R_264", "MANDATE", "PROTECTIVE_LETTER_DOCUMENT", "AMENDMENTS_REQUEST_RESPONSE", "AMENDED_PLEADING", "PAYMENT_EVIDENCE", "COMMUNICATION_CHECK", "NOTICE_OF_WITHDRAWAL", "FORMAL_CHECK_OUTCOME", "RECEIPT", "PETITION_FOR_REVIEW", "NOTIFICATION", "ACKNOWLEDGEMENT", "DATASHEET", "PRELIMINARY_ORDER", "FINAL_ORDER", "COURT_EXPERT_REPORT", "REDACTED_COURT_EXPERT_REPORT" ]
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "documentMode" : {
+          "type" : "string"
+        }
+      }
+    },
+    "DocumentClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "document" : {
+          "$ref" : "#/definitions/Document"
+        },
+        "decisionOnDocumentClaimList" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DecisionOnDocumentClaim"
+          }
+        }
+      }
+    },
+    "DocumentInstance" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "language" : {
+          "$ref" : "#/definitions/Language"
+        },
+        "documentInstanceVersions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DocumentInstanceVersion"
+          }
+        },
+        "documentVersions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DocumentInstanceVersion"
+          }
+        },
+        "activeRedactedVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeUnredactedGDPRVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeRedactedGDPRVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeUnredactedVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeRedactedForPublicVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeRedactedForOtherPartiesVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeRedactedForPublicGDPRVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        },
+        "activeRedactedForOtherPartyGDPRVersion" : {
+          "$ref" : "#/definitions/DocumentInstanceVersion"
+        }
+      }
+    },
+    "DocumentInstanceVersion" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "idAlfresco" : {
+          "type" : "string"
+        },
+        "fileName" : {
+          "type" : "string"
+        },
+        "mimeType" : {
+          "type" : "string"
+        },
+        "fileSize" : {
+          "type" : "integer"
+        },
+        "versionType" : {
+          "type" : "string"
+        },
+        "active" : {
+          "type" : "boolean"
+        },
+        "idGDPRVersion" : {
+          "type" : "string"
+        },
+        "visibleToTheOtherParties" : {
+          "type" : "boolean"
+        },
+        "visibleToThePublic" : {
+          "type" : "boolean"
+        },
+        "language" : {
+          "type" : "string"
+        },
+        "document" : {
+          "$ref" : "#/definitions/Document"
+        },
+        "versionTypeEnum" : {
+          "type" : "string",
+          "enum" : [ "UNREDACTED", "REDACTED_FOR_OTHER_PARTIES", "REDACTED_FOR_THE_PUBLIC" ]
+        },
+        "gdpr" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "EpaRepresentative" : {
+      "type" : "object",
+      "properties" : {
+        "fullName" : {
+          "type" : "string"
+        },
+        "representationEntitlement" : {
+          "type" : "string"
+        },
+        "buisnessAddress" : {
+          "$ref" : "#/definitions/Contact"
+        }
+      }
+    },
+    "Expertise" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/ExpertiseSearch"
+        }
+      }
+    },
+    "ExpertiseSearch" : {
+      "type" : "object",
+      "properties" : {
+        "description" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Headnote" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "enValue" : {
+          "type" : "string"
+        },
+        "deValue" : {
+          "type" : "string"
+        },
+        "frValue" : {
+          "type" : "string"
+        },
+        "headnoteOtherLanguages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/HeadnoteOtherLanguage"
+          }
+        }
+      }
+    },
+    "HeadnoteOtherLanguage" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "headnote" : {
+          "$ref" : "#/definitions/Headnote"
+        },
+        "language" : {
+          "$ref" : "#/definitions/Language"
+        },
+        "langValue" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Judge" : {
+      "type" : "object",
+      "required" : [ "legallyQualified", "technicallyQualified" ],
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "expertise" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Expertise"
+          }
+        },
+        "linkToPicture" : {
+          "type" : "string"
+        },
+        "personalEmail" : {
+          "type" : "string"
+        },
+        "personalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "seniority" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "linkToAssignments" : {
+          "type" : "string"
+        },
+        "linkToCv" : {
+          "type" : "string"
+        },
+        "linkToCvSummary" : {
+          "type" : "string"
+        },
+        "hasRoleInPresidium" : {
+          "type" : "boolean"
+        },
+        "experience" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "phoneNumber" : {
+          "type" : "string"
+        },
+        "mobileNumber" : {
+          "type" : "string"
+        },
+        "dateOfBirth" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "additionalFunctions" : {
+          "type" : "string"
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/JudgeSearch"
+        },
+        "legallyQualified" : {
+          "type" : "boolean"
+        },
+        "technicallyQualified" : {
+          "type" : "boolean"
+        },
+        "dateOfAppointment" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "role" : {
+          "type" : "string",
+          "enum" : [ "PREUSER", "LAWYER", "CLERK", "JUDGE", "EPO", "TEMPUSER", "EXPERT" ]
+        },
+        "languages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Language"
+          }
+        },
+        "nationalities" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Country"
+          }
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "surname" : {
+          "type" : "string"
+        },
+        "active" : {
+          "type" : "boolean",
+          "default" : true
+        },
+        "passphrase" : {
+          "type" : "string"
+        },
+        "certHash" : {
+          "type" : "string"
+        }
+      }
+    },
+    "JudgeSearch" : {
+      "type" : "object",
+      "properties" : {
+        "nationalityId" : {
+          "type" : "string"
+        },
+        "languageId" : {
+          "type" : "string"
+        },
+        "searchByIds" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "searchFullText" : {
+          "type" : "string"
+        },
+        "searchDivision" : {
+          "type" : "string"
+        },
+        "searchByPanel" : {
+          "type" : "string"
+        },
+        "yearOfAppointment" : {
+          "type" : "string"
+        },
+        "searchRoleTypeInPanel" : {
+          "type" : "string"
+        },
+        "searchRoleTypeInDivision" : {
+          "type" : "string",
+          "enum" : [ "JUDGE", "PRESIDING", "STANDING", "PRESIDENT_APPEAL", "PRESIDENT_FIRSTINSTANCE" ]
+        },
+        "searchByAction" : {
+          "type" : "string"
+        },
+        "searchActive" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "Keyword" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "enValue" : {
+          "type" : "string"
+        },
+        "deValue" : {
+          "type" : "string"
+        },
+        "frValue" : {
+          "type" : "string"
+        },
+        "keywordOtherLanguages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/KeywordOtherLanguage"
+          }
+        }
+      }
+    },
+    "KeywordOtherLanguage" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "keyword" : {
+          "$ref" : "#/definitions/Keyword"
+        },
+        "language" : {
+          "$ref" : "#/definitions/Language"
+        },
+        "langValue" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Language" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "systemLanguage" : {
+          "type" : "boolean"
+        },
+        "languageOfProceeding" : {
+          "type" : "boolean"
+        },
+        "description" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MiggleCaseService" : {
+      "type" : "object"
+    },
+    "MiggleDocumentService" : {
+      "type" : "object"
+    },
+    "MiggleLanguageService" : {
+      "type" : "object",
+      "properties" : {
+        "languages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Language"
+          }
+        }
+      }
+    },
+    "MiggleOptOutService" : {
+      "type" : "object"
+    },
+    "MiggleRepresentativeService" : {
+      "type" : "object",
+      "properties" : {
+        "availableRepresentationEntitlementType" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string",
+            "enum" : [ "LAWYER_AUTHORISED", "EPLC", "LAW_DIPLOMA", "OTHER_QUALIFICATIONS", "REPRESENTED_PARTY" ]
+          }
+        }
+      }
+    },
+    "NationalDesignation" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        }
+      }
+    },
+    "OptOutResponse" : {
+      "type" : "object",
+      "properties" : {
+        "caseNumber" : {
+          "type" : "string"
+        },
+        "caseType" : {
+          "type" : "string"
+        },
+        "dateOfLodging" : {
+          "type" : "string"
+        },
+        "outcome" : {
+          "type" : "string",
+          "enum" : [ "APPLICATION_PENDING", "APPLICATION_ACCEPTED", "APPLICATION_REJECTED", "ACCEPTED_BUT_SUBJECT_FOR_REVIEW", "REJECTED_BUT_SUBJECT_FOR_REVIEW", "DECISION_CONFIRMED", "DECISION_OVERRULED", "NOT_APPLICABLE" ]
+        }
+      }
+    },
+    "Order" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "creationDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "clerkSignatureDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "expiringDate" : {
+          "type" : "string"
+        },
+        "assignee" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/PartyAssignmentToOrder"
+          }
+        },
+        "orderNumber" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "year" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "officialOrderNumber" : {
+          "type" : "string"
+        },
+        "orderType" : {
+          "type" : "string",
+          "enum" : [ "DECISION_ON_MERITS", "PROCEDURAL", "PRELIMINARY" ]
+        },
+        "dfa" : {
+          "$ref" : "#/definitions/Dfa"
+        },
+        "decisionDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "decisionNumber" : {
+          "type" : "string"
+        },
+        "effectiveIssueDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "headnotes" : {
+          "$ref" : "#/definitions/OrderHeadnoteLink"
+        },
+        "orderKeywords" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/OrderKeywordLink"
+          }
+        },
+        "signatures" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/OrderSignatureJudge"
+          }
+        },
+        "singleJudgeSubscription" : {
+          "type" : "boolean"
+        },
+        "judgeRapporteurSubscription" : {
+          "type" : "boolean"
+        },
+        "panelSubscription" : {
+          "type" : "boolean"
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/OrderSearchBean"
+        },
+        "case" : {
+          "$ref" : "#/definitions/Case"
+        }
+      }
+    },
+    "OrderClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "order" : {
+          "$ref" : "#/definitions/Order"
+        },
+        "claimObject" : {
+          "$ref" : "#/definitions/ClaimObject"
+        }
+      }
+    },
+    "OrderHeadnoteLink" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "headnote" : {
+          "$ref" : "#/definitions/Headnote"
+        },
+        "order" : {
+          "$ref" : "#/definitions/Order"
+        }
+      }
+    },
+    "OrderKeywordLink" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "keyword" : {
+          "$ref" : "#/definitions/Keyword"
+        },
+        "order" : {
+          "$ref" : "#/definitions/Order"
+        }
+      }
+    },
+    "OrderSearchBean" : {
+      "type" : "object",
+      "properties" : {
+        "caseId" : {
+          "type" : "string"
+        },
+        "numberFullText" : {
+          "type" : "string"
+        },
+        "signed" : {
+          "type" : "boolean"
+        },
+        "keywords" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
+    "OrderSignatureJudge" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "order" : {
+          "$ref" : "#/definitions/Order"
+        },
+        "judge" : {
+          "$ref" : "#/definitions/Judge"
+        },
+        "signatureDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        }
+      }
+    },
+    "PaginatedResponse" : {
+      "type" : "object",
+      "properties" : {
+        "page" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "pageSize" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "total" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "records" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "rows" : {
+          "type" : "object"
+        }
+      }
+    },
+    "Part" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "serviceName" : {
+          "type" : "string"
+        },
+        "serviceLastname" : {
+          "type" : "string"
+        },
+        "serviceEmail" : {
+          "type" : "string"
+        },
+        "servicePostalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "internalReference" : {
+          "type" : "string"
+        },
+        "service" : {
+          "$ref" : "#/definitions/Service"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "surname" : {
+          "type" : "string"
+        },
+        "email" : {
+          "type" : "string"
+        },
+        "interimProcedure" : {
+          "type" : "string"
+        },
+        "notes" : {
+          "type" : "string"
+        },
+        "registeredAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "representatives" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/PartRepresentativeLink"
+          }
+        },
+        "companyName" : {
+          "type" : "string"
+        },
+        "postalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        }
+      }
+    },
+    "PartAssignmentToCase" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "partType" : {
+          "type" : "string",
+          "enum" : [ "CLAIMANT", "DEFENDANT", "APPLICANT", "PRESUMED_APPLICANT", "RESPONDENT", "APPELLANT", "EXPERT", "OBSERVER", "EPO", "PROPRIETOR", "SPCHOLDER", "RELEVANT_PROCEEDING_PARTY" ]
+        },
+        "part" : {
+          "$ref" : "#/definitions/Part"
+        },
+        "index" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "serviceAddressProvidedPurusantRule" : {
+          "type" : "boolean"
+        },
+        "secretCode" : {
+          "type" : "string"
+        },
+        "secretCodeExpirationDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "confirmedByUser" : {
+          "type" : "boolean"
+        },
+        "accessGranted" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "PartRepresentativeLink" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "representative" : {
+          "$ref" : "#/definitions/Representative"
+        },
+        "active" : {
+          "type" : "boolean"
+        },
+        "fromDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "toDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        }
+      }
+    },
+    "Party" : {
+      "type" : "object",
+      "properties" : {
+        "name" : {
+          "type" : "string"
+        },
+        "surname" : {
+          "type" : "string"
+        },
+        "email" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string",
+          "enum" : [ "CLAIMANT", "DEFENDANT", "APPLICANT", "APPELLANT", "RESPONDENT" ]
+        },
+        "companyName" : {
+          "type" : "string"
+        },
+        "representative" : {
+          "$ref" : "#/definitions/Representative"
+        }
+      }
+    },
+    "PartyAssignmentToOrder" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "order" : {
+          "$ref" : "#/definitions/Order"
+        },
+        "responseTL" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "commentTL" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "replyTL" : {
+          "type" : "integer",
+          "format" : "int32"
+        }
+      }
+    },
+    "Patent" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "publicationReference" : {
+          "type" : "string"
+        },
+        "applicationReference" : {
+          "type" : "string"
+        },
+        "priorityNumber" : {
+          "type" : "string"
+        },
+        "designatedContractingStates" : {
+          "type" : "string"
+        },
+        "requestForExaminationDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "firstExaminationDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "filingDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "priorityClaimDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "retrievalDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "publicationOfTheGrantDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "listProprietor" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/Proprietor"
+          }
+        },
+        "listSpc" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/SPC"
+          }
+        },
+        "classificationsIpcr" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/ClassificationsIpcr"
+          }
+        },
+        "searchExactPatentNumber" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "representatives" : {
+          "type" : "string"
+        },
+        "applicants" : {
+          "type" : "string"
+        },
+        "inventors" : {
+          "type" : "string"
+        },
+        "patentNumber" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PatentClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "proprietary" : {
+          "type" : "boolean"
+        },
+        "proprietaryPermission" : {
+          "type" : "boolean"
+        },
+        "patent" : {
+          "$ref" : "#/definitions/Patent"
+        },
+        "decisionOnPatentClaimList" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DecisionOnPatentClaim"
+          }
+        },
+        "searchBean" : {
+          "$ref" : "#/definitions/PatentClaimSearch"
+        }
+      }
+    },
+    "PatentClaimSearch" : {
+      "type" : "object",
+      "properties" : {
+        "searchByPatentNumber" : {
+          "type" : "string"
+        },
+        "searchByOutcomeType" : {
+          "type" : "string"
+        }
+      }
+    },
+    "PhysicalExhibit" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "additionalInformation" : {
+          "type" : "string"
+        },
+        "depositDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        }
+      }
+    },
+    "Proprietor" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "lastname" : {
+          "type" : "string"
+        },
+        "companyName" : {
+          "type" : "string"
+        },
+        "email" : {
+          "type" : "string"
+        },
+        "registeredAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "postalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "serviceName" : {
+          "type" : "string"
+        },
+        "serviceLastname" : {
+          "type" : "string"
+        },
+        "serviceEmail" : {
+          "type" : "string"
+        },
+        "servicePostalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "nationalDesignations" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/NationalDesignation"
+          }
+        }
+      }
+    },
+    "Representative" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "idPart" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "surname" : {
+          "type" : "string"
+        },
+        "email" : {
+          "type" : "string"
+        },
+        "registeredAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "companyName" : {
+          "type" : "string"
+        },
+        "postalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        }
+      }
+    },
+    "SPC" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "idSPC" : {
+          "type" : "string"
+        },
+        "nationalDesignation" : {
+          "type" : "string"
+        },
+        "listSPCHolder" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/SPCHolder"
+          }
+        }
+      }
+    },
+    "SPCClaim" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "spc" : {
+          "$ref" : "#/definitions/SPC"
+        },
+        "decisionOnSPCClaimList" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/definitions/DecisionOnSpcClaim"
+          }
+        },
+        "patent" : {
+          "$ref" : "#/definitions/Patent"
+        }
+      }
+    },
+    "SPCHolder" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "lastname" : {
+          "type" : "string"
+        },
+        "companyName" : {
+          "type" : "string"
+        },
+        "email" : {
+          "type" : "string"
+        },
+        "registeredAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "postalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        },
+        "serviceName" : {
+          "type" : "string"
+        },
+        "serviceLastname" : {
+          "type" : "string"
+        },
+        "serviceEmail" : {
+          "type" : "string"
+        },
+        "servicePostalAddress" : {
+          "$ref" : "#/definitions/Contact"
+        }
+      }
+    },
+    "Service" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "servicePerformed" : {
+          "type" : "boolean"
+        },
+        "serviceDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "methodOfService" : {
+          "type" : "string",
+          "enum" : [ "MANUAL_EX_PARTE", "OTHER", "ELECTRONIC_VIA_CMS" ]
+        },
+        "otherMethodOfServiceDescription" : {
+          "type" : "string"
+        }
+      }
+    },
+    "SpcClaim" : {
+      "type" : "object",
+      "properties" : {
+        "number" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ViewPartToRepresentative" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "partType" : {
+          "type" : "string",
+          "enum" : [ "CLAIMANT", "DEFENDANT", "APPLICANT", "PRESUMED_APPLICANT", "RESPONDENT", "APPELLANT", "EXPERT", "OBSERVER", "EPO", "PROPRIETOR", "SPCHOLDER", "RELEVANT_PROCEEDING_PARTY" ]
+        },
+        "idCase" : {
+          "type" : "string"
+        },
+        "index" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "idPart" : {
+          "type" : "string"
+        },
+        "internalReference" : {
+          "type" : "string"
+        },
+        "partName" : {
+          "type" : "string"
+        },
+        "partSurname" : {
+          "type" : "string"
+        },
+        "partCompanyName" : {
+          "type" : "string"
+        },
+        "partEmail" : {
+          "type" : "string"
+        },
+        "partServiceName" : {
+          "type" : "string"
+        },
+        "partServiceLastName" : {
+          "type" : "string"
+        },
+        "partServiceEmail" : {
+          "type" : "string"
+        },
+        "partServicePerformed" : {
+          "type" : "boolean"
+        },
+        "partMethodOfService" : {
+          "type" : "string"
+        },
+        "repActive" : {
+          "type" : "boolean"
+        },
+        "repFromDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "repToDate" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "idRepresentative" : {
+          "type" : "string"
+        },
+        "repName" : {
+          "type" : "string"
+        },
+        "repSurname" : {
+          "type" : "string"
+        },
+        "repEmail" : {
+          "type" : "string"
+        },
+        "repUserid" : {
+          "type" : "string"
+        },
+        "repCompanyId" : {
+          "type" : "string"
+        },
+        "confirmedByUser" : {
+          "type" : "boolean"
+        }
+      }
+    }
+  }
+}

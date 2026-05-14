@@ -456,9 +456,188 @@ amortized but the new-CMS transitional weirdness needs live testing).
 
 ---
 
+## Update 2026-05-13: empirical investigation of the Public API enrollment path
+
+Findings from an investigation conducted alongside the v0.11.0 `upc_decisions`
++ `upc_statutes` ship. Read these as corrections / additions to the sections
+above; the original survey predates these probes.
+
+### 1. The current Public API spec is v5, not v1.4
+
+The v1.4 PDF (Feb 2023) is the documentation the corporate site links from
+the news posts and the IT-for-developers page, but the **authoritative
+spec is now Swagger v5.3** — `info.title: "UPC CMS Public API V5"`,
+`info.version: v5`, paths under `/v5/...`. The JSON is at
+`/sites/default/files/upc_technical_files/swagger_v5-3.json` on
+`www.unifiedpatentcourt.org` (Cloudflare-gated for unauthenticated direct
+GETs; reachable via a logged-in browser session).
+
+A canonical snapshot is staged at
+`research/openapi/upc_cms_public_api_v5-3.json` for offline reference.
+
+### 2. Endpoint surface in v5.3
+
+Ten GET-only paths, 64 schema definitions, no `securityDefinitions` block
+(auth is layered on at the gateway, not declared in the spec):
+
+| Method + path | Purpose |
+| --- | --- |
+| `GET /v5/caseTypes` | Search case types |
+| `GET /v5/cases` | Search cases (18 query params: number, year, type, dates, patentNumber, decisionNumber, decisionFullText, parties, representative, judge, language, paging) |
+| `GET /v5/documents/{caseType}/{number}/{year}` | All documents of a specific case |
+| `GET /v5/documents/download/{id}` | Download a document binary |
+| `GET /v5/languages` | List of languages |
+| `GET /v5/opt-out/list` | Opt-out cases for a patent number (the highest-leverage public-API asset — answers "is this EP opted out?") |
+| `GET /v5/opt-out/patentStatus` | Opted Out vs Withdrawn status (paginated) |
+| `GET /v5/opt-out/statusTypes` | Opt-out status taxonomy |
+| `GET /v5/representatives` | Representative search |
+| `GET /v5/representatives/representationEntitlements` | Entitlement taxonomy |
+
+The spec's declared `host: "upcbe"` over `schemes: ["http"]` is an
+internal export artifact, not the real public-facing URL.
+
+### 3. The Filing UI and the Public Read API are separate systems
+
+Verified via direct inspection of an authenticated CMS Filing session at
+`cms.unifiedpatentcourt.org`:
+
+- **Filing UI auth model**: Keycloak OAuth2 + Bearer JWT (RS256).
+  Issuer: `https://cms.unifiedpatentcourt.org/iam-service-develop/realms/front-office-public`.
+  Token endpoint: `…/realms/front-office-public/protocol/openid-connect/token`.
+  SPA client: `frontend`. Scopes: `openid profile email`. Token type:
+  Bearer. **No mTLS** anywhere in the Filing UI stack.
+- **Filing UI backends** (read off the SPA's JS bundle):
+  `addressbook-api`, `dtk-api`, `epct-integration-api`, `npefiling-api`,
+  `user-api`. **None match the swagger v5.3 read surface** — the
+  Filing UI never calls `/v5/cases`, `/v5/opt-out/list`, etc.
+- A CMS Filing account therefore **does not bootstrap into Public Read
+  API access**. They're separately credentialed.
+
+### 4. The Public Read API host rejects TLS at the network layer
+
+Both `api-prod.unified-patent-court.org` and
+`api-pre-prod.unified-patent-court.org` (same GCP-resolved IP, currently
+`35.227.230.26`) reject incoming TLS connections from arbitrary clients:
+
+- HTTPS GET to `/` returns `HTTP 000` (no HTTP layer reached).
+- TLSv1.2 / TLSv1.3 handshakes close with `cipher=NONE`, `0 bytes read`,
+  no `ServerHello`, no `CertificateRequest`.
+- This persists even when the Filing UI's valid Bearer token is attached
+  from inside an authenticated browser session.
+
+Consistent explanations: source-IP allowlist enforced before the TLS
+handshake completes (e.g. Cloud Armor pre-handshake rule), and/or mTLS
+where the server doesn't bother negotiating with non-allowlisted source
+IPs. DigiCert/QuoVadis publishes a "UPC Authentication Certificates"
+page (linked below), which is suggestive of mTLS being part of the
+picture, but not dispositive.
+
+No alternate public-facing subdomain exists: `api.*`, `cms-api.*`,
+`public-api.*`, `publicapi.*` on `unifiedpatentcourt.org` all return
+NXDOMAIN. The corporate `www.*` host serves docs but not the API.
+
+### 5. The enrollment workflow is not publicly documented
+
+Verified by reading the verbatim text of:
+
+- `/en/registry/it-developers` — links docs + Swagger; no registration
+  surface, no portal link.
+- `/en/news/update-public-apis-following-launch-first-phase-new-cms-roll-out`
+  — describes endpoint availability, ends with *"For questions or further
+  assistance, please contact us via the website contact form."*
+- `/en/news/new-cms-release-automated-opt-outs-a2a-api-update-28-july-2025`
+  — describes OAuth as the auth mechanism, ends with *"For further
+  assistance, please contact your usual UPC CMS support representative."*
+
+The strings `client_id`, `client_secret`, `register an application`,
+`developer portal`, `application registration`, and `API access` (as
+enrollment terminology) appear on **none** of those pages.
+
+The Filing-UI walkthrough PDF (`How to access the new CMS – APIs test
+environment_30.07.pdf`) covers user-account signup only and does not
+mention API client credentials.
+
+### 6. Pending question to UPC support
+
+The Athena contact form (`/marketplace/formcreator/front/formdisplay.php?id=1`)
+is the only documented contact channel for read-API enrollment questions.
+Draft message body to submit:
+
+> Subject: Public Read API enrollment vs. Filing UI access — separate systems?
+>
+> I'm building a read-only integration against the CMS Public API
+> (Swagger v5.3 — search cases, opt-out reads, language and
+> status-type lookups). I'm trying to get clarity on the enrollment
+> path, and I want to share what I've found so I can ask precisely.
+>
+> 1. I have a CMS Filing account at `cms.unifiedpatentcourt.org`.
+>    Login works. Auth is Keycloak OAuth2 + Bearer JWT, realm
+>    `front-office-public`, issuer
+>    `https://cms.unifiedpatentcourt.org/iam-service-develop/realms/front-office-public`.
+>    The Filing UI calls these backends only: `addressbook-api`,
+>    `dtk-api`, `epct-integration-api`, `npefiling-api`, `user-api`.
+>
+> 2. The Swagger v5.3 spec describes a separate read surface (paths
+>    `/v5/cases`, `/v5/opt-out/list`, `/v5/opt-out/patentStatus`, etc.).
+>    I cannot find this surface mounted at any path under
+>    `cms.unifiedpatentcourt.org`; the SPA never calls it.
+>
+> 3. The presumed host `api-prod.unified-patent-court.org` (and the
+>    pre-prod equivalent) reject TLS handshakes from arbitrary clients
+>    before any HTTP layer — even with a valid Bearer token from the
+>    Filing UI session attached. The TLS handshake closes with no
+>    `ServerHello` in TLSv1.2 or TLSv1.3.
+>
+> The Filing account does not appear to grant Public Read API access.
+> My questions:
+>
+> 1. Is the Public Read API at `api-prod.unified-patent-court.org` a
+>    separate enrollment from the Filing UI signup, or is there a
+>    self-service "request API access" step inside the Filing UI?
+>
+> 2. If separate: what does the read-API enrollment require?
+>    Specifically:
+>    - A separate Keycloak client / realm (e.g. not `frontend` / not
+>      `front-office-public`)?
+>    - A QuoVadis or DigiCert client TLS certificate (mTLS)?
+>    - A source-IP allowlist?
+>    - All of the above?
+>
+> 3. Could you confirm or correct the public-facing base URL for the
+>    read API? `https://api-prod.unified-patent-court.org/upc/public/api/v5/`
+>    is the best guess based on the swagger's `host`/`basePath` and the
+>    older v1.4 PDF, but the swagger's declared `host: upcbe` is clearly
+>    an internal placeholder.
+>
+> 4. Is there a sandbox / pre-prod equivalent of the read API
+>    accessible to developers before production enrollment?
+
+### 7. Implications for the connector roadmap
+
+- `upc_cms` (v0.12.0) is **blocked on the answer to #6** — without
+  enrollment we cannot smoke-test against the real endpoints, and the
+  auth model (OAuth-only vs OAuth+mTLS vs OAuth+IP-allowlist) materially
+  changes the client design and the deploy surface.
+- The OAuth2 scaffold itself is already battle-tested by the EUIPO
+  connectors (`OAuth2ClientCredentialsAuth` in `law_tools_core.oauth2`).
+  If the answer turns out to be OAuth-only, the client is mostly
+  boilerplate around the staged swagger; expect ~2-3 days end-to-end.
+- If mTLS is required, an additional `httpx` `cert=` plumbing layer is
+  needed and the OSS distribution story changes (users have to enroll
+  their own QuoVadis cert; the wheel cannot ship credentials).
+- The v0.11.0 wheel covers everything we can ship from public sources
+  without enrollment: decisions/orders feed + statutes corpus + (deferred)
+  EPO OPS UP/opt-out helpers for the EP-side view.
+
+---
+
 ## Sources
 
-- [UPC Public API v1.4 documentation (PDF)](https://www.unifiedpatentcourt.org/sites/default/files/upc_documents/upc-cms-public-api-documentation_v1_4.pdf)
+- [UPC CMS Public API v5.3 Swagger JSON](https://www.unifiedpatentcourt.org/sites/default/files/upc_technical_files/swagger_v5-3.json) — **current authoritative spec** (Cloudflare-gated for direct GETs; offline copy staged at `research/openapi/upc_cms_public_api_v5-3.json`)
+- [UPC Public API v1.4 documentation (PDF)](https://www.unifiedpatentcourt.org/sites/default/files/upc_documents/upc-cms-public-api-documentation_v1_4.pdf) — Feb 2023; **superseded by v5.3** but still linked from the corporate site
+- [How to access the new CMS – APIs test environment (PDF, 2025-07-30)](https://www.unifiedpatentcourt.org/sites/default/files/upc_documents/How%20to%20access%20the%20new%20CMS%20%E2%80%93%20APIs%20test%20environment_30.07.pdf) — covers UI account signup only, not API client credentials
+- [Athena contact form (formcreator/formdisplay.php?id=1)](https://athena.unifiedpatentcourt.org/marketplace/formcreator/front/formdisplay.php?id=1) — only documented contact channel for read-API enrollment questions
+- [DigiCert/QuoVadis — UPC Authentication Certificates](https://www.digicert.com/tls-ssl/unified-patent-court-certificates) — suggestive of mTLS as part of the access model, not dispositive
 - [UPC A2A API v1.4 (new-CMS rollout)](https://www.unifiedpatentcourt.org/sites/default/files/upc_documents/UPC-New_CMS_A2A%20API%20Documentation_V1_4_forPublication_StartOf8July.pdf)
 - [UPC A2A API v2.6 (current)](https://www.unifiedpatentcourt.org/sites/default/files/upc_documents/upc-cms-a2a-api-documentation_v2_6.pdf)
 - [Update on public APIs following launch of first phase of the new CMS](https://www.unifiedpatentcourt.org/en/news/update-public-apis-following-launch-first-phase-new-cms-roll-out)
