@@ -13,8 +13,11 @@
 
 ## Use the hosted demo
 
-The fastest path — nothing to install. Point your MCP-speaking client
-at the public demo at **[mcp.patentclient.com](https://mcp.patentclient.com)**:
+The fastest path — nothing to install. Point any MCP-speaking client
+(Claude Code, OpenAI Codex CLI, Google Gemini CLI, Cursor, Windsurf,
+Cline, Zed, Continue.dev, VS Code Copilot Chat, JetBrains AI, Claude
+Desktop, ChatGPT Apps, Replit Agent, CoWork, …) at the public demo at
+**[mcp.patentclient.com](https://mcp.patentclient.com)**:
 
 ```json
 {
@@ -26,11 +29,11 @@ at the public demo at **[mcp.patentclient.com](https://mcp.patentclient.com)**:
 }
 ```
 
-Or add a custom connector in CoWork / Claude Desktop with just the URL
-`https://mcp.patentclient.com/mcp` — no tokens to paste. On first
-connect you'll be sent to Google sign-in; approve and you're in. Any
-verified Google account works. Usage is rate-limited per account
-(100 MB/day, 20 MB/minute).
+Most clients also expose a "custom connector" / "add MCP server" UI
+that takes just the URL `https://mcp.patentclient.com/mcp` — no tokens
+to paste. On first connect you'll be sent to Google sign-in; approve
+and you're in. Any verified Google account works. Usage is
+rate-limited per account (100 MB/day, 20 MB/minute).
 
 This is a public demo — don't send confidential material through it.
 See the [Terms of Use](https://mcp.patentclient.com/terms).
