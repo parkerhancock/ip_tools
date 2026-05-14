@@ -8,8 +8,8 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from law_tools_core.exceptions import ConfigurationError
 
+from law_tools_core.exceptions import ConfigurationError
 from patent_client_agents.uspto_tmsearch.token_manager import WafTokenManager
 
 _FRESH = ("fresh-token", 9999999999.0)

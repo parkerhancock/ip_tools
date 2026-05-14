@@ -111,9 +111,7 @@ def pytest_configure(config: pytest.Config) -> None:
         config.addinivalue_line("markers", marker)
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Auto-skip live_tmsearch tests unless --run-live-tmsearch or TMSEARCH_LIVE_TESTS=1."""
     if config.getoption("--run-live-tmsearch") or os.getenv("TMSEARCH_LIVE_TESTS"):
         return

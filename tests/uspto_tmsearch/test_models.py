@@ -2,7 +2,10 @@
 
 from datetime import UTC, datetime
 
-from patent_client_agents.uspto_tmsearch.models import TrademarkSearchResponse, TrademarkSearchResult
+from patent_client_agents.uspto_tmsearch.models import (
+    TrademarkSearchResponse,
+    TrademarkSearchResult,
+)
 
 
 class TestTrademarkSearchResult:

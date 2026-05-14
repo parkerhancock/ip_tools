@@ -119,9 +119,7 @@ def _seed_corpus(path: Path) -> None:
             "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)",
             ("instrument_count", str(len(FIXTURES))),
         )
-        conn.execute(
-            "INSERT INTO instruments_fts(instruments_fts) VALUES ('optimize')"
-        )
+        conn.execute("INSERT INTO instruments_fts(instruments_fts) VALUES ('optimize')")
         conn.commit()
     finally:
         conn.close()

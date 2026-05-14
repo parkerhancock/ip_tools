@@ -145,7 +145,10 @@ def test_pdf_urls_resolved_against_base():
     pdf_urls = [r.pdf_urls[0] for r in rows]
     assert pdf_urls[0].startswith(f"{DEFAULT_BASE_URL}/sites/default/files/files/api_order/")
     # Absolute URL in fixture is passed through verbatim.
-    assert pdf_urls[2] == "https://www.unifiedpatentcourt.org/sites/default/files/files/api_order/CoA-53-2026.pdf"
+    assert (
+        pdf_urls[2]
+        == "https://www.unifiedpatentcourt.org/sites/default/files/files/api_order/CoA-53-2026.pdf"
+    )
 
 
 def test_parties_split_on_v_separator():
