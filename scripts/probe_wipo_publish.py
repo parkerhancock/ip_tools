@@ -176,11 +176,14 @@ async def main() -> int:
 
     print(f"WIPO Publish probe — {len(CANDIDATES)} offices probed\n")
     print(f"=== CONFIRMED ({len(confirmed)}) — /wopublish-search/ responded 200")
-    for r in confirmed: print(line(r))
+    for r in confirmed:
+        print(line(r))
     print(f"\n=== PROBABLE ({len(probable)}) — host up, path returned 200/401/403")
-    for r in probable: print(line(r))
+    for r in probable:
+        print(line(r))
     print(f"\n=== NOT FOUND ({len(not_found)}) — DNS fail / connection refused / no hit")
-    for r in not_found: print(line(r))
+    for r in not_found:
+        print(line(r))
     return 0
 
 
