@@ -353,6 +353,55 @@ For every tool the PR touches:
   takes more than a minute, you're recording cassettes you shouldn't
   be.
 
+- **Worktree agents: never `cd` out of your worktree.** Multiple batch-3
+  agents hit this. Symptoms: your final `git commit` lands in the
+  parent repo's branch (`refactor/connector-standards-sweep`) instead
+  of your isolated worktree branch. Recovery is `git reset --soft HEAD~1`
+  followed by `git restore --staged .` in the parent repo, then redo
+  the commit in the worktree. Cheaper to just `pwd` before every commit
+  and confirm you're under `.claude/worktrees/agent-<id>/`.
+
+- **`uv sync --extra <X>` drops other extras.** Running
+  `uv sync --extra tmsearch` mid-session removed `fastmcp` (from the
+  `[mcp]` extra), breaking every MCP-layer test. Use the full form:
+  `uv sync --extra mcp --extra tmsearch --group dev`. If your venv
+  loses `fastmcp` or `playwright` mid-session, that's the recovery.
+
+- **`get_corpus_status()` template for substantive-law `mcp_local`
+  connectors** (extracted from row 17's MPEP migration). Copy this
+  pattern verbatim across row 18's 8 sub-PRs:
+
+  1. Module-level callable in `<corpus>/__init__.py`:
+     ```python
+     class CorpusStatus(TypedDict):
+         corpus_synced_at: datetime | None
+         corpus_version: str
+
+     def get_corpus_status() -> CorpusStatus:
+         try:
+             with CorpusDB() as db:
+                 version = db.meta_get("source_version") or "unknown"
+                 synced_raw = db.meta_get("snapshot_date")
+             return CorpusStatus(
+                 corpus_synced_at=_parse_snapshot_date(synced_raw),
+                 corpus_version=version,
+             )
+         except CorpusUnavailable:
+             return CorpusStatus(corpus_synced_at=None, corpus_version="unknown")
+         except Exception:  # pragma: no cover  # defensive
+             return CorpusStatus(corpus_synced_at=None, corpus_version="unknown")
+     ```
+  2. Shared `_parse_snapshot_date(value)` helper lifts ISO `YYYY-MM-DD`
+     to UTC midnight datetime; returns `None` on parse failure.
+  3. In the MCP tool's `_xxx_provenance(path)` helper, call
+     `status = get_corpus_status()` per request and pass both fields
+     to `make_provenance(...)`. Never hardcode corpus values in
+     `mcp/tools/<corpus>.py`.
+  4. Validator: after the connector exposes the callable,
+     `scripts/build_coverage.py --check` drops the connector-specific
+     warning. After all 8 corpora ship, a one-line follow-up PR flips
+     the warning to a hard error.
+
 ---
 
 ## §9 What this playbook is *not*
