@@ -62,8 +62,7 @@ Find records matching a query.
 | `get_jpo_priority_info(application_number, ip_type)` | JPO Paris + domestic priority claims |
 | `get_jpo_number_reference(number, kind, ip_type)` | JPO cross-reference application/publication/registration |
 | `get_jpo_jplatpat_url(application_number, ip_type)` | JPO J-PlatPat permalink |
-| `get_jpo_applicant_by_code(applicant_code, ip_type)` | JPO 9-digit applicant/attorney code → name |
-| `get_jpo_applicant_by_name(applicant_name, ip_type)` | JPO exact-name → applicant/attorney codes |
+| `get_jpo_applicant(applicant, ip_type)` | JPO applicant/attorney lookup — auto-detects code (9 digits) vs exact name |
 | `get_jpo_patent_divisional_info(application_number)` | JPO patent-only — divisional family |
 | `get_jpo_patent_cited_documents(application_number)` | JPO patent-only — patent + non-patent citations |
 | `get_jpo_pct_national_phase_number(number, kind)` | JPO patent-only — PCT → JP national-phase lookup |
