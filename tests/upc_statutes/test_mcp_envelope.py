@@ -6,11 +6,17 @@ Verifies CONNECTOR_STANDARDS.md §5.9 (envelope shape + Provenance, with
 enumerators returning ``ListEnvelope``).
 
 Mocks the upstream UPC statutes client / API at the boundary so tests
-don't require the SQLite corpus to be materialized.
+don't require the bulk corpus content to be materialized. A tiny
+``meta``-only fixture corpus is seeded so ``get_corpus_status()``
+returns deterministic values (versus depending on whether the user has
+a cached corpus at ``~/.cache/patent_client_agents/upc_statutes.db``).
 """
 
 from __future__ import annotations
 
+import sqlite3
+from datetime import datetime
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -22,12 +28,44 @@ from patent_client_agents.mcp.tools.upc import (
     list_upc_instruments,
     search_upc_statutes,
 )
+from patent_client_agents.upc_statutes.corpus.schema import DDL, SCHEMA_VERSION
 from patent_client_agents.upc_statutes.models import (
     UpcInstrument,
     UpcInstrumentText,
     UpcStatuteSearchHit,
     UpcStatuteSearchResponse,
 )
+
+_FIXTURE_SNAPSHOT_DATE = "2026-05-13"
+_FIXTURE_CORPUS_VERSION = f"snapshot {_FIXTURE_SNAPSHOT_DATE}"
+
+
+@pytest.fixture(autouse=True)
+def _upc_statutes_corpus_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
+    """Seed a meta-only corpus and point ``UPC_STATUTES_CORPUS_PATH`` at it.
+
+    The MCP tools call ``get_corpus_status()`` inside
+    ``_upc_statutes_provenance``; without this fixture the call would
+    read whatever (if anything) is at the local-dev default path, making
+    assertions on ``corpus_version`` non-hermetic.
+    """
+    db = tmp_path / "upc_statutes_meta_only.db"
+    conn = sqlite3.connect(db)
+    try:
+        conn.executescript(DDL)
+        conn.executemany(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES (?, ?)",
+            [
+                ("schema_version", str(SCHEMA_VERSION)),
+                ("snapshot_date", _FIXTURE_SNAPSHOT_DATE),
+                ("instrument_count", "0"),
+            ],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    monkeypatch.setenv("UPC_STATUTES_CORPUS_PATH", str(db))
+    return db
 
 
 def _make_hit(
@@ -91,9 +129,11 @@ async def test_search_upc_statutes_returns_list_envelope_with_corpus_version():
     assert isinstance(result, ListEnvelope)
     assert isinstance(result.provenance, Provenance)
     assert result.provenance.source_name == "Unified Patent Court"
-    # mcp_local substantive-law corpus → corpus_version is stamped
-    # (stub value per CONNECTOR_STANDARDS.md §8).
-    assert result.provenance.corpus_version == "unknown — needs verification"
+    # mcp_local substantive-law corpus → corpus_version flows from
+    # ``upc_statutes.get_corpus_status()`` (CONNECTOR_STANDARDS.md §4),
+    # which derives the label from ``meta.snapshot_date``.
+    assert result.provenance.corpus_version == _FIXTURE_CORPUS_VERSION
+    assert isinstance(result.provenance.corpus_synced_at, datetime)
     assert len(result.items) == 2
     assert "Article 33" in result.summary
     assert result.more_available is False
@@ -134,8 +174,9 @@ async def test_get_upc_section_single_returns_list_envelope():
     assert len(result.items) == 1
     assert result.items[0]["instrument"] == "upca"
     assert "UPCA" in result.summary
-    # corpus_* provenance is set for the mcp_local statutes corpus
-    assert result.provenance.corpus_version == "unknown — needs verification"
+    # corpus_* provenance flows from get_corpus_status()
+    assert result.provenance.corpus_version == _FIXTURE_CORPUS_VERSION
+    assert isinstance(result.provenance.corpus_synced_at, datetime)
 
 
 @pytest.mark.asyncio
@@ -173,7 +214,8 @@ async def test_list_upc_instruments_returns_list_envelope():
 
     assert isinstance(result, ListEnvelope)
     assert result.provenance.source_name == "Unified Patent Court"
-    # mcp_local → corpus_version is stamped
-    assert result.provenance.corpus_version == "unknown — needs verification"
+    # mcp_local → corpus_version flows from get_corpus_status()
+    assert result.provenance.corpus_version == _FIXTURE_CORPUS_VERSION
+    assert isinstance(result.provenance.corpus_synced_at, datetime)
     assert len(result.items) == 2
     assert "2 entries" in result.summary

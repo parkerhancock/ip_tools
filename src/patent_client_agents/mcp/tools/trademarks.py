@@ -22,7 +22,7 @@ from fastmcp import FastMCP
 from law_tools_core.envelope import ListEnvelope, make_provenance
 from law_tools_core.exceptions import ValidationError
 from law_tools_core.mcp.annotations import READ_ONLY
-from patent_client_agents.tmep import SearchInput, get_section, search
+from patent_client_agents.tmep import TmepClient, get_corpus_status
 from patent_client_agents.uspto_tmsearch import TmsearchClient
 from patent_client_agents.uspto_trademark_assignments import TrademarkAssignmentClient
 from patent_client_agents.uspto_tsdr import TsdrClient
@@ -50,6 +50,18 @@ _TMSEARCH_BASE = "https://tmsearch.uspto.gov"
 _TMSEARCH_NAME = "USPTO Trademark Search (TESS)"
 _TSDR_BASE = "https://tsdrapi.uspto.gov"
 _TSDR_NAME = "USPTO TSDR"
+_TMEP_BASE = "https://tmep.uspto.gov"
+_TMEP_NAME = "USPTO TMEP (Trademark Manual of Examining Procedure)"
+
+# Lean snippet cap (§5.5). FTS5 already returns short snippets, but the
+# raw column can run long when the surrounding context is dense; truncate
+# so a 25-hit page fits comfortably under the §5.5 token budget.
+_TMEP_LEAN_SNIPPET_CHARS = 400
+
+# Bounded fan-out for list-accepting get_tmep_section (§5.4). SQLite reads
+# are fast so the concurrency budget is conservative — the cap exists so a
+# 50-section portfolio doesn't open 50 connections at once.
+_TMEP_FANOUT_CONCURRENCY = 5
 
 
 def _tmsearch_provenance(path: str) -> Any:
@@ -58,6 +70,84 @@ def _tmsearch_provenance(path: str) -> Any:
 
 def _tsdr_provenance(path: str) -> Any:
     return make_provenance(source_url=f"{_TSDR_BASE}{path}", source_name=_TSDR_NAME)
+
+
+def _tmep_provenance(path: str) -> Any:
+    """Build a Provenance pointing at ``{base}{path}`` with corpus metadata.
+
+    Reads ``corpus_synced_at`` / ``corpus_version`` from
+    :func:`patent_client_agents.tmep.get_corpus_status` so the values
+    track the bundled corpus without per-call hardcoding. Mirrors the
+    MPEP pattern (CONNECTOR_STANDARDS.md §4 / §5.9).
+    """
+    status = get_corpus_status()
+    return make_provenance(
+        source_url=f"{_TMEP_BASE}{path}",
+        source_name=_TMEP_NAME,
+        corpus_synced_at=status["corpus_synced_at"],
+        corpus_version=status["corpus_version"],
+    )
+
+
+def _truncate(text: str, limit: int) -> str:
+    """Cap a string at ``limit`` chars, appending an ellipsis on overflow."""
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 1)].rstrip() + "…"
+
+
+def _stub_tmep_hit(hit: dict) -> dict:
+    """Lean projection of a TMEP search hit (§5.5).
+
+    Drops the per-row ``result_url`` (reconstructable from ``href``) and
+    truncates the snippet to keep multi-hit pages cheap. Use
+    ``get_tmep_section`` for the full content of any hit.
+    """
+    title = hit.get("title") or ""
+    path_parts = hit.get("path") or []
+    section_number: str | None = None
+    title_only = title
+    for part in path_parts:
+        # path looks like ["Chapter 1200", "1207"]; the last entry that is
+        # NOT a "Chapter ..." string is the section number.
+        if isinstance(part, str) and not part.lower().startswith("chapter"):
+            section_number = part
+    if section_number and title.startswith(f"{section_number} - "):
+        title_only = title[len(section_number) + 3 :]
+    return {
+        "section_number": section_number,
+        "title": title_only,
+        "snippet": _truncate(hit.get("snippet") or "", _TMEP_LEAN_SNIPPET_CHARS),
+        "href": hit.get("href"),
+    }
+
+
+def _summarize_tmep_section(record: dict, corpus_version: str) -> str:
+    """One-line Markdown summary of a single TMEP section record.
+
+    Leads with the corpus version so the agent can quote it directly
+    when warning about staleness (§4 + §5.13).
+    """
+    section_number = record.get("section_number") or "(no §)"
+    title = record.get("title") or "(no title)"
+    href = record.get("href") or ""
+    head = f"**TMEP {corpus_version} — §{section_number}: {title}**"
+    if href:
+        return f"{head}\nSource: {_TMEP_BASE}/RDMS/TMEP/result?href={href}"
+    return head
+
+
+def _tmep_section_to_dict(section: Any, *, section_number: str | None) -> dict:
+    """Dump a TmepSection model and re-attach the section_number we resolved.
+
+    The model carries href + html + text + title + version, but not the
+    practitioner-facing section_number (the corpus row carries it but
+    the TmepSection model drops it). We surface it on the returned dict
+    so agents can quote it without round-tripping.
+    """
+    data = section.model_dump() if hasattr(section, "model_dump") else dict(section)
+    data["section_number"] = section_number
+    return data
 
 
 def _stub_trademark(record: dict) -> dict:
@@ -386,29 +476,145 @@ async def get_trademark_last_update(
 
 @trademarks_mcp.tool(annotations=READ_ONLY)
 async def search_tmep(
-    query: Annotated[str, "Search query for the TMEP"],
-) -> dict:
-    """Search the Trademark Manual of Examining Procedure.
+    query: Annotated[
+        str,
+        "Search query. Examples: 'likelihood of confusion', 'specimen of use', "
+        "'identification of goods'. By default treated as an adjacent-word phrase; "
+        "set ``syntax='or'`` to widen.",
+    ],
+    limit: Annotated[int, "Maximum hits to return (1-100)."] = 25,
+    offset: Annotated[int, "Result offset for pagination."] = 0,
+    syntax: Annotated[
+        str,
+        "Query syntax. 'adj' (default) — adjacent-word phrase match. "
+        "'and' — all terms must match. 'or' — any term matches. 'exact' — same as 'adj'.",
+    ] = "adj",
+    sort: Annotated[
+        str,
+        "'relevance' (BM25, default) or 'outline' (section_number ascending).",
+    ] = "relevance",
+    full: Annotated[
+        bool,
+        "When False (the default), each hit is a lean stub: section_number, "
+        "title, snippet (truncated to ~400 chars), href. When True, returns "
+        "the upstream TmepSearchHit shape (title prefixed with section_number, "
+        "the full result_url, and the path breadcrumb).",
+    ] = False,
+) -> ListEnvelope[dict]:
+    """Search the Trademark Manual of Examining Procedure (TMEP) for relevant sections.
 
-    Returns matching TMEP sections with relevance-ranked snippets.
-    Useful for finding examination guidance on trademark registration
-    issues.
+    The TMEP is the USPTO examiner's manual for trademark registration
+    practice — controlling distinctiveness, likelihood-of-confusion,
+    specimen, and identification-of-goods analysis. Returns relevance-
+    ranked hits with truncated snippets by default; use ``get_tmep_section``
+    for the full section text by section number or href. Pass ``full=True``
+    to get the upstream-shaped row.
+
+    Examples:
+      * §2(d) refusals: query='likelihood of confusion'
+      * Distinctiveness analysis: query='acquired distinctiveness'
+      * Specimen practice: query='specimen of use'
+
+    Related tools: get_tmep_section.
     """
-    result = await search(SearchInput(query=query))
-    return _dump(result)  # type: ignore[return-value]
+    if limit < 1 or limit > 100:
+        raise ValidationError(f"limit must be between 1 and 100; got {limit}")
+
+    # Translate the offset/limit pair into the underlying client's page/per_page.
+    page = (offset // limit) + 1 if offset >= 0 else 1
+    async with TmepClient() as client:
+        response = await client.search(
+            query=query,
+            syntax=syntax,
+            sort=sort,
+            per_page=limit,
+            page=page,
+        )
+
+    hits = [h.model_dump() for h in response.hits]
+    items = hits if full else [_stub_tmep_hit(h) for h in hits]
+
+    status = get_corpus_status()
+    corpus_label = status["corpus_version"]
+    summary = f"TMEP ({corpus_label}) — `{query}`: {len(items)} hit{'s' if len(items) != 1 else ''}"
+    if response.has_more:
+        summary += " (more available)."
+    else:
+        summary += "."
+
+    return ListEnvelope[dict](
+        summary=summary,
+        items=items,
+        more_available=response.has_more,
+        next_cursor=None,
+        provenance=_tmep_provenance("/RDMS/TMEP/search"),
+    )
 
 
 @trademarks_mcp.tool(annotations=READ_ONLY)
 async def get_tmep_section(
-    section: Annotated[str, "TMEP section number (e.g. '1207', '1207.01(a)') or href"],
-) -> dict:
-    """Get a specific TMEP section by number.
+    section: Annotated[
+        str | list[str],
+        "TMEP section number (e.g. '1207', '1207.01(a)', '1209.03(u)'), an "
+        "eTMEP href ('TMEP-1200d1e8145.html'), or a list of either for "
+        "portfolio workflows. Examples: '1207', ['1207', '1209.03(u)', '1402'].",
+    ],
+) -> ListEnvelope[dict]:
+    """Get one or more TMEP sections by number (or eTMEP href).
 
-    Returns the full text of the requested section from the Trademark
-    Manual of Examining Procedure.
+    Returns each section's title, full HTML, plaintext, and the resolved
+    href. Accepts either a single section reference or a list (§5.4); the
+    response is always a ListEnvelope so the shape is stable. Bounded
+    concurrent fan-out internally; order matches the input.
+
+    The TMEP is the Trademark Manual of Examining Procedure — the USPTO
+    examiner's manual controlling trademark registration practice. The
+    bundled corpus version is surfaced in ``provenance.corpus_version``
+    so agents can quote freshness.
+
+    Related tools: search_tmep.
     """
-    result = await get_section(section)
-    return _dump(result)  # type: ignore[return-value]
+    refs = [section] if isinstance(section, str) else list(section)
+    if not refs:
+        raise ValidationError("get_tmep_section requires at least one section reference")
+
+    semaphore = asyncio.Semaphore(_TMEP_FANOUT_CONCURRENCY)
+
+    async def _fetch_one(client: TmepClient, ref: str) -> dict:
+        async with semaphore:
+            record = await client.get_section(ref)
+            # When the caller passes a section number, ``ref`` already is
+            # the section number. When they pass an href, the corpus row
+            # carries the section_number but the TmepSection model drops
+            # it. Resolve via SECTION_NUMBER_PATTERN so the returned dict
+            # carries section_number when we know it.
+            from patent_client_agents.tmep.client import SECTION_NUMBER_PATTERN
+
+            section_number = ref if SECTION_NUMBER_PATTERN.match(ref) else None
+            return _tmep_section_to_dict(record, section_number=section_number)
+
+    async with TmepClient() as client:
+        results = await asyncio.gather(*[_fetch_one(client, ref) for ref in refs])
+
+    status = get_corpus_status()
+    corpus_label = status["corpus_version"]
+    if len(results) == 1:
+        summary = _summarize_tmep_section(results[0], corpus_label)
+        ref = refs[0]
+        if ref.endswith(".html") or "/" in ref:
+            path = f"/RDMS/TMEP/result?href={ref.lstrip('/')}"
+        else:
+            path = f"/RDMS/TMEP/result?section={ref}"
+    else:
+        joined = ", ".join(refs)
+        summary = f"Fetched {len(results)} TMEP sections ({corpus_label}): {joined}"
+        path = "/RDMS/TMEP/result"
+
+    return ListEnvelope[dict](
+        summary=summary,
+        items=results,
+        provenance=_tmep_provenance(path),
+    )
 
 
 # ---------------------------------------------------------------

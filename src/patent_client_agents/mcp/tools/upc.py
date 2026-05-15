@@ -13,9 +13,10 @@ Two surfaces:
 * **Statutes** read from a pre-built SQLite/FTS5 corpus produced by
   ``patent-client-agents-build-upc-statutes-corpus``. Classification:
   ``category=substantive_law``, ``transport=mcp_local``. Provenance
-  additionally carries ``corpus_synced_at`` / ``corpus_version`` per §4;
-  the values are stubbed here pending the ``get_corpus_status()``
-  rollout (see CONNECTOR_STANDARDS.md §8).
+  additionally carries ``corpus_synced_at`` / ``corpus_version`` per §4,
+  sourced from
+  :func:`patent_client_agents.upc_statutes.get_corpus_status` so the
+  values track the bundled corpus without per-call hardcoding.
 
 Neither surface requires credentials, so the tools are unconditionally
 registered.
@@ -41,6 +42,7 @@ from patent_client_agents.upc_decisions import (
 from patent_client_agents.upc_statutes import (
     StatuteSearchInput,
     UpcStatutesClient,
+    get_corpus_status,
     list_instruments,
     search,
 )
@@ -52,18 +54,15 @@ upc_mcp = FastMCP("UPC")
 #
 # Two source-specific provenance helpers — decisions are live-proxy
 # (standard fields only), statutes are mcp_local (carry corpus_* fields).
-# The statutes corpus_version is stubbed pending the get_corpus_status()
-# callable rollout (CONNECTOR_STANDARDS.md §8).
+# The statutes corpus_synced_at / corpus_version values flow from
+# :func:`patent_client_agents.upc_statutes.get_corpus_status` so the
+# bundled corpus drives the freshness stamp without a code change here
+# (CONNECTOR_STANDARDS.md §4).
 # ──────────────────────────────────────────────────────────────────────
 
 _UPC_DECISIONS_BASE = "https://www.unifiedpatentcourt.org"
 _UPC_DECISIONS_NAME = "Unified Patent Court"
 _UPC_STATUTES_NAME = "Unified Patent Court"
-# Hardcoded until row 17's get_corpus_status() callable lands; see §8 of
-# CONNECTOR_STANDARDS.md. Once that PR is in, this file should call
-# ``UpcStatutesClient().meta()`` and surface the real snapshot_date /
-# corpus_version on each request.
-_UPC_STATUTES_CORPUS_VERSION = "unknown — needs verification"
 
 
 def _upc_provenance(path: str) -> Any:
@@ -75,12 +74,19 @@ def _upc_provenance(path: str) -> Any:
 
 
 def _upc_statutes_provenance(source_url: str) -> Any:
-    """Build a Provenance for the UPC statutes corpus (carries corpus_*)."""
+    """Build a Provenance for the UPC statutes corpus (carries corpus_*).
+
+    Reads ``corpus_synced_at`` / ``corpus_version`` from
+    :func:`patent_client_agents.upc_statutes.get_corpus_status` so the
+    values track the bundled corpus without per-call hardcoding
+    (CONNECTOR_STANDARDS.md §4).
+    """
+    status = get_corpus_status()
     return make_provenance(
         source_url=source_url,
         source_name=_UPC_STATUTES_NAME,
-        corpus_synced_at=None,
-        corpus_version=_UPC_STATUTES_CORPUS_VERSION,
+        corpus_synced_at=status["corpus_synced_at"],
+        corpus_version=status["corpus_version"],
     )
 
 
