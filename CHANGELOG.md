@@ -124,6 +124,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the `get_corpus_status()` rollout reaches `upc_statutes` (queued for
   row 18). §5.6 audit fix: `search_upc_statutes` ↔ `get_upc_section`
   now cross-reference.
+### Batch 5 connector migrations (rows 13, 15, 21)
+
+- **Row 21: Unitary patent helper renamed and migrated.**
+  `get_unitary_patent_package` → `get_epo_unitary_patent_status`
+  (§5.7 jurisdiction prefix, §5.8 dropped "package" jargon, §5.13
+  first sentence rewritten to lead with what an attorney actually
+  wants). Returns `ResponseEnvelope[dict]` (Shape B — single-record
+  EPO Register lookup). Library-level API
+  (`epo_ops.get_unitary_patent_package`, client method,
+  `UnitaryPatentPackage` model) intentionally unchanged — only the MCP
+  tool surface renamed.
+
+- **Row 13: USITC migrated + new `get_usitc_investigation` tool.**
+  Closes the §5.2 orphan-search audit finding via a real EDIS
+  endpoint (`/data/investigation/{N}`); no search fallback needed.
+  `search_usitc_investigations`, `search_usitc_documents`,
+  `search_hts_tariffs`, `list_usitc_attachments`,
+  `list_ids_investigations` now all conform to the envelope.
+  `run_dataweb_report` first sentence rewritten per §5.13:
+  "Pull US import/export statistics from USITC DataWeb (the official
+  trade-statistics interface)." All docstrings spell out USITC, EDIS,
+  and DataWeb on first use. Download tools (`download_usitc_*`)
+  retain their Shape E ResourceLink shape; docstrings updated for
+  §5.6 cross-refs only.
+
+- **Row 15: CanLII renamed and migrated.**
+  `browse_canlii_cases` → `search_canlii_cases`,
+  `browse_canlii_legislation` → `search_canlii_legislation` per the
+  §5.8 verb table (the upstream behavior is filter-driven search, not
+  vocabulary enumeration). `get_canlii_case` and
+  `get_canlii_legislation` accept `str | list[str]` per §5.4 with
+  bounded-concurrency fan-out. Citator tools
+  (`get_canlii_cited_cases`, `get_canlii_citing_cases`,
+  `get_canlii_cited_legislations`) gain §5.6 cross-refs to
+  `get_canlii_case`. Vocabulary list_* enumerators retained per §5.8
+  acceptable extension. Catalog and docs references updated for the
+  rename.
+
 - **Row 18 complete — all 8 substantive-law `mcp_local` corpora now
   expose `get_corpus_status()` AND ship envelope-conformant MCP tools.**
   Real `corpus_version` strings now flow through `Provenance.corpus_version`
