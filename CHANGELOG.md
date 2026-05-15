@@ -5,6 +5,35 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.18.0] — 2026-05-14 (unreleased)
+
+### Changed (breaking)
+
+- **`search_applications` now returns a lean stub per hit by default.**
+  Previously every hit carried the full ODP record (inventor bag,
+  applicant bag, attorney of record, continuity, PTA history,
+  prosecution events, etc.), which was megabytes per call and
+  unworkable as agent context. The default projection is now sixteen
+  scalar fields sufficient to identify and triage each application:
+  ``applicationNumberText``, plus ``applicationMetaData.{inventionTitle,
+  patentNumber, earliestPublicationNumber, filingDate, grantDate,
+  applicationStatusCode, applicationStatusDescriptionText,
+  applicationStatusDate, applicationTypeCategory, firstApplicantName,
+  firstInventorName, examinerNameText, groupArtUnitNumber,
+  docketNumber, cpcClassificationBag}``.
+
+  Affects ``ApplicationsClient.search``, ``UsptoOdpClient.search_applications``,
+  ``patent_client_agents.uspto_applications.api.search_applications``,
+  and the ``search_applications`` MCP tool.
+
+  **Migration:** pass ``full=True`` to restore the previous behavior, or
+  pass an explicit ``fields=[...]`` projection (Python API only) for a
+  custom shape. The stub list is exported as
+  ``patent_client_agents.uspto_odp.clients.applications.STUB_APPLICATION_FIELDS``.
+
+  When you only need one application's full record, prefer
+  ``get_application(application_number)`` — that endpoint is unchanged.
+
 ## [0.11.1] — 2026-05-13
 
 ### Fixed

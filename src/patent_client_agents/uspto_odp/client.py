@@ -157,9 +157,16 @@ class UsptoOdpClient:
         sort: Sequence[OdpSort | dict[str, Any]] | None = None,
         limit: int = 25,
         offset: int = 0,
+        full: bool = False,
         raw_payload: dict[str, Any] | None = None,
     ) -> SearchResponse:
-        """Search patent applications."""
+        """Search patent applications.
+
+        By default returns a lean projection (see
+        :data:`patent_client_agents.uspto_odp.clients.applications.STUB_APPLICATION_FIELDS`).
+        Pass ``full=True`` to receive the full ODP record per hit, or
+        ``fields=[...]`` to specify a custom projection.
+        """
         return await self._applications.search(
             query=query,
             fields=fields,
@@ -169,6 +176,7 @@ class UsptoOdpClient:
             sort=sort,
             limit=limit,
             offset=offset,
+            full=full,
             raw_payload=raw_payload,
         )
 

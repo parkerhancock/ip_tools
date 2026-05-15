@@ -107,10 +107,16 @@ async def search_applications(
     sort: str | None = None,
     limit: int = 25,
     offset: int = 0,
+    full: bool = False,
     raw_payload: dict[str, object] | None = None,
     client: UsptoOdpClient | None = None,
 ) -> SearchResponse:
     """Search USPTO patent applications.
+
+    Returns a lean projection by default — pass ``full=True`` for the
+    complete ODP record per hit, or ``fields=[...]`` for a custom
+    projection. See :class:`patent_client_agents.uspto_odp.UsptoOdpClient`
+    ``.search_applications`` for details.
 
     If no client is provided, creates one internally and closes it after the request.
     """
@@ -123,6 +129,7 @@ async def search_applications(
         "sort": sort,
         "limit": limit,
         "offset": offset,
+        "full": full,
         "raw_payload": raw_payload,
     }
 

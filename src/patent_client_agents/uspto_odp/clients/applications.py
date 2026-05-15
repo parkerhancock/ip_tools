@@ -29,6 +29,29 @@ logger = logging.getLogger(__name__)
 _OCR_CACHE_DIR = get_default_cache_dir() / "ifw_ocr"
 _OCR_MIN_CHARS_PER_PAGE = 50
 
+# Lean projection sent when callers don't request a full record. Keeps search
+# responses small enough to fit comfortably in an agent's context window —
+# enough to identify the application, judge relevance, and decide whether to
+# fetch the full record via get_application().
+STUB_APPLICATION_FIELDS: tuple[str, ...] = (
+    "applicationNumberText",
+    "applicationMetaData.inventionTitle",
+    "applicationMetaData.patentNumber",
+    "applicationMetaData.earliestPublicationNumber",
+    "applicationMetaData.filingDate",
+    "applicationMetaData.grantDate",
+    "applicationMetaData.applicationStatusCode",
+    "applicationMetaData.applicationStatusDescriptionText",
+    "applicationMetaData.applicationStatusDate",
+    "applicationMetaData.applicationTypeCategory",
+    "applicationMetaData.firstApplicantName",
+    "applicationMetaData.firstInventorName",
+    "applicationMetaData.examinerNameText",
+    "applicationMetaData.groupArtUnitNumber",
+    "applicationMetaData.docketNumber",
+    "applicationMetaData.cpcClassificationBag",
+)
+
 
 def _extract_pdf_text(pdf_bytes: bytes) -> tuple[str, int]:
     """Extract the text layer from a PDF. Returns (text, page_count)."""
@@ -170,13 +193,17 @@ class ApplicationsClient(UsptoOdpBaseClient):
         sort: Sequence[OdpSort | dict[str, Any]] | None = None,
         limit: int = 25,
         offset: int = 0,
+        full: bool = False,
         raw_payload: dict[str, Any] | None = None,
     ) -> SearchResponse:
         """Search patent applications.
 
         Args:
             query: Lucene-style search query.
-            fields: Fields to return in response.
+            fields: Explicit projection — overrides both ``full`` and the
+                default stub. Pass a list of dotted field paths
+                (e.g. ``["applicationNumberText",
+                "applicationMetaData.inventionTitle"]``).
             facets: Fields to aggregate.
             filters: Filter objects or dicts (e.g.,
                 ``[{"name": "applicationMetaData.publicationCategoryBag",
@@ -188,6 +215,11 @@ class ApplicationsClient(UsptoOdpBaseClient):
                 ``[{"field": "applicationMetaData.filingDate", "order": "Desc"}]``).
             limit: Maximum results to return.
             offset: Number of results to skip.
+            full: When ``False`` (the default) and ``fields`` is not given,
+                the request projects to :data:`STUB_APPLICATION_FIELDS` —
+                a small set sufficient to identify each application. Set
+                ``True`` to return the full ODP record (large; call
+                ``get()`` instead when you only need one).
             raw_payload: Override with a custom payload dict.
 
         Returns:
@@ -201,6 +233,8 @@ class ApplicationsClient(UsptoOdpBaseClient):
                 payload["q"] = query
             if fields:
                 payload["fields"] = list(fields)
+            elif not full:
+                payload["fields"] = list(STUB_APPLICATION_FIELDS)
             if facets:
                 payload["facets"] = list(facets)
             if (filters_value := _serialize_model_list(filters)) is not None:
@@ -792,4 +826,4 @@ class ApplicationsClient(UsptoOdpBaseClient):
         )
 
 
-__all__ = ["ApplicationsClient"]
+__all__ = ["ApplicationsClient", "STUB_APPLICATION_FIELDS"]

@@ -136,15 +136,32 @@ async def search_applications(
     ],
     limit: Annotated[int, "Maximum number of results to return"] = 25,
     offset: Annotated[int, "Result offset for pagination"] = 0,
+    full: Annotated[
+        bool,
+        "When False (the default), each hit is a lean stub: application "
+        "number, title, patent/publication number, filing/grant/status "
+        "dates, status text, type category, first applicant/inventor, "
+        "examiner, art unit, docket number, CPC bag. When True, every hit "
+        "carries the full ODP record (inventor bag, applicant bag, "
+        "attorney of record, continuity, PTA history, prosecution events, "
+        "etc.) — large; prefer ``get_application`` for one record.",
+    ] = False,
 ) -> dict:
     """Search USPTO patent applications by metadata fields (title, CPC, dates, status).
+
+    Returns a lean stub per hit by default so result sets stay small.
+    When you need the full record for one application, call
+    ``get_application``. To get full records across the result set, pass
+    ``full=True`` (expect a much larger payload).
 
     NOTE: This searches application metadata only — not claims or specification
     text. For full-text patent search (within claims, description, abstract),
     use search_patent_publications instead.
     """
     async with UsptoOdpClient() as client:
-        result = await client.search_applications(query=query, limit=limit, offset=offset)
+        result = await client.search_applications(
+            query=query, limit=limit, offset=offset, full=full
+        )
         return _dump(result)  # type: ignore[return-value]
 
 

@@ -242,6 +242,80 @@ class TestGetGrantedClaims:
         assert result is None
 
 
+class TestSearchProjection:
+    """search() projects to STUB_APPLICATION_FIELDS by default."""
+
+    @pytest.mark.asyncio
+    async def test_default_projects_to_stub(self) -> None:
+        from patent_client_agents.uspto_odp.clients.applications import (
+            STUB_APPLICATION_FIELDS,
+        )
+
+        client = _make_client()
+        captured: dict[str, object] = {}
+
+        async def fake_search_with_payload(path, payload, **kwargs):
+            captured["payload"] = payload
+            return {"count": 0, "patentFileWrapperDataBag": []}
+
+        with patch.object(
+            client, "_search_with_payload", side_effect=fake_search_with_payload
+        ):
+            await client.search(query="anything")
+
+        assert captured["payload"]["fields"] == list(STUB_APPLICATION_FIELDS)
+
+    @pytest.mark.asyncio
+    async def test_full_true_omits_fields(self) -> None:
+        client = _make_client()
+        captured: dict[str, object] = {}
+
+        async def fake_search_with_payload(path, payload, **kwargs):
+            captured["payload"] = payload
+            return {"count": 0, "patentFileWrapperDataBag": []}
+
+        with patch.object(
+            client, "_search_with_payload", side_effect=fake_search_with_payload
+        ):
+            await client.search(query="anything", full=True)
+
+        assert "fields" not in captured["payload"]
+
+    @pytest.mark.asyncio
+    async def test_explicit_fields_override_stub(self) -> None:
+        client = _make_client()
+        captured: dict[str, object] = {}
+
+        async def fake_search_with_payload(path, payload, **kwargs):
+            captured["payload"] = payload
+            return {"count": 0, "patentFileWrapperDataBag": []}
+
+        with patch.object(
+            client, "_search_with_payload", side_effect=fake_search_with_payload
+        ):
+            await client.search(query="anything", fields=["applicationNumberText"])
+
+        assert captured["payload"]["fields"] == ["applicationNumberText"]
+
+    @pytest.mark.asyncio
+    async def test_explicit_fields_win_over_full(self) -> None:
+        client = _make_client()
+        captured: dict[str, object] = {}
+
+        async def fake_search_with_payload(path, payload, **kwargs):
+            captured["payload"] = payload
+            return {"count": 0, "patentFileWrapperDataBag": []}
+
+        with patch.object(
+            client, "_search_with_payload", side_effect=fake_search_with_payload
+        ):
+            await client.search(
+                query="x", fields=["applicationNumberText"], full=True
+            )
+
+        assert captured["payload"]["fields"] == ["applicationNumberText"]
+
+
 class TestResolveIdentifierDefault:
     """Default identifier_type should be 'patent'."""
 
