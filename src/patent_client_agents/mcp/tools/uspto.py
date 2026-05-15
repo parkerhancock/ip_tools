@@ -2,16 +2,59 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+import asyncio
+from typing import Annotated, Any
 from urllib.parse import urlparse
 
 from fastmcp import FastMCP
 
+from law_tools_core.envelope import (
+    ListEnvelope,
+    make_provenance,
+)
 from law_tools_core.mcp.annotations import READ_ONLY
 from law_tools_core.mcp.downloads import read_resource, register_source
 from patent_client_agents.uspto_odp import PtabTrialsClient, UsptoOdpClient
 
 uspto_mcp = FastMCP("USPTO")
+
+# ──────────────────────────────────────────────────────────────────────
+# Envelope helpers — USPTO ODP source-specific wrappers around
+# law_tools_core.envelope. The applications surface is the template
+# referenced by CONNECTOR_STANDARDS.md §5.9; other USPTO tools (PTAB,
+# petitions, bulk data) follow the same pattern in a later sweep.
+# ──────────────────────────────────────────────────────────────────────
+
+_USPTO_ODP_BASE = "https://api.uspto.gov"
+_USPTO_ODP_NAME = "USPTO Open Data Portal"
+
+
+def _odp_provenance(path: str) -> Any:
+    """Build a Provenance pointing at ``{base}{path}``."""
+    return make_provenance(
+        source_url=f"{_USPTO_ODP_BASE}{path}",
+        source_name=_USPTO_ODP_NAME,
+    )
+
+
+def _summarize_application(record: dict) -> str:
+    """One-line Markdown summary for a single application record."""
+    meta = record.get("applicationMetaData") or {}
+    appl = record.get("applicationNumberText") or "(no appl#)"
+    title = meta.get("inventionTitle") or "(no title)"
+    status = meta.get("applicationStatusDescriptionText") or "(unknown status)"
+    filing = meta.get("filingDate") or "?"
+    pat = meta.get("patentNumber")
+    grant = meta.get("grantDate")
+    head = f"**US application {appl}** — {title}"
+    line = f"Status: {status}. Filed {filing}"
+    if pat and grant:
+        line += f"; issued as US {pat} on {grant}."
+    elif pat:
+        line += f"; issued as US {pat}."
+    else:
+        line += "."
+    return f"{head}\n{line}"
 
 
 # USPTO ODP URL fields that require API key auth — must be stripped from responses
@@ -146,7 +189,7 @@ async def search_applications(
         "attorney of record, continuity, PTA history, prosecution events, "
         "etc.) — large; prefer ``get_application`` for one record.",
     ] = False,
-) -> dict:
+) -> ListEnvelope[dict]:
     """Search USPTO patent applications by metadata fields (title, CPC, dates, status).
 
     Returns a lean stub per hit by default so result sets stay small.
@@ -157,33 +200,81 @@ async def search_applications(
     NOTE: This searches application metadata only — not claims or specification
     text. For full-text patent search (within claims, description, abstract),
     use search_patent_publications instead.
+
+    Related tools: get_application, list_file_history, get_patent_family.
     """
     async with UsptoOdpClient() as client:
         result = await client.search_applications(
             query=query, limit=limit, offset=offset, full=full
         )
-        return _dump(result)  # type: ignore[return-value]
+
+    dumped = _dump(result)
+    items = list(dumped.get("patentBag") or dumped.get("results") or [])
+    total_match = dumped.get("count") or dumped.get("recordTotalQuantity")
+    shown = len(items)
+    more = bool(total_match and shown + offset < int(total_match))
+    summary_total = f"{shown} of {total_match} hits" if total_match else f"{shown} hits"
+    return ListEnvelope[dict](
+        summary=f"USPTO Applications — `{query}`: {summary_total}.",
+        items=items,
+        more_available=more,
+        next_cursor=None,
+        provenance=_odp_provenance("/api/v1/patent/applications/search"),
+    )
+
+
+_GET_APPLICATION_FANOUT_CONCURRENCY = 5
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
 async def get_application(
     application_number: Annotated[
-        str,
-        "USPTO application number (8+ digits). Examples: '16123456', '17654321'. "
+        str | list[str],
+        "USPTO application number (8+ digits), or a list of such numbers for "
+        "portfolio workflows. Examples: '16123456', ['16123456', '17654321']. "
         "NOT a patent number (like '10123456B2') or publication number "
         "(like 'US20230012345A1'). If you have a patent number, use "
         "get_patent_family to find the application number first.",
     ],
-) -> dict:
+) -> ListEnvelope[dict]:
     """Get application metadata: status, filing/grant dates, examiner, CPC, and title.
+
+    Accepts either a single application number or a list (per §5.4); the
+    response is always a ListEnvelope so the shape is stable. Bounded
+    concurrent fan-out internally.
 
     Does NOT return patent text (claims, spec, abstract). For patent text,
     use get_patent_publication. For prosecution documents, use
     list_file_history.
+
+    Related tools: search_applications, list_file_history, get_patent_family,
+    get_patent_assignment.
     """
+    numbers = (
+        [application_number] if isinstance(application_number, str) else list(application_number)
+    )
+
+    semaphore = asyncio.Semaphore(_GET_APPLICATION_FANOUT_CONCURRENCY)
+
+    async def _fetch_one(client: UsptoOdpClient, appl: str) -> dict:
+        async with semaphore:
+            response = await client.get_application(appl)
+            return _dump(response)  # type: ignore[return-value]
+
     async with UsptoOdpClient() as client:
-        result = await client.get_application(application_number)
-        return _dump(result)  # type: ignore[return-value]
+        results = await asyncio.gather(*[_fetch_one(client, n) for n in numbers])
+
+    if len(results) == 1:
+        summary = _summarize_application(_extract_first_record(results[0]))
+    else:
+        summary = f"Fetched {len(results)} USPTO applications: " + ", ".join(numbers)
+
+    path = "/api/v1/patent/applications" + ("/" + numbers[0] if len(numbers) == 1 else "")
+    return ListEnvelope[dict](
+        summary=summary,
+        items=results,
+        provenance=_odp_provenance(path),
+    )
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
@@ -193,7 +284,7 @@ async def list_file_history(
         "USPTO application number (8+ digits). Examples: '16123456'. "
         "NOT a patent number or publication number.",
     ],
-) -> dict:
+) -> ListEnvelope[dict]:
     """List prosecution file-history documents for an application.
 
     Returns each document with its identifier, code, description, date,
@@ -205,6 +296,8 @@ async def list_file_history(
     ABST (abstract), CTFR/CTNF (office actions), REM (applicant remarks),
     NOA (notice of allowance), CTRS (restriction requirement), IDS
     (information disclosure statement).
+
+    Related tools: get_application, get_file_history_item, download_file_history.
     """
     async with UsptoOdpClient() as client:
         response = await client.get_documents(application_number)
@@ -227,7 +320,26 @@ async def list_file_history(
                 "formats": formats,
             }
         )
-    return {"application_number": application_number, "documents": documents}
+
+    return ListEnvelope[dict](
+        summary=(
+            f"USPTO application {application_number} — {len(documents)} file-history documents."
+        ),
+        items=documents,
+        provenance=_odp_provenance(f"/api/v1/patent/applications/{application_number}/documents"),
+    )
+
+
+def _extract_first_record(payload: dict) -> dict:
+    """Pull the first record out of a single get_application response.
+
+    USPTO ODP returns ``{"patentBag": [{...}]}`` for a single application.
+    Falls back to the payload itself if the bag is absent.
+    """
+    bag = payload.get("patentBag") or payload.get("results")
+    if bag and isinstance(bag, list):
+        return bag[0]
+    return payload
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
