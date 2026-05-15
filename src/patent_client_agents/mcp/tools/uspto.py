@@ -1551,26 +1551,142 @@ def _ptab_decision_filename(
 # ---------------------------------------------------------------------------
 
 
+_PETITION_FANOUT_CONCURRENCY = 5
+
+
+def _stub_petition(record: dict) -> dict:
+    """Lean projection (§5.5) of a USPTO petition decision record."""
+    return {
+        "petition_decision_record_identifier": record.get("petitionDecisionRecordIdentifier"),
+        "application_number": record.get("applicationNumberText"),
+        "patent_number": record.get("patentNumber"),
+        "decision_date": record.get("decisionDate"),
+        "decision_type_code": record.get("decisionTypeCode"),
+        "petition_type": record.get("decisionPetitionTypeCodeDescriptionText"),
+        "deciding_office": record.get("finalDecidingOfficeName"),
+        "applicant": record.get("firstApplicantName"),
+        "invention_title": record.get("inventionTitle"),
+        "petition_mail_date": record.get("petitionMailDate"),
+    }
+
+
+def _summarize_petition(record: dict) -> str:
+    """One-line Markdown summary of a single petition decision record."""
+    pid = record.get("petitionDecisionRecordIdentifier") or "(no id)"
+    appl = record.get("applicationNumberText") or "(no appl#)"
+    pt = record.get("decisionPetitionTypeCodeDescriptionText") or "(no type)"
+    dt = record.get("decisionTypeCode") or "(no decision)"
+    decided = record.get("decisionDate") or "?"
+    office = record.get("finalDecidingOfficeName") or ""
+    head = f"**USPTO petition {pid}** — {pt}"
+    line = f"Application {appl}. Decision: {dt} on {decided}"
+    if office:
+        line += f" by {office}"
+    line += "."
+    return f"{head}\n{line}"
+
+
+def _extract_petition_first(payload: dict) -> dict:
+    """Pull the first record out of a get_petition response payload."""
+    bag = payload.get("petitionDecisionDataBag")
+    if bag and isinstance(bag, list):
+        return bag[0]
+    return payload
+
+
 @uspto_mcp.tool(annotations=READ_ONLY)
 async def search_petitions(
     query: Annotated[str, "Search query for petition decisions"],
     limit: Annotated[int, "Maximum number of results"] = 25,
     offset: Annotated[int, "Result offset for pagination"] = 0,
-) -> dict:
-    """Search USPTO petition decisions."""
+    full: Annotated[
+        bool,
+        "When False (the default), each hit is a lean stub: petition "
+        "decision identifier, application number, patent number, decision "
+        "date and type, petition type, deciding office, applicant, "
+        "invention title. When True, every hit carries the full ODP "
+        "petition decision record (statutes/rules bags, issue text, "
+        "ingestion timestamps, etc.).",
+    ] = False,
+) -> ListEnvelope[dict]:
+    """Search USPTO petition decisions across the Open Data Portal.
+
+    Petition decisions are USPTO rulings on procedural and substantive
+    petitions filed during prosecution (e.g., revival, withdrawal of
+    holding of abandonment, prioritized examination). Returns lean stubs
+    by default. Use ``get_petition`` for a full record by decision
+    identifier; petitions attach to applications, so ``search_applications``
+    and ``get_application`` give you the underlying prosecution context.
+
+    Related tools: get_petition, search_applications, get_application.
+    """
     async with UsptoOdpClient() as client:
         result = await client.search_petitions(q=query, limit=limit, offset=offset)
-        return _dump(result)  # type: ignore[return-value]
+
+    dumped = _dump(result) if hasattr(result, "model_dump") else result
+    raw_items = list(dumped.get("petitionDecisionDataBag") or [])
+    total = dumped.get("count")
+    items = raw_items if full else [_stub_petition(r) for r in raw_items]
+    shown = len(items)
+    more = bool(total and shown + offset < int(total))
+    summary_total = f"{shown} of {total} hits" if total else f"{shown} hits"
+    return ListEnvelope[dict](
+        summary=f"USPTO petitions — `{query}`: {summary_total}.",
+        items=items,
+        more_available=more,
+        next_cursor=None,
+        provenance=_odp_provenance("/api/v1/patent/petitions/search"),
+    )
 
 
 @uspto_mcp.tool(annotations=READ_ONLY)
 async def get_petition(
-    petition_id: Annotated[str, "Petition decision record identifier"],
-) -> dict:
-    """Get details for a specific petition decision."""
+    petition_number: Annotated[
+        str | list[str],
+        "USPTO petition decision record identifier (from search_petitions), or "
+        "a list of such identifiers for portfolio workflows. The response "
+        "shape stays a ListEnvelope whether you pass one or many.",
+    ],
+) -> ListEnvelope[dict]:
+    """Get one or more USPTO petition decision records by identifier.
+
+    Accepts either a single petition decision identifier or a list (§5.4);
+    the response is always a ListEnvelope. Bounded concurrent fan-out
+    internally; order matches the input.
+
+    Use ``search_petitions`` to discover decision identifiers, and
+    ``get_application`` for the underlying prosecution context (each
+    petition attaches to an application).
+
+    Related tools: search_petitions, search_applications, get_application.
+    """
+    ids = [petition_number] if isinstance(petition_number, str) else list(petition_number)
+    if not ids:
+        from law_tools_core.exceptions import ValidationError
+
+        raise ValidationError("get_petition requires at least one identifier")
+
+    semaphore = asyncio.Semaphore(_PETITION_FANOUT_CONCURRENCY)
+
+    async def _fetch_one(client: UsptoOdpClient, pid: str) -> dict:
+        async with semaphore:
+            return _dump(await client.get_petition(pid))  # type: ignore[return-value]
+
     async with UsptoOdpClient() as client:
-        result = await client.get_petition(petition_id)
-        return _dump(result)  # type: ignore[return-value]
+        results = await asyncio.gather(*[_fetch_one(client, p) for p in ids])
+
+    if len(results) == 1:
+        first = _extract_petition_first(results[0])
+        summary = _summarize_petition(first)
+    else:
+        summary = f"Fetched {len(results)} USPTO petition decisions: " + ", ".join(ids)
+
+    path = "/api/v1/patent/petitions" + ("/" + ids[0] if len(ids) == 1 else "")
+    return ListEnvelope[dict](
+        summary=summary,
+        items=results,
+        provenance=_odp_provenance(path),
+    )
 
 
 # ---------------------------------------------------------------------------
