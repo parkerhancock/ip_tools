@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import FastMCP
 
@@ -39,11 +39,17 @@ def _ppubs_provenance(path: str) -> Any:
     )
 
 
-def _dump(obj: object) -> object:
-    """Serialize a Pydantic model or pass through."""
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model (JSON mode) to a dict (or pass through dicts).
+
+    JSON mode coerces datetimes/Decimals/etc to strings — keeps the
+    payload JSON-safe at the envelope boundary.
+    """
     if hasattr(obj, "model_dump"):
-        return obj.model_dump(mode="json")  # type: ignore[union-attr]
-    return obj
+        return cast("dict[str, Any]", obj.model_dump(mode="json"))  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 def _stub_publication(record: dict) -> dict:

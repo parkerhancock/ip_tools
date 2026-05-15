@@ -90,7 +90,14 @@ def _upc_statutes_provenance(source_url: str) -> Any:
     )
 
 
-def _dump(obj: object) -> object:
+def _dump(obj: object) -> Any:
+    """Serialize a Pydantic model or pass through.
+
+    Recursive — handles ``None``, lists (recursing per-element), and dicts.
+    Return type is ``Any`` because the helper genuinely produces multiple
+    shapes (dict for models, list for sequences, None for empties); call
+    sites narrow at use.
+    """
     if obj is None:
         return None
     if hasattr(obj, "model_dump"):

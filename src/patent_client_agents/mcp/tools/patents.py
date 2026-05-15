@@ -8,7 +8,7 @@ view shapes, and signed-URL packaging; fusion semantics live in the library.
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import FastMCP
 
@@ -49,11 +49,13 @@ def _google_patents_provenance(path: str) -> Any:
     )
 
 
-def _dump(obj: object) -> object:
-    """Serialize a Pydantic model or pass through."""
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model to a dict (or pass through dicts)."""
     if hasattr(obj, "model_dump"):
-        return obj.model_dump()  # type: ignore[union-attr]
-    return obj
+        return cast("dict[str, Any]", obj.model_dump())  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 # Country code is the leading two-letter prefix of a publication_number

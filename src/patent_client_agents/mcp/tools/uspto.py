@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 from urllib.parse import urlparse
 
 from fastmcp import FastMCP
@@ -61,17 +61,34 @@ def _summarize_application(record: dict) -> str:
 _AUTH_URL_FIELDS = {"fileDownloadURI", "downloadURI", "downloadUrl", "fileLocationURI"}
 
 
-def _dump(obj: object) -> object:
-    """Serialize a Pydantic model and strip auth-required URLs."""
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model and strip auth-required URLs.
+
+    Every caller passes a Pydantic model from the upstream client; the
+    fallback ``return obj`` branch exists only to be defensive if a dict
+    slips through. Typed as ``dict[str, Any]`` so call sites can use
+    ``.get(...)`` and similar without per-call type narrowing.
+
+    ``hasattr`` and ``isinstance(obj, dict)`` don't narrow ``object`` in
+    ty's view, so we cast the results. The pyright/mypy ``union-attr``
+    suppression remains for the model_dump attribute lookup.
+    """
     if hasattr(obj, "model_dump"):
-        data = obj.model_dump()  # type: ignore[union-attr]
+        data: dict[str, Any] = cast("dict[str, Any]", obj.model_dump())  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
         _strip_auth_urls(data)
         return data
-    return obj
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
-def _strip_auth_urls(data: object) -> None:
-    """Recursively remove auth-required URL fields from nested dicts/lists."""
+def _strip_auth_urls(data: Any) -> None:
+    """Recursively remove auth-required URL fields from nested dicts/lists.
+
+    Typed as ``Any`` because this walks JSON-shaped data of arbitrary
+    depth — the recursion sees dicts, lists, scalars interchangeably.
+    Stricter typing would force per-call casts at every recursive step.
+    """
     if isinstance(data, dict):
         for key in _AUTH_URL_FIELDS & data.keys():
             del data[key]

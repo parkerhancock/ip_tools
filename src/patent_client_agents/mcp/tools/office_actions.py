@@ -9,7 +9,7 @@ on ``api.uspto.gov`` (X-API-KEY auth).
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import FastMCP
 
@@ -55,11 +55,13 @@ _SEARCH_METHODS = {
 }
 
 
-def _dump(obj: object) -> dict:
-    """Serialize a Pydantic record to dict."""
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic record to a dict (or pass through dicts)."""
     if hasattr(obj, "model_dump"):
-        return obj.model_dump()  # type: ignore[union-attr]
-    return obj  # type: ignore[return-value]
+        return cast("dict[str, Any]", obj.model_dump())  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 def _stub_rejection(rec: dict) -> dict:

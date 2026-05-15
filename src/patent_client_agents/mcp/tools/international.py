@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 
 import httpx
 from fastmcp import FastMCP
@@ -44,10 +44,19 @@ _JPO_REQUIRED_ENV: list[str] = ["JPO_API_USERNAME", "JPO_API_PASSWORD"]
 international_mcp = FastMCP("International")
 
 
-def _dump(obj: object) -> object:
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model to a dict (or pass through dicts).
+
+    Every caller passes a Pydantic model from the upstream client; the
+    fallback exists to be defensive if a dict slips through. Typed as
+    ``dict[str, Any]`` so call sites can use ``.get(...)`` without
+    per-call narrowing.
+    """
     if hasattr(obj, "model_dump"):
-        return obj.model_dump()  # type: ignore[union-attr]
-    return obj
+        return cast("dict[str, Any]", obj.model_dump())  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 # ---------------------------------------------------------------------------
@@ -362,8 +371,10 @@ async def search_epo(
                 query=cql_query, range_begin=range_begin, range_end=range_end
             )
 
-    dumped: dict = _dump(result)  # type: ignore[assignment]
-    raw_rows = list(dumped.get("families") if group == "family" else dumped.get("results") or [])
+    dumped = _dump(result)
+    raw = dumped.get("families") if group == "family" else dumped.get("results")
+    raw_rows: list[dict[str, Any]] = raw if isinstance(raw, list) else []
+    items: list[dict[str, Any]]
     if full:
         items = raw_rows
     elif group == "family":
@@ -1694,8 +1705,8 @@ async def get_jpo_documents(
 
         bundle = parse_document_bundle(
             zip_bytes,
-            kind,  # type: ignore[arg-type]
-            ip,  # type: ignore[arg-type]
+            kind,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
+            ip,  # type: ignore[arg-type]  # ty: ignore[invalid-argument-type]
             application_number=application_number,
         )
 

@@ -14,7 +14,7 @@ ID documents to ``docs.apiplatform@euipo.europa.eu``.
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import FastMCP
 
@@ -47,10 +47,17 @@ def _euipo_provenance(path: str) -> Any:
     )
 
 
-def _dump(obj: object) -> object:
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model (with ``by_alias=True``) to a dict.
+
+    EUIPO models use camelCase aliases at the wire boundary; we surface
+    those in the envelope payload to match the upstream contract.
+    """
     if hasattr(obj, "model_dump"):
-        return obj.model_dump(by_alias=True)  # type: ignore[union-attr]
-    return obj
+        return cast("dict[str, Any]", obj.model_dump(by_alias=True))  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 def _first_applicant_name(record: dict) -> str | None:

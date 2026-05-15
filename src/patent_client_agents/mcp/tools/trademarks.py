@@ -15,7 +15,7 @@ Tools backed by:
 from __future__ import annotations
 
 import asyncio
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastmcp import FastMCP
 
@@ -30,10 +30,19 @@ from patent_client_agents.uspto_tsdr import TsdrClient
 trademarks_mcp = FastMCP("Trademarks")
 
 
-def _dump(obj: object) -> object:
+def _dump(obj: object) -> dict[str, Any]:
+    """Serialize a Pydantic model to a dict (or pass through dicts).
+
+    Every caller passes a Pydantic model from the upstream client; the
+    fallback exists to be defensive if a dict slips through. Typed as
+    ``dict[str, Any]`` so call sites can use ``.get(...)`` without
+    per-call narrowing.
+    """
     if hasattr(obj, "model_dump"):
-        return obj.model_dump()  # type: ignore[union-attr]
-    return obj
+        return cast("dict[str, Any]", obj.model_dump())  # type: ignore[union-attr]  # ty: ignore[call-non-callable]
+    if isinstance(obj, dict):
+        return cast("dict[str, Any]", obj)
+    raise TypeError(f"_dump expected a Pydantic model or dict, got {type(obj).__name__}")
 
 
 def _dump_list(items: list) -> dict:
