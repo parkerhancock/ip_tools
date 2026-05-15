@@ -245,7 +245,7 @@ async def download_patent_pdf(
     extra: dict[str, object] = {"patent_number": pdf.patent_number, "source": pdf.source}
     if pdf.patent_title is not None:
         extra["patent_title"] = pdf.patent_title
-    return download_tool_result(
+    return await download_tool_result(
         f"{signed_path_prefix}/{pdf.patent_number}",
         pdf.pdf_bytes,
         filename=pdf.filename,

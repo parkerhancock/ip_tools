@@ -861,7 +861,7 @@ async def get_jpo_documents(
             }
             if zip_bytes is not None:
                 payload.update(
-                    download_response(
+                    await download_response(
                         resource_path,
                         zip_bytes,
                         filename=filename,

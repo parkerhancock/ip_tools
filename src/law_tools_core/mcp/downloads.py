@@ -330,7 +330,7 @@ async def build_download_url_or_fetch(
     return f"Downloaded file ({size_str}). Saved to {tmp.name}"
 
 
-def download_response(
+async def download_response(
     resource_path: str,
     content: bytes,
     *,
@@ -422,7 +422,7 @@ def _make_resource_link(
     )
 
 
-def download_tool_result(
+async def download_tool_result(
     resource_path: str,
     content: bytes,
     *,
@@ -451,7 +451,7 @@ def download_tool_result(
     ``source`` field) can pass it via ``**extras`` or skip this wrapper
     and use :func:`download_response` directly.
     """
-    payload = download_response(
+    payload = await download_response(
         resource_path,
         content,
         filename=filename,
@@ -620,7 +620,7 @@ async def download_bulk_response(
         only = items[0]
         content, filename = await fetcher(only)
         extras: dict = {**container_meta, "item_id": only.item_id, **only.metadata}
-        return download_response(
+        return await download_response(
             only.resource_path,
             content,
             filename=filename,
