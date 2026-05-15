@@ -218,42 +218,61 @@ own payload shape. Agents treat cursors as bytes.
 Order picked for: (a) impact, (b) shape variety, (c) cleanest blast
 radius. Each row is one PR.
 
-| # | Connector(s) | Tools | Audit findings this closes |
-|---|---|---|---|
-| 1 | USPTO Applications | search_applications, get_application, list_file_history | §5.9 envelope, §5.4 list-accept (DONE) |
-| 2 | Trademarks (USPTO TSDR + TM Search) | search_trademarks, get_trademark, get_trademark_status, get_trademark_documents, get_trademark_last_update, **DELETE batch_trademark_status** | §5.4 (kill batch tool), §5.3 (collapse get_trademark args), §5.5 lean, §5.9 |
-| 3 | USPTO Publications (PPUBS) | search_patent_publications, get_patent_publication | §5.9, §5.5 lean, §5.1 collapse with get_patent if feasible |
-| 4 | Google Patents | search_google_patents → rename `search_patents_global`, get_patent, **DROP get_patent_details** (fold into `view='details'` opt-in) | §5.1, §5.5, §5.7 jurisdiction prefix, §5.9 |
-| 5 | USPTO PTAB | search_ptab, get_ptab, list_ptab_children | §5.9, §5.13 elevator (expand PTAB on first use) |
-| 6 | USPTO Office Actions | search_office_actions, **ADD get_office_action** (fixes §5.2 orphan) | §5.9, §5.2 |
-| 7 | USPTO Petitions | search_petitions, get_petition (rename `petition_id` → `petition_number`) | §5.8 param name, §5.9 |
-| 8 | Patent + Trademark Assignments | search_patent_assignments, search_trademark_assignments, get_patent_assignment | §5.5 lean, §5.6 cross-refs, §5.9 |
-| 9 | EPO OPS | search_epo, get_epo_biblio, get_epo_family, get_epo_fulltext, get_epo_legal_events, get_epo_cql_help (reword) | §5.4 list-accept on all gets, §5.6 cross-refs, §5.9, §5.13 (cql_help) |
-| 10 | EUIPO | search_euipo_trademarks, get_euipo_trademark, search_euipo_designs, get_euipo_design | §5.6 cross-refs, §5.9 |
-| 11 | JPO | get_jpo_progress + facet fetches; **rename `get_jpo_jplatpat_url` / `get_jpo_number_reference`** (§5.13); add §5.6 cross-refs | §5.4 (gets accept list), §5.6, §5.9, §5.13 |
-| 12 | UPC | search_upc_decisions, get_upc_decision, search_upc_statutes, get_upc_section, list_upc_* (vocab) | §5.6 cross-refs, §5.9, §5.8 (verb table for vocab `list_*`) |
-| 13 | USITC | search_usitc_investigations, **ADD get_usitc_investigation** (fixes §5.2 orphan), list_usitc_attachments, download_*, search_hts_tariffs, run_dataweb_report (rewrite §5.13) | §5.2, §5.9, §5.13 |
-| 14 | CAFC | search_cafc_opinions, search_cafc_patent_opinions, download_cafc_pdf | §5.6, §5.9; also category=substantive_law (verify Provenance includes corpus fields) |
-| 15 | CanLII | **rename `browse_*` → `search_*`** per §5.8; get_canlii_case (§5.4 list-accept), citator cross-refs | §5.4, §5.6, §5.8, §5.9 |
-| 16 | Copyright | search_copyright, get_copyright_record (rename param `public_records_id`) | §5.5 lean, §5.6 cross-refs, §5.8, §5.9 |
-| 17 | Substantive-law corpora pair (MPEP first) | search_mpep, get_mpep_section, **implement `get_corpus_status()`** at module level | §5.6 (cross-ref), §5.9 (Provenance with corpus_synced_at/version), §4 callable rollout |
-| 18 | Remaining corpora (TMEP, EPC, EPO Guidelines, EPO PCT, EPO UP, EPO CaseLaw, MoPP, UPC Statutes) | one PR per corpus, all following the MPEP template | §5.6, §5.9, §4 |
-| 19 | WIPO Lex | search_wipo_lex_legislation, get_wipo_lex_legislation | §5.6, §5.9 |
-| 20 | CPC | lookup_cpc, search_cpc, map_cpc_classification (sharpen first sentences per §5.13) | §5.9, §5.13 |
-| 21 | Unitary patent helper | rename `get_unitary_patent_package` → `get_epo_unitary_patent_status` | §5.7, §5.8, §5.13, §5.9 |
+| # | Connector(s) | Tools | Audit findings this closes | Status |
+|---|---|---|---|---|
+| 1 | USPTO Applications | search_applications, get_application, list_file_history | §5.9 envelope, §5.4 list-accept | ✅ |
+| 2 | Trademarks (USPTO TSDR + TM Search) | search_trademarks, get_trademark, get_trademark_status, get_trademark_documents, get_trademark_last_update, **DELETE batch_trademark_status** | §5.4 (kill batch tool), §5.3 (collapse get_trademark args), §5.5 lean, §5.9 | ✅ |
+| 3 | USPTO Publications (PPUBS) | search_patent_publications, get_patent_publication, resolve_publication_number | §5.9, §5.5 lean, §5.1 collapse with get_patent if feasible | ✅ |
+| 4 | Google Patents | search_google_patents → rename `search_patents_global`, get_patent, **DROP get_patent_details** (fold into `view='details'` opt-in) | §5.1, §5.5, §5.7 jurisdiction prefix, §5.9 | pending |
+| 5 | USPTO PTAB | search_ptab, get_ptab, list_ptab_children | §5.9, §5.13 elevator (expand PTAB on first use) | pending |
+| 6 | USPTO Office Actions | search_office_actions, **ADD get_office_action** (fixes §5.2 orphan) | §5.9, §5.2 | pending |
+| 7 | USPTO Petitions | search_petitions, get_petition (rename `petition_id` → `petition_number`) | §5.8 param name, §5.9 | pending |
+| 8 | Patent + Trademark Assignments | search_patent_assignments, search_trademark_assignments, get_patent_assignment | §5.5 lean, §5.6 cross-refs, §5.9 | pending |
+| 9 | EPO OPS | search_epo, get_epo_biblio, get_epo_family, get_epo_fulltext, get_epo_legal_events, get_epo_cql_help (reword) | §5.4 list-accept on all gets, §5.6 cross-refs, §5.9, §5.13 (cql_help) | pending |
+| 10 | EUIPO | search_euipo_trademarks, get_euipo_trademark, search_euipo_designs, get_euipo_design | §5.6 cross-refs, §5.9 | ✅ |
+| 11 | JPO | get_jpo_progress + facet fetches; **collapse get_jpo_applicant_by_*** (§5.3); **rename get_jpo_jplatpat_url / get_jpo_number_reference first sentences** (§5.13) | §5.3, §5.4, §5.6, §5.9, §5.13 | ✅ |
+| 12 | UPC | search_upc_decisions, get_upc_decision, search_upc_statutes, get_upc_section, list_upc_* (vocab) | §5.6 cross-refs, §5.9, §5.8 (verb table for vocab `list_*`) | ✅ |
+| 13 | USITC | search_usitc_investigations, **ADD get_usitc_investigation** (fixes §5.2 orphan), list_usitc_attachments, download_*, search_hts_tariffs, run_dataweb_report (rewrite §5.13) | §5.2, §5.9, §5.13 | pending |
+| 14 | CAFC | search_cafc_opinions, search_cafc_patent_opinions, download_cafc_pdf | §5.6, §5.9; also category=substantive_law (verify Provenance includes corpus fields) | ✅ |
+| 15 | CanLII | **rename `browse_*` → `search_*`** per §5.8; get_canlii_case (§5.4 list-accept), citator cross-refs | §5.4, §5.6, §5.8, §5.9 | pending |
+| 16 | Copyright | search_copyright, get_copyright_record (kept `public_records_id` — upstream genuinely uses opaque IDs distinct from registration numbers) | §5.5 lean, §5.6 cross-refs, §5.9 | ✅ |
+| 17 | MPEP (substantive-law template) | search_mpep, get_mpep_section, **implement `get_corpus_status()`** at module level | §5.6 (cross-ref), §5.9 (Provenance with corpus_synced_at/version), §4 callable rollout | ✅ |
+| 18 | Remaining corpora (TMEP, EPC, EPO Guidelines, EPO PCT, EPO UP, EPO CaseLaw, MoPP, UPC Statutes) | three parallel sub-batches; all 8 corpora ship get_corpus_status() | §5.6, §5.9, §4; **validator check #3 flipped to hard error** | ✅ |
+| 19 | WIPO Lex | search_wipo_lex_legislation, get_wipo_lex_legislation | §5.6, §5.9 | ✅ |
+| 20 | CPC | lookup_cpc, search_cpc, map_cpc_classification (sharpened first sentences per §5.13) | §5.9, §5.13 | ✅ |
+| 21 | Unitary patent helper | rename `get_unitary_patent_package` → `get_epo_unitary_patent_status` | §5.7, §5.8, §5.13, §5.9 | pending |
 
-The PR sequence enforces an invariant: by row 4 we've migrated all
-three of the "search US patents" tools, so the §5.1 catalog discipline
-issue is settled before agents see mixed-shape responses.
+**Progress as of 2026-05-15: 13 of 21 rows complete (62%).**
+~66 tools across 19 connectors are on the envelope. The 8 remaining
+rows are all register-side (no more substantive-law corpora to migrate);
+the next-easiest are row 8 (assignments), row 21 (one rename), and
+row 13 (USITC adds one tool). The hardest are row 4 (Google Patents
+collapse), row 9 (EPO OPS in a shared file), and rows 5+7 (PTAB +
+Petitions share `uspto.py` with row 1 — sequence carefully).
 
-Rows 17 and 18 also implement the `get_corpus_status()` callable per
-the §6 validator's check #3. Once all category-2 connectors have it,
-flip the validator warning to a hard error in a small follow-up PR
-(one-line change in `scripts/build_coverage.py`).
+Rows 17 and 18 finished the `get_corpus_status()` rollout. The
+validator's check #3 is now a hard error; any new category-2
+mcp_local connector that doesn't expose the callable will fail CI.
 
 ---
 
 ## §5 Pre-flight checklist (before opening the connector)
+
+**Worktree + venv sanity (skip at your peril):**
+
+- [ ] `pwd` reports a path under `.claude/worktrees/agent-<id>/`. If
+      you're in the parent repo, your work will collide with the
+      currently-running migration. Move now.
+- [ ] `git rebase refactor/connector-standards-sweep` (or whatever
+      branch carries the envelope foundation today). The fresh
+      worktree base is usually older than the active branch.
+- [ ] The venv's editable install points at YOUR worktree's `src/`:
+      `uv run python -c "import patent_client_agents; print(patent_client_agents.__file__)"`
+      should print a path under your worktree. If it points at the
+      parent repo or a sibling worktree, run `uv sync --extra mcp
+      --extra tmsearch --group dev` from your worktree to reset.
+
+**Content prep:**
 
 - [ ] Read the audit row(s) for every tool in the file.
 - [ ] Open the USPTO Applications template side-by-side.
@@ -353,19 +372,65 @@ For every tool the PR touches:
   takes more than a minute, you're recording cassettes you shouldn't
   be.
 
-- **Worktree agents: never `cd` out of your worktree.** Multiple batch-3
-  agents hit this. Symptoms: your final `git commit` lands in the
-  parent repo's branch (`refactor/connector-standards-sweep`) instead
-  of your isolated worktree branch. Recovery is `git reset --soft HEAD~1`
-  followed by `git restore --staged .` in the parent repo, then redo
-  the commit in the worktree. Cheaper to just `pwd` before every commit
-  and confirm you're under `.claude/worktrees/agent-<id>/`.
+- **Worktree agents: never `cd` out of your worktree.** Multiple batches
+  have hit this. Symptoms: your final `git commit` lands in the parent
+  repo's branch (`refactor/connector-standards-sweep`) instead of your
+  isolated worktree branch; OR Write/Edit tool calls write to absolute
+  paths in the parent repo because earlier `cd` commands shifted the
+  shell. Recovery is `git reset --soft HEAD~1` followed by
+  `git restore --staged .` in the parent repo, then redo the commit
+  in the worktree. Cheaper to just `pwd` before every commit and
+  confirm you're under `.claude/worktrees/agent-<id>/`.
+
+  **Defensive pattern for agents:** at the start of each meaningful
+  shell call, prefix with `cd /Users/.../patent-client-agents/.claude/worktrees/agent-<id> &&`
+  so cwd-drift doesn't compound silently. Use absolute paths for Edit
+  / Write tool calls.
 
 - **`uv sync --extra <X>` drops other extras.** Running
   `uv sync --extra tmsearch` mid-session removed `fastmcp` (from the
   `[mcp]` extra), breaking every MCP-layer test. Use the full form:
   `uv sync --extra mcp --extra tmsearch --group dev`. If your venv
   loses `fastmcp` or `playwright` mid-session, that's the recovery.
+
+- **Editable install drift across worktrees.** `uv sync` updates the
+  venv's editable install to point at the cwd's `src/`. Running it
+  from inside a worktree redirects `import patent_client_agents` to
+  that worktree's source tree. When the worktree is later removed, the
+  install still points at the dead path (or worse, at a sibling
+  worktree). Symptoms: validator emits warnings for callables you KNOW
+  you implemented; tests import old versions of code. **Diagnose:**
+  `uv run python -c "import patent_client_agents; print(patent_client_agents.__file__)"`.
+  **Recover:** `cd` to the parent repo, then
+  `uv sync --extra mcp --extra tmsearch --group dev`. Then remove
+  stale worktrees: `git worktree remove --force --force <path>`.
+
+- **Cherry-pick worktree commits from the PARENT repo, not from
+  inside a worktree.** Cherry-picking inside a worktree creates the
+  new commit on whatever branch that worktree is on (usually the
+  isolated branch), not the integration branch. If you accidentally
+  cherry-pick from a worktree, the integration branch in the parent
+  repo is unchanged; the cherry-picked commit is orphaned. Verify with
+  `pwd && git status` before every cherry-pick.
+
+- **`get_corpus_status()` schema variation.** The template in this
+  section reads `meta.source_version`, but the actual schema varies
+  per corpus. Each agent migrated their corpus's actual schema:
+  - MPEP / TMEP: `meta.source_version = "current"` (no real version tag)
+  - EPC: `meta.epc_year = "2020"`
+  - EPO Guidelines: `meta.guidelines_year = "2024"`
+  - EPO Case Law: `meta.caselaw_year = "2022"`
+  - PCT Guidelines: `meta.guidelines_year = "2024"`
+  - EPO UP Guidelines: `meta.up_guidelines_year = "2026"`
+  - UKIPO MoPP: derives `"snapshot-YYYY-MM-DD"` from `meta.snapshot_date`
+    (gov.uk publishes no stable revision tag)
+  - UPC Statutes: derives `"snapshot-YYYY-MM-DD"` from `meta.snapshot_date`
+    (schema has no `source_version` column)
+
+  When adapting the template, prefer the per-corpus key over a generic
+  fallback to `"unknown"` if the key carries a meaningful vendor label.
+  Never fabricate values — fall through to `"unknown"` if the meta is
+  truly absent.
 
 - **`get_corpus_status()` template for substantive-law `mcp_local`
   connectors** (extracted from row 17's MPEP migration). Copy this
