@@ -104,6 +104,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   CPC delegates to). `lookup_cpc` deliberately not list-accepting
   for now (per-symbol summaries are more quotable; can flip if
   portfolio resolution becomes a real workflow).
+- **MPEP migrated to envelope + `get_corpus_status()` callable**
+  (row 17). `search_mpep` returns `ListEnvelope[dict]` with a lean
+  default; `get_mpep_section` accepts `section: str | list[str]`
+  per §5.4. New module-level `patent_client_agents.mpep.get_corpus_status()`
+  returns a `CorpusStatus` TypedDict with `corpus_synced_at` and
+  `corpus_version`. The MCP tool calls it once per request to populate
+  `Provenance.corpus_synced_at` / `Provenance.corpus_version`. The
+  validator's MPEP-specific warning is now gone (8 corpora remain
+  pending row 18). The callable's pattern (TypedDict + `_parse_snapshot_date`
+  helper + try/except fallback to "unknown") is the template for the
+  8 row-18 sub-PRs.
+- **UPC migrated to envelope** (row 12). Seven tools: `search_upc_decisions`,
+  `get_upc_decision` (list-accept on `case_id`), `search_upc_statutes`,
+  `get_upc_section` (list-accept on `instrument`), and the three
+  `list_upc_*` vocab enumerators (§5.8 acceptable extension).
+  Decisions are `mcp_proxy` (no corpus fields); statutes are `mcp_local`
+  with corpus fields hardcoded to "unknown — needs verification" until
+  the `get_corpus_status()` rollout reaches `upc_statutes` (queued for
+  row 18). §5.6 audit fix: `search_upc_statutes` ↔ `get_upc_section`
+  now cross-reference.
+- **JPO migrated to envelope** (row 11). All `get_jpo_*` and the
+  `convert_*` family. Notable changes:
+  - **`get_jpo_applicant_by_code` + `get_jpo_applicant_by_name`
+    collapsed into single `get_jpo_applicant`** per §5.3 (auto-detect:
+    9-digit numeric → code; anything else → exact-name match). Drops
+    the JPO surface from 12 to 11 tools.
+  - **§5.13 rewrites:** `get_jpo_jplatpat_url` first sentence now reads
+    "Get the J-PlatPat (JPO public search portal) permalink for a JPO
+    filing." `get_jpo_number_reference` now reads "Convert a JPO number
+    between application, publication, and registration forms."
+  - **§5.4 list-accept** on `get_jpo_progress`, `get_jpo_progress_simple`,
+    `get_jpo_registration_info` with `_JPO_FANOUT_CONCURRENCY=5`.
+  - **§5.6 cross-references** added between facet fetches and the
+    parent `get_jpo_progress` (audit finding).
+  - Catalog and `ip_research` skill references updated to name the
+    collapsed applicant tool.
 
 ## [0.18.0] — 2026-05-14 (unreleased)
 
