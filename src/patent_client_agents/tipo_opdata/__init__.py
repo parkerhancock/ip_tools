@@ -12,12 +12,8 @@ tools are written in subsequent chunks per
 See :class:`TipoClient` for the auth + environment contract.
 """
 
-from .client import TipoClient
-from .models import Patent, PatentSearchHit, PatentSearchResult
+# Chunk 2 wires up models only. Client / api / public exports land in
+# chunks 3-4, so the package surface is intentionally empty for now —
+# importing ``patent_client_agents.tipo_opdata.models`` directly works.
 
-__all__ = [
-    "Patent",
-    "PatentSearchHit",
-    "PatentSearchResult",
-    "TipoClient",
-]
+__all__: list[str] = []
