@@ -36,12 +36,12 @@ last_updated: 2026-05-16
 
 stats:
   total_entities: 43
-  synopses_filled: 12
+  synopses_filled: 17    # +5 from coverage-batch-2: Madrid, Hague, CNIPA, INPI France, TIPO
   fee_research_filled: 5
   connectors_shipped: 12
-  connectors_planned: 1   # KIPO BYOK
-  connectors_blocked: 4   # DPMA, UKIPO, CIPO, WIPO trio
-  next_unblocked_synopses: 27
+  connectors_planned: 3  # KIPO BYOK + TIPO clean + INPI France BYOK
+  connectors_blocked: 7  # DPMA, UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
+  next_unblocked_synopses: 22
 
 entities:
 
@@ -72,36 +72,36 @@ entities:
     layer: multilateral
     iso2: n/a
     rights: [trademark]
-    synopsis: null
-    detail_survey: null
+    synopsis: multilateral/wipo-madrid.md
+    detail_survey: connectors/wipo.md
     fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
-    connector_status: none
+    verdict: red_tos
+    verdict_basis: ToS §6 bans automated queries (≤10 actions/min/IP); CHF 30,000/yr ICC FTP bulk is only programmatic path
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor_partner_api
     blocked_by: []
     last_verified: 2026-05-16
-    notes: 116 members / 132 countries; international TM registrations; partly visible via WIPO Brand DB
+    notes: 116 members / 132 countries; undocumented per-IR XML endpoints exist but ToS-forbidden (Madrid Monitor decommissioning planned)
 
   - id: WO/WIPO/Hague
     name: WIPO Hague System
     layer: multilateral
     iso2: n/a
     rights: [design]
-    synopsis: null
-    detail_survey: null
+    synopsis: multilateral/wipo-hague.md
+    detail_survey: connectors/wipo.md
     fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
-    connector_status: none
+    verdict: red_tos
+    verdict_basis: Hague Express is just a collection=Hague filter on Global Design DB (same backend, same ToS, robots.txt disallow); Hague Web Services is partner-IP-office-only
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor_partner_api
     blocked_by: []
     last_verified: 2026-05-16
-    notes: 79 contracting parties / 96 countries; Hague Express has public UI
+    notes: 79 contracting parties / 96 countries; CORRECTION — no separable Hague API surface exists (older BACKLOG wipo_hague_express entry needs reconciliation)
 
   - id: WO/WIPO/Lex
     name: WIPO Lex
@@ -368,18 +368,18 @@ entities:
     layer: national
     iso2: CN
     rights: [patent, utility_model, trademark, design]
-    synopsis: null
+    synopsis: national/cn-cnipa.md
     detail_survey: connectors/cnipa.md
     fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Existing survey says skip live; route via EPO OPS + Patentscope. Needs grounded discovery wave.
-    connector_status: none
+    verdict: red_no_api
+    verdict_basis: Every endpoint WAF-blocked from US egress; 2025 TM platform requires CN mainland mobile + real-name verification — foreigners structurally excluded
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor_register_modernization
     blocked_by: []
-    last_verified: 2026-05  # older survey
-    notes: Top-1 office by volume; via EPO INPADOC + Google Patents; native scrape blocked by CAPTCHA
+    last_verified: 2026-05-16
+    notes: Top-1 office by volume; route via EPO OPS (Dec 2024 ST.27 alignment strengthens this); Patentscope for full text; Hague Express for post-2022 designs
 
   - id: DE/DPMA
     name: DPMA Germany
@@ -422,18 +422,20 @@ entities:
     layer: national
     iso2: FR
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/fr-inpi.md
     detail_survey: connectors/inpi_france.md
     fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: PISTE OAuth2 broker + data.inpi.fr bulk; needs grounded discovery
-    connector_status: none
-    manifest_ids: []
-    next_action: synopsis_discovery
+    verdict: yellow_byok
+    verdict_basis: api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE — older survey was wrong); 10 req/min throttle
+    connector_status: planned
+    manifest_ids: [FR/Legifrance/IP]
+    next_action: spec_writing
     blocked_by: []
-    last_verified: 2026-05  # older survey
-    notes: Légifrance statutes shipped (FR/Legifrance/IP); PIBD migration to data.inpi.fr in summer 2026
+    last_verified: 2026-05-16
+    notes: BYOK for TMs + designs (real gaps); skip patents (EPO OPS covers); FR IP case law via Judilibre over PISTE; PIBD froze 2026-03-11
+
+
 
   - id: CA/CIPO
     name: CIPO Canada
@@ -552,18 +554,18 @@ entities:
     layer: national
     iso2: TW
     rights: [patent, utility_model, trademark, design]
-    synopsis: null
+    synopsis: national/tw-tipo.md
     detail_survey: connectors/tipo_taiwan.md
     fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Real REST API + clean bulk portal per older survey; needs grounded discovery
+    verdict: green
+    verdict_basis: Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks
     connector_status: planned
     manifest_ids: [TW/MOJ/TradeSecretsAct]
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: 2026-05  # older survey
-    notes: Trade Secrets Act shipped; registered IP not yet researched in grounded wave
+    last_verified: 2026-05-16
+    notes: Only path to TW IP (not a WIPO member; no PCT/Madrid/Hague/INPADOC bridges). API base moved cloud.tipo.gov.tw (was tiponet); auth via `tk` query param. Per-record details on FTPS (proxy ships biblio-only). TWPAT retiring 2025-04-25 (iPKM replaced 2024-12-18)
 
   - id: RU/Rospatent
     name: Rospatent Russia
