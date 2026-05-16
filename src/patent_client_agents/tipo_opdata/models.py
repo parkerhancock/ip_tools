@@ -175,9 +175,7 @@ class ApplicationReference(BaseModel):
     appl_date: date | None = Field(default=None, alias="appl-date")
     first_date: date | None = Field(default=None, alias="first-date")
     foreign_language: str | None = Field(default=None, alias="foreign-language")
-    foreign_language_desc: str | None = Field(
-        default=None, alias="foreign-language-desc"
-    )
+    foreign_language_desc: str | None = Field(default=None, alias="foreign-language-desc")
     desing_type: str | None = Field(default=None, alias="desing-type")
     desing_type_desc: str | None = Field(default=None, alias="desing-type-desc")
     appl_class: str | None = Field(default=None, alias="appl-class")
@@ -209,12 +207,8 @@ class ApplicationReference(BaseModel):
 class PatentTitle(BaseModel):
     """``patent-title`` sub-object — Chinese + English title pair."""
 
-    patent_name_chinese: str | None = Field(
-        default=None, alias="patent-name-chinese"
-    )
-    patent_name_english: str | None = Field(
-        default=None, alias="patent-name-english"
-    )
+    patent_name_chinese: str | None = Field(default=None, alias="patent-name-chinese")
+    patent_name_english: str | None = Field(default=None, alias="patent-name-english")
 
     model_config = _BASE_CONFIG
 
@@ -283,12 +277,8 @@ class PatentApplRow(BaseModel):
     appl_countrycode: str | None = Field(default=None, alias="appl-countrycode")
     appl_country: str | None = Field(default=None, alias="appl-country")
     publish_flag: str | None = Field(default=None, alias="publish-flag")
-    classification_ipc: list[Any] = Field(
-        default_factory=list, alias="classification-ipc"
-    )
-    classification_loc: list[Any] = Field(
-        default_factory=list, alias="classification-loc"
-    )
+    classification_ipc: list[Any] = Field(default_factory=list, alias="classification-ipc")
+    classification_loc: list[Any] = Field(default_factory=list, alias="classification-loc")
 
     model_config = _BASE_CONFIG
 
@@ -310,9 +300,7 @@ class PatentPubRow(BaseModel):
     )
     patent_title: PatentTitle | None = Field(default=None, alias="patent-title")
     parties: dict[str, Any] | None = None
-    classification_ipc: list[Any] = Field(
-        default_factory=list, alias="classification-ipc"
-    )
+    classification_ipc: list[Any] = Field(default_factory=list, alias="classification-ipc")
     link: dict[str, Any] | None = None
 
     model_config = _BASE_CONFIG
@@ -336,12 +324,8 @@ class PatentRightsRow(BaseModel):
     patent_title: PatentTitle | None = Field(default=None, alias="patent-title")
     patent_right: PatentRight | None = Field(default=None, alias="patent-right")
     parties: dict[str, Any] | None = None
-    classification_ipc: list[Any] = Field(
-        default_factory=list, alias="classification-ipc"
-    )
-    classification_loc: list[Any] = Field(
-        default_factory=list, alias="classification-loc"
-    )
+    classification_ipc: list[Any] = Field(default_factory=list, alias="classification-ipc")
+    classification_loc: list[Any] = Field(default_factory=list, alias="classification-loc")
     link: dict[str, Any] | None = None
 
     model_config = _BASE_CONFIG
@@ -434,9 +418,7 @@ class PatentDivideRow(BaseModel):
 
     sequence: int | None = None
     appl_no: str | None = Field(default=None, alias="appl-no")
-    new_appl_no: dict[str, Any] | str | None = Field(
-        default=None, alias="new-appl-no"
-    )
+    new_appl_no: dict[str, Any] | str | None = Field(default=None, alias="new-appl-no")
 
     model_config = _BASE_CONFIG
 
@@ -455,9 +437,7 @@ class TmarkApplRow(BaseModel):
     tmark_name: str | None = Field(default=None, alias="tmark-name")
     tmark_class: str | None = Field(default=None, alias="tmark-class")
     tmark_class_desc: str | None = Field(default=None, alias="tmark-class-desc")
-    tmark_image_url: list[Any] = Field(
-        default_factory=list, alias="tmark-image-url"
-    )
+    tmark_image_url: list[Any] = Field(default_factory=list, alias="tmark-image-url")
     tmark_type: str | None = Field(default=None, alias="tmark-type")
     tmark_type_desc: str | None = Field(default=None, alias="tmark-type-desc")
     tmark_color: str | None = Field(default=None, alias="tmark-color")
@@ -488,9 +468,7 @@ class TmarkRightsRow(BaseModel):
     tmark_name: str | None = Field(default=None, alias="tmark-name")
     tmark_class: str | None = Field(default=None, alias="tmark-class")
     tmark_class_desc: str | None = Field(default=None, alias="tmark-class-desc")
-    tmark_image_url: list[Any] = Field(
-        default_factory=list, alias="tmark-image-url"
-    )
+    tmark_image_url: list[Any] = Field(default_factory=list, alias="tmark-image-url")
     tmark_type: str | None = Field(default=None, alias="tmark-type")
     tmark_type_desc: str | None = Field(default=None, alias="tmark-type-desc")
     tmark_color: str | None = Field(default=None, alias="tmark-color")
@@ -567,9 +545,7 @@ class TmarkPicsRow(BaseModel):
 
     sequence: int | None = None
     appl_no: str | None = Field(default=None, alias="appl-no")
-    tmark_image_url: list[Any] = Field(
-        default_factory=list, alias="tmark-image-url"
-    )
+    tmark_image_url: list[Any] = Field(default_factory=list, alias="tmark-image-url")
 
     model_config = _BASE_CONFIG
 
@@ -602,13 +578,9 @@ class TmarkDivideRow(BaseModel):
     tmark_name: str | None = Field(default=None, alias="tmark-name")
     goodsclass: list[Any] = Field(default_factory=list)
     divide_date: date | None = Field(default=None, alias="divide-date")
-    origin_exam_no: dict[str, Any] | str | None = Field(
-        default=None, alias="origin-exam-no"
-    )
+    origin_exam_no: dict[str, Any] | str | None = Field(default=None, alias="origin-exam-no")
     origin_tmark_class: str | None = Field(default=None, alias="origin-tmark-class")
-    origin_tmark_class_desc: str | None = Field(
-        default=None, alias="origin-tmark-class-desc"
-    )
+    origin_tmark_class_desc: str | None = Field(default=None, alias="origin-tmark-class-desc")
     divide_count: int | None = Field(default=None, alias="divide-count")
 
     model_config = _BASE_CONFIG

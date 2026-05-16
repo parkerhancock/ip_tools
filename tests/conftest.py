@@ -43,6 +43,12 @@ os.environ.setdefault("USPTO_TSDR_API_KEY", "test_tsdr_key")
 os.environ.setdefault("EUIPO_CLIENT_ID", "test_euipo_client")
 os.environ.setdefault("EUIPO_CLIENT_SECRET", "test_euipo_secret")
 
+# TIPO OpenData uses a single ``tk`` UUID query parameter. The placeholder
+# here lets the env-gated MCP tools register during test collection; the
+# ``tk`` query param is scrubbed from cassettes via the
+# ``filter_query_parameters`` config below.
+os.environ.setdefault("TIPO_API_KEY", "test_tipo_tk")
+
 USPTO_LIVE_ENV_VAR = "USPTO_LIVE_TESTS"
 JPO_LIVE_ENV_VAR = "JPO_LIVE_TESTS"
 EUIPO_LIVE_ENV_VAR = "EUIPO_LIVE_TESTS"
@@ -365,6 +371,7 @@ def _create_vcr() -> vcr.VCR:
         filter_query_parameters=[
             ("api_key", "REDACTED"),
             ("apiKey", "REDACTED"),
+            ("tk", "REDACTED"),
         ],
         before_record_request=_chain_request_scrubbers(
             _scrub_jpo_token_request,

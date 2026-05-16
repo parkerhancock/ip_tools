@@ -855,3 +855,83 @@ sources:
     update_cadence: irregular
     last_synced: 2026-05-16
     corpus_version: "seed v1"
+
+  # ────────────────────────────────────────────────────────────────────
+  # TW — TIPO Taiwan OpenData (patents / utility models / designs / trademarks)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: TW/TIPO/Patents
+    name: TIPO Taiwan — Patents (invention)
+    jurisdiction: TW
+    wipo_st3_code: TW
+    issuing_body: Intellectual Property Office, Ministry of Economic Affairs (TIPO/MOEA)
+    rights: [patent]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: api_key
+      auth_env: [TIPO_API_KEY]
+    status: active
+    connector:
+      module: patent_client_agents.tipo_opdata
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+    notes: applclass=1; biblio-only (no claims/figures/abstracts in API)
+
+  - id: TW/TIPO/UtilityModels
+    name: TIPO Taiwan — Utility Models
+    jurisdiction: TW
+    wipo_st3_code: TW
+    issuing_body: Intellectual Property Office, Ministry of Economic Affairs (TIPO/MOEA)
+    rights: [patent]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: api_key
+      auth_env: [TIPO_API_KEY]
+    status: active
+    connector:
+      module: patent_client_agents.tipo_opdata
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+    notes: applclass=2; TW Article 32 invention/UM twins surface via /PatentTwins
+
+  - id: TW/TIPO/Designs
+    name: TIPO Taiwan — Designs
+    jurisdiction: TW
+    wipo_st3_code: TW
+    issuing_body: Intellectual Property Office, Ministry of Economic Affairs (TIPO/MOEA)
+    rights: [design]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: api_key
+      auth_env: [TIPO_API_KEY]
+    status: active
+    connector:
+      module: patent_client_agents.tipo_opdata
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+    notes: applclass=3; TW treats design as Patent Act category
+
+  - id: TW/TIPO/Trademarks
+    name: TIPO Taiwan — Trademarks
+    jurisdiction: TW
+    wipo_st3_code: TW
+    issuing_body: Intellectual Property Office, Ministry of Economic Affairs (TIPO/MOEA)
+    rights: [trademark]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: api_key
+      auth_env: [TIPO_API_KEY]
+    status: active
+    connector:
+      module: patent_client_agents.tipo_opdata
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+    notes: Nice classification; image URLs only (no rendering in v1)

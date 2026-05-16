@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **TIPO Taiwan OpenData REST connector.** `patent_client_agents.tipo_opdata`
+  wraps the 15-endpoint TIPO OpenData REST API
+  (`https://cloud.tipo.gov.tw/S220/opdataapi/api/`) for biblio-only
+  access to TW patents, utility models, designs, and trademarks.
+  Env-gated on `TIPO_API_KEY` (single `tk` UUID issued by TIPO).
+  Ships 14 MCP tools (search/get for patents + trademarks; combined
+  `*_events` surfaces for alteration/change/divide). Adds 4 manifest
+  rows to `coverage/sources.yaml`:
+  `TW/TIPO/{Patents,UtilityModels,Designs,Trademarks}`. Pagination
+  clamps `top` to the 6,000-row empirical cap; lean projection drops
+  the FTPS `xml-detail-url` and null Latin/Japanese name fields per
+  CONNECTOR_STANDARDS.md §5.5.
 - **IPO India statutes + MPPP connector — first cut.** Brings the
   Indian IP statutes and the IPO India examination manual into the
   substantive-law catalog. Two packages ship in this PR, both

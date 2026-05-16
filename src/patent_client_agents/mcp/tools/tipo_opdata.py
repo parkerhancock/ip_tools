@@ -442,9 +442,7 @@ async def get_tipo_patent_events(
     numbers = _coerce_list(appl_no, tool="get_tipo_patent_events")
     semaphore = asyncio.Semaphore(_TIPO_FANOUT_CONCURRENCY)
 
-    async def _fetch_one_kind(
-        client: TipoClient, method_name: str, num: str
-    ) -> list[Any]:
+    async def _fetch_one_kind(client: TipoClient, method_name: str, num: str) -> list[Any]:
         async with semaphore:
             method = getattr(client, method_name)
             return await method(appl_no=num)
@@ -505,20 +503,12 @@ async def search_tipo_trademarks(
         int | str | None,
         "Nice classification class (1-45).",
     ] = None,
-    appl_date_from: Annotated[
-        str | None, "Earliest application date (YYYY/MM/DD)."
-    ] = None,
-    appl_date_to: Annotated[
-        str | None, "Latest application date (YYYY/MM/DD)."
-    ] = None,
-    applicant: Annotated[
-        str | None, "Applicant name filter (Chinese or Latin)."
-    ] = None,
+    appl_date_from: Annotated[str | None, "Earliest application date (YYYY/MM/DD)."] = None,
+    appl_date_to: Annotated[str | None, "Latest application date (YYYY/MM/DD)."] = None,
+    applicant: Annotated[str | None, "Applicant name filter (Chinese or Latin)."] = None,
     top: Annotated[int, "Page size (capped at 6000)."] = _TIPO_DEFAULT_TOP,
     skip: Annotated[int, "Offset into the result set."] = 0,
-    full: Annotated[
-        bool, "Lean (default) vs upstream-shaped rows per §5.5."
-    ] = False,
+    full: Annotated[bool, "Lean (default) vs upstream-shaped rows per §5.5."] = False,
 ) -> ListEnvelope[dict]:
     """Search Taiwan trademarks at TIPO.
 
@@ -558,9 +548,7 @@ async def search_tipo_trademarks(
 
 @conditional_tool(tipo_opdata_mcp, requires_env=_TIPO_REQUIRED_ENV, annotations=READ_ONLY)
 async def get_tipo_trademark(
-    appl_no: Annotated[
-        str | list[str], "TW trademark application number, or a list."
-    ],
+    appl_no: Annotated[str | list[str], "TW trademark application number, or a list."],
     full: Annotated[bool, "Lean (default) vs upstream-shaped rows."] = False,
 ) -> ListEnvelope[dict]:
     """Fetch one or more Taiwan trademark application records.
@@ -583,9 +571,7 @@ async def get_tipo_trademark(
 
 @conditional_tool(tipo_opdata_mcp, requires_env=_TIPO_REQUIRED_ENV, annotations=READ_ONLY)
 async def get_tipo_trademark_rights(
-    appl_no: Annotated[
-        str | list[str], "TW trademark application number, or a list."
-    ],
+    appl_no: Annotated[str | list[str], "TW trademark application number, or a list."],
     full: Annotated[bool, "Lean (default) vs upstream-shaped rows."] = False,
 ) -> ListEnvelope[dict]:
     """Fetch Taiwan trademark registration + status records.
@@ -609,9 +595,7 @@ async def get_tipo_trademark_rights(
 
 @conditional_tool(tipo_opdata_mcp, requires_env=_TIPO_REQUIRED_ENV, annotations=READ_ONLY)
 async def get_tipo_trademark_priority(
-    appl_no: Annotated[
-        str | list[str], "TW trademark application number, or a list."
-    ],
+    appl_no: Annotated[str | list[str], "TW trademark application number, or a list."],
     full: Annotated[bool, "Lean (default) vs upstream-shaped rows."] = False,
 ) -> ListEnvelope[dict]:
     """Fetch Taiwan trademark Paris priority claim records.
@@ -632,9 +616,7 @@ async def get_tipo_trademark_priority(
 
 @conditional_tool(tipo_opdata_mcp, requires_env=_TIPO_REQUIRED_ENV, annotations=READ_ONLY)
 async def get_tipo_trademark_image_urls(
-    appl_no: Annotated[
-        str | list[str], "TW trademark application number, or a list."
-    ],
+    appl_no: Annotated[str | list[str], "TW trademark application number, or a list."],
     full: Annotated[bool, "Lean (default) vs upstream-shaped rows."] = False,
 ) -> ListEnvelope[dict]:
     """Fetch Taiwan trademark image URLs.
@@ -658,9 +640,7 @@ async def get_tipo_trademark_image_urls(
 
 @conditional_tool(tipo_opdata_mcp, requires_env=_TIPO_REQUIRED_ENV, annotations=READ_ONLY)
 async def get_tipo_trademark_events(
-    appl_no: Annotated[
-        str | list[str], "TW trademark application number, or a list."
-    ],
+    appl_no: Annotated[str | list[str], "TW trademark application number, or a list."],
     full: Annotated[bool, "Lean (default) vs upstream-shaped rows."] = False,
 ) -> ListEnvelope[dict]:
     """Fetch Taiwan trademark post-filing events (changes, divisions).
@@ -675,9 +655,7 @@ async def get_tipo_trademark_events(
     numbers = _coerce_list(appl_no, tool="get_tipo_trademark_events")
     semaphore = asyncio.Semaphore(_TIPO_FANOUT_CONCURRENCY)
 
-    async def _fetch_one_kind(
-        client: TipoClient, method_name: str, num: str
-    ) -> list[Any]:
+    async def _fetch_one_kind(client: TipoClient, method_name: str, num: str) -> list[Any]:
         async with semaphore:
             method = getattr(client, method_name)
             return await method(appl_no=num)

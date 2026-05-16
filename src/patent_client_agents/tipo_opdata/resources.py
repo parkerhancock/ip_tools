@@ -11,10 +11,7 @@ USAGE_RESOURCE_URI = "pca://tipo_opdata/usage"
 
 def get_usage_resource() -> str:
     """Return the usage resource body for the TIPO OpenData connector."""
-    return (
-        "TIPO OpenData REST connector — see "
-        "research/specs/tw-tipo-connector-spec.md"
-    )
+    return "TIPO OpenData REST connector — see research/specs/tw-tipo-connector-spec.md"
 
 
 __all__ = ["USAGE_RESOURCE_URI", "get_usage_resource"]

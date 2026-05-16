@@ -283,9 +283,7 @@ class TipoClient(BaseAsyncClient):
             "applicant": applicant,
         }
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentAppl", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentAppl", top=top, skip=skip, filters=filters)
         return [PatentApplRow.model_validate(r) for r in rows]
 
     async def get_patent_pub(
@@ -299,9 +297,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentPub`` — KOKAI / KOKOKU publications."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentPub", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentPub", top=top, skip=skip, filters=filters)
         return [PatentPubRow.model_validate(r) for r in rows]
 
     async def get_patent_rights(
@@ -315,9 +311,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentRights`` — grant + status (carries ``twins-flag``)."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentRights", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentRights", top=top, skip=skip, filters=filters)
         return [PatentRightsRow.model_validate(r) for r in rows]
 
     async def get_patent_priority(
@@ -331,9 +325,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentPriority`` — Paris priority claims."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentPriority", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentPriority", top=top, skip=skip, filters=filters)
         return [PatentPriorityRow.model_validate(r) for r in rows]
 
     async def get_patent_annuity(
@@ -347,9 +339,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentAnnuity`` — annuity payment schedule."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentAnnuity", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentAnnuity", top=top, skip=skip, filters=filters)
         return [PatentAnnuityRow.model_validate(r) for r in rows]
 
     async def get_patent_twins(
@@ -363,9 +353,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentTwins`` — TW Article 32 invention / UM pairs."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentTwins", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentTwins", top=top, skip=skip, filters=filters)
         return [PatentTwinsRow.model_validate(r) for r in rows]
 
     async def get_patent_alteration(
@@ -379,9 +367,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentAlteration`` — applicant / inventor / agent edits."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentAlteration", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentAlteration", top=top, skip=skip, filters=filters)
         return [PatentAlterationRow.model_validate(r) for r in rows]
 
     async def get_patent_change(
@@ -395,9 +381,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentChange`` — application-identifier changes."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentChange", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentChange", top=top, skip=skip, filters=filters)
         return [PatentChangeRow.model_validate(r) for r in rows]
 
     async def get_patent_divide(
@@ -411,9 +395,7 @@ class TipoClient(BaseAsyncClient):
         """``/PatentDivide`` — divisional application links."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/PatentDivide", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/PatentDivide", top=top, skip=skip, filters=filters)
         return [PatentDivideRow.model_validate(r) for r in rows]
 
     # ------------------------------------------------------------------
@@ -443,9 +425,7 @@ class TipoClient(BaseAsyncClient):
             "tmark-class": tmark_class,
         }
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkAppl", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkAppl", top=top, skip=skip, filters=filters)
         return [TmarkApplRow.model_validate(r) for r in rows]
 
     async def get_tmark_rights(
@@ -459,9 +439,7 @@ class TipoClient(BaseAsyncClient):
         """``/TmarkRights`` — TM registration + status."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkRights", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkRights", top=top, skip=skip, filters=filters)
         return [TmarkRightsRow.model_validate(r) for r in rows]
 
     async def get_tmark_priority(
@@ -475,9 +453,7 @@ class TipoClient(BaseAsyncClient):
         """``/TmarkPriority`` — TM priority claims."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkPriority", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkPriority", top=top, skip=skip, filters=filters)
         return [TmarkPriorityRow.model_validate(r) for r in rows]
 
     async def get_tmark_pics(
@@ -491,9 +467,7 @@ class TipoClient(BaseAsyncClient):
         """``/TmarkPics`` — TM image URLs (URLs only, no rendering)."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkPics", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkPics", top=top, skip=skip, filters=filters)
         return [TmarkPicsRow.model_validate(r) for r in rows]
 
     async def get_tmark_change(
@@ -507,9 +481,7 @@ class TipoClient(BaseAsyncClient):
         """``/TmarkChange`` — TM transfer / name-change events."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkChange", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkChange", top=top, skip=skip, filters=filters)
         return [TmarkChangeRow.model_validate(r) for r in rows]
 
     async def get_tmark_divide(
@@ -523,9 +495,7 @@ class TipoClient(BaseAsyncClient):
         """``/TmarkDivide`` — TM application divisions."""
         filters: dict[str, Any] = {"appl-no": _join_list(appl_no)}
         filters.update(extra)
-        rows, _ = await self._get_rows(
-            "/TmarkDivide", top=top, skip=skip, filters=filters
-        )
+        rows, _ = await self._get_rows("/TmarkDivide", top=top, skip=skip, filters=filters)
         return [TmarkDivideRow.model_validate(r) for r in rows]
 
 
