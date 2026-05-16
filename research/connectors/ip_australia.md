@@ -6,6 +6,36 @@ plant breeder's rights), publishes signed REST APIs for live search, and dumps t
 registry to data.gov.au as bulk longitudinal datasets. The open-data culture here is the
 strongest of any jurisdiction we have surveyed.
 
+> **Verified 2026-05-16** (during IP Australia connector build):
+> - Token endpoint paths confirmed (`/public/external-token-api/v1/access_token`,
+>   `prod` and `test` hosts both responding).
+> - Trade Mark Search base path
+>   `production.api.ipaustralia.gov.au/public/australian-trade-mark-search-api/v1/`
+>   confirmed (`POST /search/quick` returns 400 without payload — expected).
+> - Design Search base path
+>   `production.api.ipaustralia.gov.au/public/australian-design-search-api/v1/`
+>   confirmed (`POST /search/quick`, `GET /design/{id}`).
+> - **Patent Search API**: base path
+>   `production.api.ipaustralia.gov.au/public/australian-patent-search-api/v1/`
+>   returns HTTP 400 on `POST` (route exists, auth/payload-gated). Public
+>   description page (`descriptions.api.gov.au/ipaustralia/patent-search/`)
+>   still 404 in the upstream docs portal, so endpoint shape is inferred
+>   from the symmetric trade-mark / design surface
+>   (`POST /search/quick`, `GET /patent/{number}`). Will need adjustment if
+>   live verification proves otherwise.
+> - **IP RAPID** dataset metadata (via the data.gov.au CKAN API
+>   `https://data.gov.au/data/api/3/action/package_show?id=iprapid`):
+>   - License is **CC-BY 4.0 International** (not CC-BY 2.5 AU as the
+>     older survey said — the dataset was relicensed at some point).
+>   - Two resources: a Data Dictionary PDF (~939 KB) and `IPRAPID.zip`
+>     (~1.3 GB).
+>   - `last_modified` on the zip currently 2026-05-12, consistent with a
+>     weekly refresh cadence.
+> - Authoritative API description pages now live under
+>   `descriptions.api.gov.au/ipaustralia/{trademark-search,design-search}/`
+>   (not the `/ipds.html` / `/iptms.html` filenames in the older notes,
+>   which still work but redirect).
+
 ## Cross-asset comparison
 
 | Asset | URL | Auth | Format | Bulk? | Notes |

@@ -297,6 +297,81 @@ sources:
     transport: mcp_proxy
 
   # ────────────────────────────────────────────────────────────────────
+  # AU — IP Australia (patents, trade marks, designs, bulk register)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: AU/IPAustralia/Patents
+    name: IP Australia — Australian Patent Search
+    jurisdiction: AU
+    wipo_st3_code: AU
+    issuing_body: IP Australia
+    rights: [patent]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: oauth2_client_credentials
+      auth_env: [IPAUSTRALIA_CLIENT_ID, IPAUSTRALIA_CLIENT_SECRET]
+    status: active
+    connector:
+      module: patent_client_agents.ip_australia_patents
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+
+  - id: AU/IPAustralia/Trademarks
+    name: IP Australia — Australian Trade Mark Search
+    jurisdiction: AU
+    wipo_st3_code: AU
+    issuing_body: IP Australia
+    rights: [trademark]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: oauth2_client_credentials
+      auth_env: [IPAUSTRALIA_CLIENT_ID, IPAUSTRALIA_CLIENT_SECRET]
+    status: active
+    connector:
+      module: patent_client_agents.ip_australia_trademarks
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+
+  - id: AU/IPAustralia/Designs
+    name: IP Australia — Australian Designs Search
+    jurisdiction: AU
+    wipo_st3_code: AU
+    issuing_body: IP Australia
+    rights: [design]
+    data_types: [bibliographic, legal_status, classification]
+    access:
+      method: rest_api
+      auth: oauth2_client_credentials
+      auth_env: [IPAUSTRALIA_CLIENT_ID, IPAUSTRALIA_CLIENT_SECRET]
+    status: active
+    connector:
+      module: patent_client_agents.ip_australia_designs
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+
+  - id: AU/IPAustralia/Bulk
+    name: IP Australia — IP RAPID (data.gov.au bulk register)
+    jurisdiction: AU
+    wipo_st3_code: AU
+    issuing_body: IP Australia
+    rights: [patent, trademark, design, plant_variety]
+    data_types: [bulk_data, bibliographic, legal_status]
+    access:
+      method: bulk_download
+      auth: none
+    status: active
+    connector:
+      module: patent_client_agents.ip_australia_bulk
+    last_verified: 2026-05-16
+    category: registered_ip
+    transport: mcp_proxy
+
+  # ────────────────────────────────────────────────────────────────────
   # JP — JPO (patents, trademarks, designs)
   # ────────────────────────────────────────────────────────────────────
 

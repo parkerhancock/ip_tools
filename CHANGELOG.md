@@ -5,6 +5,66 @@ All notable changes to `patent-client-agents` are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **IP Australia connector — first cut.** Adds Australian coverage to
+  the registered-IP catalog. Four packages ship in this PR, gated on
+  the shared `IPAUSTRALIA_CLIENT_ID` / `IPAUSTRALIA_CLIENT_SECRET`
+  credentials (`IPAUSTRALIA_ENV=sandbox|production`, default
+  production):
+  - `patent_client_agents.ip_australia_patents` —
+    `IpAustraliaPatentsClient` (Australian Patent Search API, OAuth 2.0
+    client_credentials).
+  - `patent_client_agents.ip_australia_trademarks` —
+    `IpAustraliaTrademarksClient` (Australian Trade Mark Search API,
+    formerly ATMOSS).
+  - `patent_client_agents.ip_australia_designs` —
+    `IpAustraliaDesignsClient` (Australian Designs Search API).
+  - `patent_client_agents.ip_australia_bulk` — `IpAustraliaBulkClient`
+    for the IP RAPID weekly bulk snapshot on `data.gov.au` (no auth;
+    CC-BY 4.0).
+- **MCP tools (8 new, all envelope-shaped per
+  CONNECTOR_STANDARDS.md §5.9):**
+  - `search_ipa_patents`, `get_ipa_patent` —
+    `mcp/tools/ip_australia_patents.py`.
+  - `search_ipa_trademarks`, `get_ipa_trademark` —
+    `mcp/tools/ip_australia_trademarks.py`.
+  - `search_ipa_designs`, `get_ipa_design` —
+    `mcp/tools/ip_australia_designs.py`.
+  - `list_ipa_bulk_releases`, `download_ipa_bulk` —
+    `mcp/tools/ip_australia_bulk.py` (Shape E — catalog + download
+    URL; the OAuth-API search/get tools are env-gated, the bulk tools
+    are not).
+- **Shared scaffolding.**
+  `patent_client_agents.ip_australia_common` consolidates the
+  environment / host / token-URL / `OAuth2ClientCredentialsAuth`
+  wiring so the three rights clients only declare their own API path
+  prefix and `CACHE_NAME`.
+- **Manifest entries** in `coverage/sources.yaml`:
+  `AU/IPAustralia/Patents`, `AU/IPAustralia/Trademarks`,
+  `AU/IPAustralia/Designs`, `AU/IPAustralia/Bulk` (all
+  `category: registered_ip`, `transport: mcp_proxy`,
+  `last_verified: 2026-05-16`).
+
+### Notes
+
+- The IP RAPID surface ships intentionally minimal — `list_ipa_bulk_releases`
+  + `download_ipa_bulk` only — per the connector standards §7.2 Shape E
+  rule for download tools. Full CSV ingestion of the ~40 IP RAPID
+  tables (patents / trade marks / designs / PBR) is deferred to a
+  follow-up.
+- Endpoint shape for the **Australian Patent Search API** is inferred
+  from the symmetric trade-mark / design surface. The public
+  `descriptions.api.gov.au/ipaustralia/patent-search/` page returned
+  404 at build time (2026-05-16); the live host responds and the
+  research file is annotated. Shape may need adjustment after the
+  live-credential verification step.
+- IP RAPID licence corrected from CC-BY 2.5 AU (older research) to
+  **CC-BY 4.0 International** based on the CKAN ``package_show`` metadata
+  fetched 2026-05-16.
+
 ## [0.19.0] — 2026-05-15
 
 This release rolls up four bodies of work that landed on `main` without
