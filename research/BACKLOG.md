@@ -1,7 +1,42 @@
-# IP Data Connector Roadmap
+# IP Data Connector Backlog
 
-Living index of jurisdictions/sources we've surveyed for `patent-client-agents`,
-ranked by build priority. Status: 2026-05.
+Living index + ranked roadmap of jurisdictions/sources we've surveyed for
+`patent-client-agents`. Originally lived at `research/connectors/_index.md`;
+moved here 2026-05-16 to sit alongside [`COVERAGE_STRATEGY.md`](COVERAGE_STRATEGY.md)
+as the second top-level strategic doc.
+
+## How this doc relates to the rest of `research/`
+
+- [`COVERAGE_STRATEGY.md`](COVERAGE_STRATEGY.md) — the *why* (IP-system layering, substitution rules, decision heuristics)
+- **This doc** — the *what next* (ranked work queue with verdicts)
+- [`multilateral/`](multilateral/), [`regional/`](regional/), [`national/`](national/) — per-office strategic synopses (current state, distilled from detail surveys + waves + reconciliation)
+- [`connectors/`](connectors/) — detail surveys per office (the deep dives, dated mostly 2026-05; treat as canonical detail-research)
+- [`waves/`](waves/) — time-stamped research products (frozen audit trail; latest: [`2026-05-16-registered-ip-discovery/`](waves/2026-05-16-registered-ip-discovery/))
+- [`fee-schedules/`](fee-schedules/) — primary-source fee references per office (used by synopses)
+- [`templates/`](templates/) — canonical synopsis template
+
+## Reconciliation log — drift between original surveys and current state
+
+The original Tier-1/2/3 surveys below were written before the 2026-05-16
+registered-IP discovery wave. Where the wave's grounded research updates
+or contradicts the original entries, the divergence is captured here so
+the ranked roadmap below stays trustworthy as a planning artifact even
+though specific lines are stale.
+
+| Office | Original entry status | 2026-05-16 finding | Source |
+|---|---|---|---|
+| **KIPO** | "Tier 1 Rank 9-10; gated on confirming foreign-developer ServiceKey path" | API is real and clean, but **ToS §11 explicitly forbids sharing Authentication Keys** — proxy-as-a-service is barred. Architecture must be BYOK (env-gated, per-user keys). | [waves/2026-05-16-registered-ip-discovery/kipo-kipris-plus.md](waves/2026-05-16-registered-ip-discovery/kipo-kipris-plus.md) |
+| **DPMA** | "Tier 2; DPMAconnectPlus paid (€200 + contract)" | Cost wasn't the blocker — **contract §3.2 explicitly prohibits passing data to third parties**, which a proxy connector does by definition. Use EPO OPS for DE patents. | [waves/2026-05-16-registered-ip-discovery/dpma-germany.md](waves/2026-05-16-registered-ip-discovery/dpma-germany.md) |
+| **UKIPO** | "Tier 2; One IPO REST APIs in build, ships H2-2025/2026; don't scrape registers" | **One IPO Patents Service launched 2026-03-31 without a public search API.** IPO has explicitly stated "exact timeline for releasing APIs is still to be confirmed." Treat as red until announced. | [waves/2026-05-16-registered-ip-discovery/ukipo-uk.md](waves/2026-05-16-registered-ip-discovery/ukipo-uk.md) |
+| **CIPO** | "Tier 2; CanLII + bulk + manuals path" | The entire ISED API Catalogue lists 3 APIs total across the department; the only CIPO entry is the Nice-class classification helper. **Zero REST search APIs across patents/TMs/designs.** CanLII remains the recommended path. | [waves/2026-05-16-registered-ip-discovery/cipo-canada.md](waves/2026-05-16-registered-ip-discovery/cipo-canada.md) |
+| **WIPO PATENTSCOPE / Global Brand DB / Global Design DB** | "Tier 1 hard skip; ToS forbids automation" | Confirmed and grounded. **PATENTSCOPE only has paid SOAP/SFTP (CHF 600–2,000/yr)**; Brand DB public API is restricted to "collaborating IP Offices"; UI now CAPTCHA-walled with AltCha proof-of-work. The original "skip" verdict stands; undocumented `public-api.branddb.wipo.int` suggests a future partner program. | [waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md](waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md) |
+| **EUIPO Designs** | "RCD" terminology throughout | **Terminology changed 1 May 2025** to **REUD** (Registered European Union Design) under Reg. 2024/2822. Design renewal periods are 5/10/15/20 (4 renewals, terminate at year 25) — original prompt listed 5 periods. Application fees restructured: registration + publication merged into single €350 fee. | [fee-schedules/em-euipo-fees.md](fee-schedules/em-euipo-fees.md) |
+| **USPTO Trademarks** | "TEAS Plus / TEAS Standard" | **TEAS Plus/Standard abolished 2025-01-18.** Single base fee ($350/class) + surcharges. Statutory discount tiers shifted in late 2022 (UAIA): small 50%→60%, micro 75%→80%. | [fee-schedules/us-uspto-fees.md](fee-schedules/us-uspto-fees.md) |
+| **EPO fees** | Default 2024 schedule | **New schedule effective 2026-04-01 (CA/D 9/25)**: ~5% bump on procedural fees; filing, opposition, and appeal frozen (asymmetric). **Rule 7a EPC micro-entity discount** in force since 2024-04-01 — stackable with Rule 6 language reduction, ~51% total off. | [fee-schedules/ep-epo-fees.md](fee-schedules/ep-epo-fees.md) |
+
+**Status of the original ranked roadmap below:** still useful as a build-priority artifact, but every entry should be cross-checked against the reconciliation log above and the per-office synopsis files before commitment. The synopses are the current-state source of truth; this doc is the strategic queue.
+
+---
 
 ## What we already have
 

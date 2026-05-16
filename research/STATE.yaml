@@ -1,0 +1,898 @@
+# Coverage pipeline state
+#
+# Machine-parseable single-source-of-truth for what's covered, what's
+# in research, what's planned, what's shipped.
+#
+# Read by orchestration agents (PIPELINE.md §5) to determine next batch
+# of unblocked work. Updated by research/coding agents on completion.
+#
+# Field meanings:
+#   id:                 stable ID (matches coverage/sources.yaml convention)
+#   name:               human display
+#   layer:              multilateral | regional | national
+#   iso2:               ISO 3166-1 alpha-2 (or n/a for regional/multilateral)
+#   rights:             list from {patent, utility_model, trademark, design, copyright, plant_variety, gi, trade_secret}
+#   synopsis:           path or null (null = not written)
+#   detail_survey:      path or null
+#   fee_research:       path or null
+#   connector_spec:     path or null (when verdict crosses into build)
+#   verdict:            green | yellow_byok | yellow_paid | red_tos | red_no_api |
+#                       red_bulk_only | red_contract | watch | tbd
+#   verdict_basis:      one-line explanation
+#   connector_status:   none | planned | spec_ready | in_progress | shipped |
+#                       skipped | blocked
+#   manifest_ids:       list of IDs in coverage/sources.yaml (when shipped)
+#   next_action:        what's next; drives agent selection
+#                       (synopsis_discovery | fee_research | spec_writing |
+#                        connector_build | monitor_partner_api | none)
+#   blocked_by:         list of other entity IDs that must complete first
+#   last_verified:      date of last research touch (YYYY-MM-DD)
+#   notes:              one-line free text
+#
+# When updating: bump `last_updated` and the affected row's `last_verified`.
+
+schema_version: 1
+last_updated: 2026-05-16
+
+stats:
+  total_entities: 43
+  synopses_filled: 12
+  fee_research_filled: 5
+  connectors_shipped: 12
+  connectors_planned: 1   # KIPO BYOK
+  connectors_blocked: 4   # DPMA, UKIPO, CIPO, WIPO trio
+  next_unblocked_synopses: 27
+
+entities:
+
+  # ────────────────────────────────────────────────────────────────────
+  # Multilateral (6)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: WO/WIPO/PATENTSCOPE
+    name: WIPO PATENTSCOPE
+    layer: multilateral
+    iso2: n/a
+    rights: [patent]
+    synopsis: multilateral/wipo-patentscope.md
+    detail_survey: connectors/wipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_tos
+    verdict_basis: ToS §2.1 forbids automated queries; paid SOAP/SFTP only
+    connector_status: skipped
+    manifest_ids: []
+    next_action: monitor_partner_api
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Watch undocumented public-api.branddb.wipo.int for future partner program
+
+  - id: WO/WIPO/Madrid
+    name: WIPO Madrid System
+    layer: multilateral
+    iso2: n/a
+    rights: [trademark]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 116 members / 132 countries; international TM registrations; partly visible via WIPO Brand DB
+
+  - id: WO/WIPO/Hague
+    name: WIPO Hague System
+    layer: multilateral
+    iso2: n/a
+    rights: [design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 79 contracting parties / 96 countries; Hague Express has public UI
+
+  - id: WO/WIPO/Lex
+    name: WIPO Lex
+    layer: multilateral
+    iso2: n/a
+    rights: [patent, utility_model, trademark, design, copyright, gi, trade_secret]
+    synopsis: null
+    detail_survey: connectors/wipo_lex_api_discovery.md
+    fee_research: null
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free polite scrape; substantive-law backbone
+    connector_status: shipped
+    manifest_ids: [WO/WIPO/Lex]
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: ~50k statutes/treaties/decisions across ~200 jurisdictions; already in catalog
+
+  - id: WO/WIPO/GlobalBrandDB
+    name: WIPO Global Brand Database
+    layer: multilateral
+    iso2: n/a
+    rights: [trademark]
+    synopsis: multilateral/wipo-global-brand-db.md
+    detail_survey: connectors/wipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_tos
+    verdict_basis: ToS prohibits automation; idAPI 188 restricted to "collaborating IP Offices"; CAPTCHA-walled UI
+    connector_status: skipped
+    manifest_ids: []
+    next_action: monitor_partner_api
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Madrid + national TM federation; ~75 contributing offices
+
+  - id: WO/WIPO/GlobalDesignDB
+    name: WIPO Global Design Database
+    layer: multilateral
+    iso2: n/a
+    rights: [design]
+    synopsis: multilateral/wipo-global-design-db.md
+    detail_survey: connectors/wipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_tos
+    verdict_basis: ToS prohibits automation; only Hague Web Services (filing-side, IP-office-only); 24-hour IP block
+    connector_status: skipped
+    manifest_ids: []
+    next_action: monitor_partner_api
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Hague + ~30 national design contributions
+
+  # ────────────────────────────────────────────────────────────────────
+  # Regional (7)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: EP/EPO
+    name: European Patent Office
+    layer: regional
+    iso2: n/a
+    rights: [patent]
+    synopsis: regional/epo.md
+    detail_survey: null
+    fee_research: fee-schedules/ep-epo-fees.md
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free OAuth2 OPS API; INPADOC backbone for ~100 offices
+    connector_status: shipped
+    manifest_ids: [EP/EPO/OPS, EP/EPO/CPC, EP/EPC/Statute, EP/EPO/Guidelines, EP/EPO/CaseLaw, UP/EPO/UPGuidelines]
+    next_action: migration_playbook_row_9
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Highest-leverage connector in catalog; §5.9 envelope sweep pending (MIGRATION_PLAYBOOK row 9)
+
+  - id: EM/EUIPO
+    name: European Union Intellectual Property Office
+    layer: regional
+    iso2: n/a
+    rights: [trademark, design]
+    synopsis: regional/euipo.md
+    detail_survey: connectors/euipo.md
+    fee_research: fee-schedules/em-euipo-fees.md
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free OAuth2 OpenAPI; EUTM + REUD (formerly RCD)
+    connector_status: shipped
+    manifest_ids: [EM/EUIPO/Trademarks, EM/EUIPO/Designs]
+    next_action: rcd_to_reud_cleanup
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: REUD terminology cleanup needed (Reg 2024/2822); TMview/DesignView API discovery is highest-leverage open question
+
+  - id: UPC/UPC
+    name: Unified Patent Court
+    layer: regional
+    iso2: n/a
+    rights: [patent]
+    synopsis: null
+    detail_survey: connectors/upc.md
+    fee_research: null
+    connector_spec: null
+    verdict: green
+    verdict_basis: OAuth2 public API; PDF decisions; opt-out registry; UPCA + RoP corpus
+    connector_status: shipped
+    manifest_ids: [UPC/UPC/Statutes, UPC/UPC/Decisions]
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: ~17 EU states for unitary patents; opt-out registry is highest-leverage UPC asset
+
+  - id: RU/EAPO
+    name: Eurasian Patent Office
+    layer: regional
+    iso2: n/a
+    rights: [patent]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 8 Eurasian states; Rospatent-adjacent; politics complicate
+
+  - id: AP/ARIPO
+    name: African Regional Intellectual Property Organization
+    layer: regional
+    iso2: n/a
+    rights: [patent, utility_model, design, trademark, plant_variety]
+    synopsis: null
+    detail_survey: connectors/aripo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: Robots.txt Disallow:/; covered via EPO INPADOC (country code AP)
+    connector_status: skipped
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 22 contracting states; coverage already via EPO OPS
+
+  - id: OA/OAPI
+    name: African Intellectual Property Organization (OAPI)
+    layer: regional
+    iso2: n/a
+    rights: [patent, design, trademark, gi]
+    synopsis: null
+    detail_survey: connectors/oapi.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: No public REST; covered via EPO INPADOC (country code OA)
+    connector_status: skipped
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 17 Francophone African states; Bangui Agreement (unified statute)
+
+  - id: GCC/GCCPatent
+    name: GCC Patent Office (legacy)
+    layer: regional
+    iso2: n/a
+    rights: [patent]
+    synopsis: null
+    detail_survey: connectors/gcc_patent.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: Closed for new applications since 2021-01-06; legacy register sunsets ~2041
+    connector_status: skipped
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: 6 Gulf states; only SAIP usable individually
+
+  # ────────────────────────────────────────────────────────────────────
+  # National — IP5 + major Western (6)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: US/USPTO
+    name: USPTO
+    layer: national
+    iso2: US
+    rights: [patent, trademark, design]
+    synopsis: national/us-uspto.md
+    detail_survey: null
+    fee_research: fee-schedules/us-uspto-fees.md
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free public APIs across all services; statutory open-data mandate
+    connector_status: shipped
+    manifest_ids: [US/USPTO/ODP/Applications, US/USPTO/ODP/PTAB, US/USPTO/ODP/Petitions, US/USPTO/PPUBS, US/USPTO/Assignments/Patents, US/USPTO/OfficeActions, US/USPTO/BulkData, US/USPTO/TSDR, US/USPTO/TMSearch, US/USPTO/Assignments/Trademarks, US/USPTO/MPEP, US/USPTO/TMEP]
+    next_action: migration_playbook_rows_4_8
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Deepest connector in catalog (~12 services); TEAS Plus/Standard abolished 2025-01-18; UAIA discount-tier shift (50%→60%, 75%→80%)
+
+  - id: US/USCO
+    name: US Copyright Office
+    layer: national
+    iso2: US
+    rights: [copyright]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free; copyright public records API
+    connector_status: shipped
+    manifest_ids: [US/USCO/Registrations]
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: US is unusual in operating a copyright register
+
+  - id: JP/JPO
+    name: Japan Patent Office
+    layer: national
+    iso2: JP
+    rights: [patent, utility_model, trademark, design]
+    synopsis: national/jp-jpo.md
+    detail_survey: null
+    fee_research: fee-schedules/jp-jpo-fees.md
+    connector_spec: null
+    verdict: green
+    verdict_basis: Free with credentials (JPO_API_USERNAME + PASSWORD); BYOK pattern
+    connector_status: shipped
+    manifest_ids: [JP/JPO]
+    next_action: monitor
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Canonical BYOK template (username+password); Cloud Run egress blocked
+
+  - id: KR/KIPO
+    name: KIPO Korea
+    layer: national
+    iso2: KR
+    rights: [patent, utility_model, trademark, design]
+    synopsis: national/kr-kipo.md
+    detail_survey: connectors/kipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: yellow_byok
+    verdict_basis: KIPRIS Plus API real and clean; ToS §11 forbids key sharing → BYOK only
+    connector_status: planned
+    manifest_ids: []
+    next_action: spec_writing
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Top-5 office; biggest single-office gap; mirror JPO BYOK architecture
+
+  - id: CN/CNIPA
+    name: CNIPA China
+    layer: national
+    iso2: CN
+    rights: [patent, utility_model, trademark, design]
+    synopsis: null
+    detail_survey: connectors/cnipa.md
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Existing survey says skip live; route via EPO OPS + Patentscope. Needs grounded discovery wave.
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: Top-1 office by volume; via EPO INPADOC + Google Patents; native scrape blocked by CAPTCHA
+
+  - id: DE/DPMA
+    name: DPMA Germany
+    layer: national
+    iso2: DE
+    rights: [patent, utility_model, trademark, design]
+    synopsis: national/de-dpma.md
+    detail_survey: connectors/dpma.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_contract
+    verdict_basis: Contract §3.2 prohibits proxy use; statutes shipped separately
+    connector_status: skipped
+    manifest_ids: [DE/DPMA/Statutes]
+    next_action: monitor_register_modernization
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: DE patents available via EPO OPS; TMs/designs are gaps with no proxyable path
+
+  - id: GB/UKIPO
+    name: UKIPO United Kingdom
+    layer: national
+    iso2: GB
+    rights: [patent, trademark, design]
+    synopsis: national/gb-ukipo.md
+    detail_survey: connectors/ukipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: IPSUM retired Jan 2025; One IPO replacement HTML-only; no API timeline
+    connector_status: skipped
+    manifest_ids: [GB/UKIPO/MoPP]
+    next_action: monitor_one_ipo
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: GB patents via EPO OPS; recheck quarterly for One IPO API announcement
+
+  - id: FR/INPI
+    name: INPI France
+    layer: national
+    iso2: FR
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/inpi_france.md
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: PISTE OAuth2 broker + data.inpi.fr bulk; needs grounded discovery
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: Légifrance statutes shipped (FR/Legifrance/IP); PIBD migration to data.inpi.fr in summer 2026
+
+  - id: CA/CIPO
+    name: CIPO Canada
+    layer: national
+    iso2: CA
+    rights: [patent, trademark, design]
+    synopsis: national/ca-cipo.md
+    detail_survey: connectors/cipo.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: Zero REST APIs across all rights; CanLII covers case law
+    connector_status: skipped
+    manifest_ids: [CA/CanLII]
+    next_action: monitor_ngp
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: CA patents via EPO OPS; CanLII via separate connector; recheck quarterly for NGP API
+
+  - id: AU/IPAustralia
+    name: IP Australia
+    layer: national
+    iso2: AU
+    rights: [patent, trademark, design, plant_variety]
+    synopsis: national/au-ipaustralia.md
+    detail_survey: connectors/ip_australia.md
+    fee_research: fee-schedules/au-ipaustralia-fees.md
+    connector_spec: null
+    verdict: green
+    verdict_basis: Modern OAuth2 OpenAPI across all rights + IP RAPID bulk (CC-BY 4.0)
+    connector_status: shipped
+    manifest_ids: [AU/IPAustralia/Patents, AU/IPAustralia/Trademarks, AU/IPAustralia/Designs, AU/IPAustralia/Bulk]
+    next_action: monitor
+    blocked_by: []
+    last_verified: 2026-05-16
+    notes: Cleanest national-office surface; canonical BYOK OAuth2 template
+
+  # ────────────────────────────────────────────────────────────────────
+  # National — Emerging + Regional (10)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: IN/IPO
+    name: IPO India
+    layer: national
+    iso2: IN
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/ipo_india.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: Per older survey — every live asset CAPTCHA-gated; statutes shipped
+    connector_status: skipped
+    manifest_ids: [IN/IPO/Statutes, IN/IPO/MPPP]
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: IN patents via EPO OPS; Delhi HC IPD as case-law layer worth considering
+
+  - id: BR/INPI
+    name: INPI Brazil
+    layer: national
+    iso2: BR
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/inpi_brazil.md
+    fee_research: null
+    connector_spec: null
+    verdict: yellow_paid
+    verdict_basis: RPI weekly XML bulk + dados.gov.br annual; live register has no API
+    connector_status: in_progress
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: INPI Brazil RPI bulk on worktree from 2026-05 fan-out (not yet integrated)
+
+  - id: SG/IPOS
+    name: IPOS Singapore
+    layer: national
+    iso2: SG
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/ipos_singapore.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: IP2SG transactional APIs CorpPass-gated to SG entities; data.gov.sg shallow
+    connector_status: in_progress
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: IPOS Singapore statutes + manuals on worktree from 2026-05 fan-out (not yet integrated)
+
+  - id: IL/ILPO
+    name: ILPO Israel
+    layer: national
+    iso2: IL
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/israel_pto.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_no_api
+    verdict_basis: Register portal Angular SPA + reCAPTCHA; data.gov.il weekly TM CKAN feed only
+    connector_status: in_progress
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: ILPO statutes + TM bulk catalog on worktree from 2026-05 fan-out
+
+  - id: TW/TIPO
+    name: TIPO Taiwan
+    layer: national
+    iso2: TW
+    rights: [patent, utility_model, trademark, design]
+    synopsis: null
+    detail_survey: connectors/tipo_taiwan.md
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Real REST API + clean bulk portal per older survey; needs grounded discovery
+    connector_status: planned
+    manifest_ids: [TW/MOJ/TradeSecretsAct]
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: Trade Secrets Act shipped; registered IP not yet researched in grounded wave
+
+  - id: RU/Rospatent
+    name: Rospatent Russia
+    layer: national
+    iso2: RU
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: connectors/rospatent.md
+    fee_research: null
+    connector_spec: null
+    verdict: red_blocked
+    verdict_basis: Politics + economics (Decree 299 zeros foreign-patentee compensation); statutes only
+    connector_status: skipped
+    manifest_ids: []
+    next_action: write_synopsis
+    blocked_by: []
+    last_verified: 2026-05  # older survey
+    notes: ru_statutes Civil Code Part 4 worth shipping as substantive law
+
+  - id: MX/IMPI
+    name: IMPI Mexico
+    layer: national
+    iso2: MX
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 office; MX coverage via EPO OPS + Google Patents
+
+  - id: ID/DGIP
+    name: DGIP Indonesia
+    layer: national
+    iso2: ID
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 office; significant filing volume
+
+  - id: TR/TURKPATENT
+    name: TÜRKPATENT Turkey
+    layer: national
+    iso2: TR
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 office
+
+  - id: CH/IPI
+    name: Swiss Federal Institute of Intellectual Property
+    layer: national
+    iso2: CH
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Patents via EPO designations primarily; national CH-only filings exist
+
+  # ────────────────────────────────────────────────────────────────────
+  # National — Nordics, Western Europe, Pacific (10)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: NL/RVO
+    name: RVO Netherlands
+    layer: national
+    iso2: NL
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Patents via EPO; BX (Benelux Office) handles NL+BE+LU TMs/designs
+
+  - id: SE/PRV
+    name: PRV Sweden
+    layer: national
+    iso2: SE
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Nordic office cluster
+
+  - id: FI/PRH
+    name: PRH Finland
+    layer: national
+    iso2: FI
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Nordic; possibly clean Finnish open-data culture
+
+  - id: AT/OPA
+    name: Austrian Patent Office
+    layer: national
+    iso2: AT
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Patents via EPO primarily
+
+  - id: ES/OEPM
+    name: OEPM Spain
+    layer: national
+    iso2: ES
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: ES is non-UPC; national TM/design coverage gap
+
+  - id: IT/UIBM
+    name: UIBM Italy
+    layer: national
+    iso2: IT
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Patents via EPO; national TM/design
+
+  - id: NZ/IPONZ
+    name: IPONZ New Zealand
+    layer: national
+    iso2: NZ
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Often modeled alongside IP Australia (Trans-Tasman)
+
+  - id: ZA/CIPC
+    name: CIPC South Africa
+    layer: national
+    iso2: ZA
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 office; African coverage
+
+  - id: AR/INPI
+    name: INPI Argentina
+    layer: national
+    iso2: AR
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Largest South American IP office (with Brazil)
+
+  - id: TH/DIP
+    name: DIP Thailand
+    layer: national
+    iso2: TH
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 SEA office
+
+  - id: PH/IPOPHL
+    name: IPOPHL Philippines
+    layer: national
+    iso2: PH
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Top-30 SEA office
+
+  - id: AE/IPO
+    name: UAE Ministry of Economy IP
+    layer: national
+    iso2: AE
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: UAE Patent Hive 2025 initiative; not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Watchlist (BACKLOG); MoET Patent Hive 2025
+
+  - id: SA/SAIP
+    name: SAIP Saudi Arabia
+    layer: national
+    iso2: SA
+    rights: [patent, trademark, design]
+    synopsis: null
+    detail_survey: null
+    fee_research: null
+    connector_spec: null
+    verdict: tbd
+    verdict_basis: Saudi Vision 2030 initiative; not yet researched
+    connector_status: none
+    manifest_ids: []
+    next_action: synopsis_discovery
+    blocked_by: []
+    last_verified: never
+    notes: Only Gulf national office with usable public search per BACKLOG
+
+# When new entities are added, document them above with the same field
+# shape. When entities are completed, update synopsis/fee_research paths
+# and next_action accordingly.
