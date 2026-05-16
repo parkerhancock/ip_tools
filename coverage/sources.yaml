@@ -780,3 +780,78 @@ sources:
     update_cadence: irregular
     last_synced: 2026-05-16
     corpus_version: "v3.0 (2019)"
+
+  # ────────────────────────────────────────────────────────────────────
+  # DE — DPMA Germany statutes
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: DE/DPMA/Statutes
+    name: DPMA Germany — IP statutes (PatG, MarkenG, GebrMG, DesignG, UrhG, GeschGehG)
+    jurisdiction: DE
+    wipo_st3_code: DE
+    issuing_body: Deutsches Patent- und Markenamt
+    rights: [patent, trademark, design, copyright]
+    data_types: [statutes]
+    access:
+      method: mcp_passthrough
+      auth: none
+    status: active
+    connector:
+      module: patent_client_agents.dpma_statutes
+    last_verified: 2026-05-16
+    category: substantive_law
+    transport: mcp_local
+    update_strategy: scheduled_recrawl
+    update_cadence: annual
+    last_synced: 2026-05-16
+    corpus_version: "seed v1"
+
+  # ────────────────────────────────────────────────────────────────────
+  # FR — Légifrance IP (CPI + Code de commerce L.151 trade secrets)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: FR/Legifrance/IP
+    name: Légifrance — French IP statutes (Code de la propriété intellectuelle + Code de commerce L.151 trade secrets)
+    jurisdiction: FR
+    wipo_st3_code: FR
+    issuing_body: Direction de l'information légale et administrative (DILA)
+    rights: [patent, trademark, design, copyright, trade_secret]
+    data_types: [statutes]
+    access:
+      method: mcp_passthrough
+      auth: none
+    status: active
+    connector:
+      module: patent_client_agents.legifrance_ip
+    last_verified: 2026-05-16
+    category: substantive_law
+    transport: mcp_local
+    update_strategy: scheduled_recrawl
+    update_cadence: annual
+    last_synced: 2026-05-16
+    corpus_version: "seed v1"
+
+  # ────────────────────────────────────────────────────────────────────
+  # TW — Taiwan Trade Secrets Act (營業秘密法, EN translation)
+  # ────────────────────────────────────────────────────────────────────
+
+  - id: TW/MOJ/TradeSecretsAct
+    name: Taiwan — Trade Secrets Act (營業秘密法, official English translation)
+    jurisdiction: TW
+    wipo_st3_code: TW
+    issuing_body: Ministry of Justice (法務部) — Laws & Regulations Database of the Republic of China
+    rights: [trade_secret]
+    data_types: [statutes]
+    access:
+      method: mcp_passthrough
+      auth: none
+    status: active
+    connector:
+      module: patent_client_agents.tw_trade_secrets
+    last_verified: 2026-05-16
+    category: substantive_law
+    transport: mcp_local
+    update_strategy: scheduled_recrawl
+    update_cadence: irregular
+    last_synced: 2026-05-16
+    corpus_version: "seed v1"

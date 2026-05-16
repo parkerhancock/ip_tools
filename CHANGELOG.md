@@ -101,6 +101,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   **CC-BY 4.0 International** based on the CKAN ``package_show`` metadata
   fetched 2026-05-16.
 
+### DPMA Germany statutes connector (substantive law)
+
+- `patent_client_agents.dpma_statutes` — bundles the six core German IP
+  Acts (PatG, MarkenG, GebrMG, DesignG, UrhG, GeschGehG) into one
+  SQLite/FTS5 corpus discriminated by `statute`. Citation parser
+  accepts `§ 139 PatG`, `§ 14 MarkenG`, `Section 14 MarkenG`, and bare
+  section numbers; long-form aliases (Patentgesetz, Markengesetz, …)
+  resolve to canonical short names.
+- **MCP tools** (envelope-shaped per §5.9): `search_dpma_statutes`,
+  `get_dpma_section` (in `mcp/tools/dpma_statutes.py`). Both surface
+  `Provenance.corpus_synced_at` / `corpus_version` from
+  `dpma_statutes.get_corpus_status()`; `get_dpma_section` accepts
+  `citation: str | list[str]` for portfolio workflows.
+- **Build CLI.** `patent-client-agents-build-dpma-statutes-corpus`
+  ingests the bundled JSON-lines seed at
+  `src/patent_client_agents/dpma_statutes/data/seed.jsonl`.
+- **Manifest entry** in `coverage/sources.yaml`: `DE/DPMA/Statutes`
+  (`category: substantive_law`, `transport: mcp_local`,
+  `update_strategy: scheduled_recrawl`, `update_cadence: annual`,
+  `last_verified: 2026-05-16`).
+
+### Légifrance IP statutes connector (substantive law)
+
+- `patent_client_agents.legifrance_ip` — bundles the French
+  intellectual-property statutes (Code de la propriété intellectuelle:
+  patents L.611, trade marks L.711, designs L.511, copyright L.111)
+  plus the Code de commerce L.151 trade-secret regime into one
+  SQLite/FTS5 corpus discriminated by `statute`. Citation parser
+  accepts `L. 611-10 CPI`, `Art. L. 611-10 CPI`, `L611-10 CPI`, and
+  `L. 151-1 Code de commerce`; diacritics fold in search
+  (`brevetabilite` matches `brevetabilité`).
+- **MCP tools** (envelope-shaped per §5.9): `search_legifrance_ip`,
+  `get_legifrance_section` (in `mcp/tools/legifrance_ip.py`). Both
+  surface `Provenance.corpus_synced_at` / `corpus_version` from
+  `legifrance_ip.get_corpus_status()`; `get_legifrance_section` accepts
+  `citation: str | list[str]` for portfolio workflows.
+- **Build CLI.** `patent-client-agents-build-legifrance-ip-corpus`
+  ingests the bundled JSON-lines seed at
+  `src/patent_client_agents/legifrance_ip/data/seed.jsonl`.
+- **Manifest entry** in `coverage/sources.yaml`: `FR/Legifrance/IP`
+  (`category: substantive_law`, `transport: mcp_local`,
+  `update_strategy: scheduled_recrawl`, `update_cadence: annual`,
+  `last_verified: 2026-05-16`).
+
+### Taiwan Trade Secrets Act connector (substantive law)
+
+- `patent_client_agents.tw_trade_secrets` — bundles the official English
+  translation of the Taiwan Trade Secrets Act (營業秘密法), Articles 1,
+  2, 3, 10, 11, 13, and 13-1, into one SQLite/FTS5 corpus. Single-statute
+  schema (no `statute` discriminator). Citation parser accepts
+  `Art. 2 Trade Secrets Act`, `Section 13 Trade Secrets Act`,
+  `Art. 13-1`, and bare numeric forms (`13`, `13-1`). TIPO REST + bulk
+  are deferred to a follow-up.
+- **MCP tools** (envelope-shaped per §5.9): `search_tw_trade_secrets`,
+  `get_tw_trade_secrets_section` (in `mcp/tools/tw_trade_secrets.py`).
+  Both surface `Provenance.corpus_synced_at` / `corpus_version` from
+  `tw_trade_secrets.get_corpus_status()`; `get_tw_trade_secrets_section`
+  accepts `citation: str | list[str]` for portfolio workflows.
+- **Build CLI.** `patent-client-agents-build-tw-trade-secrets-corpus`
+  ingests the bundled JSON-lines seed at
+  `src/patent_client_agents/tw_trade_secrets/data/seed.jsonl`.
+- **Manifest entry** in `coverage/sources.yaml`: `TW/MOJ/TradeSecretsAct`
+  (`category: substantive_law`, `transport: mcp_local`,
+  `update_strategy: scheduled_recrawl`, `update_cadence: irregular`,
+  `last_verified: 2026-05-16`).
+
 ## [0.19.0] — 2026-05-15
 
 This release rolls up four bodies of work that landed on `main` without

@@ -21,6 +21,7 @@ from fastmcp import FastMCP
 from .tools.cafc import cafc_mcp
 from .tools.canlii import canlii_mcp
 from .tools.copyright import copyright_mcp
+from .tools.dpma_statutes import dpma_statutes_mcp
 from .tools.epc import epc_mcp
 from .tools.epo_case_law import epo_case_law_mcp
 from .tools.epo_guidelines import epo_guidelines_mcp
@@ -35,6 +36,7 @@ from .tools.ip_australia_trademarks import ip_australia_trademarks_mcp
 from .tools.ipo_in_mppp import ipo_in_mppp_mcp
 from .tools.ipo_in_statutes import ipo_in_statutes_mcp
 from .tools.mpep import mpep_mcp
+from .tools.tw_trade_secrets import tw_trade_secrets_mcp
 from .tools.office_actions import office_actions_mcp
 from .tools.patent_assignments import patent_assignments_mcp
 from .tools.patents import patents_mcp
@@ -90,6 +92,8 @@ ip_mcp.mount(ip_australia_designs_mcp)
 ip_mcp.mount(ip_australia_bulk_mcp)
 ip_mcp.mount(ipo_in_statutes_mcp)
 ip_mcp.mount(ipo_in_mppp_mcp)
+ip_mcp.mount(dpma_statutes_mcp)
+ip_mcp.mount(tw_trade_secrets_mcp)
 ip_mcp.mount(upc_mcp)
 
 __all__ = ["ip_mcp"]

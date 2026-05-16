@@ -377,7 +377,7 @@ the closed vocabularies below; CI fails on any deviation.
 | `jurisdiction` | always | ISO 3166 alpha-2 or one of `UPC`, `UP` |
 | `wipo_st3_code` | optional | WIPO ST.3 code |
 | `issuing_body` | always | free text |
-| `rights` | always | subset of `{patent, trademark, design, copyright, plant_variety, gi}` |
+| `rights` | always | subset of `{patent, trademark, design, copyright, plant_variety, gi, trade_secret}` |
 | `data_types` | always | subset of `{bibliographic, full_text, prosecution, legal_status, assignments, oppositions, tribunal_proceedings, litigation, classification, guidelines, case_law, statutes, treaties, bulk_data}` |
 | `access.method` | always | `{rest_api, bulk_download, website_scrape, pdf_download, ftp, mcp_passthrough}` |
 | `access.auth` | always | `{none, api_key, oauth2_client_credentials, oauth2_password, cookie_token, account_required}` |

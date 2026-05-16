@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCES_YAML = ROOT / "coverage" / "sources.yaml"
 COVERAGE_JSON = ROOT / "coverage" / "coverage.json"
 
-RIGHTS = {"patent", "trademark", "design", "copyright", "plant_variety", "gi"}
+RIGHTS = {"patent", "trademark", "design", "copyright", "plant_variety", "gi", "trade_secret"}
 DATA_TYPES = {
     "bibliographic",
     "full_text",

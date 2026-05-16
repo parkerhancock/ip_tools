@@ -56,6 +56,14 @@ src/
                             #   + Patent Rules in one SQLite/FTS5 corpus.
     ipo_in_mppp/            # IPO India Manual of Patent Practice &
                             #   Procedure (MPPP v3.0, 2019). Static corpus.
+    dpma_statutes/          # DPMA Germany — PatG/MarkenG/GebrMG/DesignG/
+                            #   UrhG/GeschGehG in one SQLite/FTS5 corpus.
+    legifrance_ip/          # Légifrance IP — CPI (patents/TM/designs/
+                            #   copyright) + Code de commerce L.151 (trade
+                            #   secrets) in one SQLite/FTS5 corpus.
+    tw_trade_secrets/       # Taiwan Trade Secrets Act (營業秘密法,
+                            #   EN translation) Arts. 1/2/3/10/11/13/13-1.
+                            #   Single-statute SQLite/FTS5 corpus.
     cpc/                    # CPC classification lookups (via EPO OPS)
     mpep/                   # Manual of Patent Examining Procedure search
     skills/ip_research/     # Skill content packaged with the wheel; downstream

@@ -1,17 +1,22 @@
 {
-  "generated_at": "2026-05-15T15:15:37+00:00",
+  "generated_at": "2026-05-16T18:20:39+00:00",
   "schema_version": 1,
   "summary": {
-    "total": 31,
+    "total": 40,
     "by_status": {
-      "active": 31
+      "active": 40
     },
     "active_jurisdictions": [
+      "AU",
       "CA",
+      "DE",
       "EM",
       "EP",
+      "FR",
       "GB",
+      "IN",
       "JP",
+      "TW",
       "UP",
       "UPC",
       "US",
@@ -22,6 +27,8 @@
       "design",
       "gi",
       "patent",
+      "plant_variety",
+      "trade_secret",
       "trademark"
     ],
     "data_types_covered": [
@@ -75,19 +82,20 @@
       "tracked": [
         "US",
         "JP",
+        "DE",
+        "IN",
         "CA",
-        "GB"
+        "AU",
+        "GB",
+        "FR",
+        "TW"
       ],
       "missing": [
         "CN",
         "KR",
-        "DE",
-        "IN",
         "BR",
-        "AU",
         "MX",
         "RU",
-        "FR",
         "IT",
         "ES",
         "SE",
@@ -96,7 +104,6 @@
         "BE",
         "PL",
         "DK",
-        "TW",
         "SG",
         "HK",
         "TH",
@@ -106,12 +113,47 @@
         "ID",
         "KH"
       ],
-      "tracked_count": 4,
+      "tracked_count": 9,
       "total": 30,
       "source": "WIPO IP Statistics Data Center (https://www.wipo.int/ipstats/en/), WIPI 2024 report, 2023 filing data"
     }
   },
   "matrix": [
+    {
+      "jurisdiction": "AU",
+      "right": "design",
+      "status": "active",
+      "sources": [
+        "AU/IPAustralia/Designs",
+        "AU/IPAustralia/Bulk"
+      ]
+    },
+    {
+      "jurisdiction": "AU",
+      "right": "patent",
+      "status": "active",
+      "sources": [
+        "AU/IPAustralia/Patents",
+        "AU/IPAustralia/Bulk"
+      ]
+    },
+    {
+      "jurisdiction": "AU",
+      "right": "plant_variety",
+      "status": "active",
+      "sources": [
+        "AU/IPAustralia/Bulk"
+      ]
+    },
+    {
+      "jurisdiction": "AU",
+      "right": "trademark",
+      "status": "active",
+      "sources": [
+        "AU/IPAustralia/Trademarks",
+        "AU/IPAustralia/Bulk"
+      ]
+    },
     {
       "jurisdiction": "CA",
       "right": "patent",
@@ -126,6 +168,38 @@
       "status": "active",
       "sources": [
         "CA/CanLII"
+      ]
+    },
+    {
+      "jurisdiction": "DE",
+      "right": "copyright",
+      "status": "active",
+      "sources": [
+        "DE/DPMA/Statutes"
+      ]
+    },
+    {
+      "jurisdiction": "DE",
+      "right": "design",
+      "status": "active",
+      "sources": [
+        "DE/DPMA/Statutes"
+      ]
+    },
+    {
+      "jurisdiction": "DE",
+      "right": "patent",
+      "status": "active",
+      "sources": [
+        "DE/DPMA/Statutes"
+      ]
+    },
+    {
+      "jurisdiction": "DE",
+      "right": "trademark",
+      "status": "active",
+      "sources": [
+        "DE/DPMA/Statutes"
       ]
     },
     {
@@ -157,11 +231,84 @@
       ]
     },
     {
+      "jurisdiction": "FR",
+      "right": "copyright",
+      "status": "active",
+      "sources": [
+        "FR/Legifrance/IP"
+      ]
+    },
+    {
+      "jurisdiction": "FR",
+      "right": "design",
+      "status": "active",
+      "sources": [
+        "FR/Legifrance/IP"
+      ]
+    },
+    {
+      "jurisdiction": "FR",
+      "right": "patent",
+      "status": "active",
+      "sources": [
+        "FR/Legifrance/IP"
+      ]
+    },
+    {
+      "jurisdiction": "FR",
+      "right": "trade_secret",
+      "status": "active",
+      "sources": [
+        "FR/Legifrance/IP"
+      ]
+    },
+    {
+      "jurisdiction": "FR",
+      "right": "trademark",
+      "status": "active",
+      "sources": [
+        "FR/Legifrance/IP"
+      ]
+    },
+    {
       "jurisdiction": "GB",
       "right": "patent",
       "status": "active",
       "sources": [
         "GB/UKIPO/MoPP"
+      ]
+    },
+    {
+      "jurisdiction": "IN",
+      "right": "copyright",
+      "status": "active",
+      "sources": [
+        "IN/IPO/Statutes"
+      ]
+    },
+    {
+      "jurisdiction": "IN",
+      "right": "design",
+      "status": "active",
+      "sources": [
+        "IN/IPO/Statutes"
+      ]
+    },
+    {
+      "jurisdiction": "IN",
+      "right": "patent",
+      "status": "active",
+      "sources": [
+        "IN/IPO/Statutes",
+        "IN/IPO/MPPP"
+      ]
+    },
+    {
+      "jurisdiction": "IN",
+      "right": "trademark",
+      "status": "active",
+      "sources": [
+        "IN/IPO/Statutes"
       ]
     },
     {
@@ -186,6 +333,14 @@
       "status": "active",
       "sources": [
         "JP/JPO"
+      ]
+    },
+    {
+      "jurisdiction": "TW",
+      "right": "trade_secret",
+      "status": "active",
+      "sources": [
+        "TW/MOJ/TradeSecretsAct"
       ]
     },
     {
@@ -682,6 +837,125 @@
       "transport": "mcp_proxy"
     },
     {
+      "id": "AU/IPAustralia/Patents",
+      "name": "IP Australia \u2014 Australian Patent Search",
+      "jurisdiction": "AU",
+      "wipo_st3_code": "AU",
+      "issuing_body": "IP Australia",
+      "rights": [
+        "patent"
+      ],
+      "data_types": [
+        "bibliographic",
+        "legal_status",
+        "classification"
+      ],
+      "access": {
+        "method": "rest_api",
+        "auth": "oauth2_client_credentials",
+        "auth_env": [
+          "IPAUSTRALIA_CLIENT_ID",
+          "IPAUSTRALIA_CLIENT_SECRET"
+        ]
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ip_australia_patents"
+      },
+      "last_verified": "2026-05-16",
+      "category": "registered_ip",
+      "transport": "mcp_proxy"
+    },
+    {
+      "id": "AU/IPAustralia/Trademarks",
+      "name": "IP Australia \u2014 Australian Trade Mark Search",
+      "jurisdiction": "AU",
+      "wipo_st3_code": "AU",
+      "issuing_body": "IP Australia",
+      "rights": [
+        "trademark"
+      ],
+      "data_types": [
+        "bibliographic",
+        "legal_status",
+        "classification"
+      ],
+      "access": {
+        "method": "rest_api",
+        "auth": "oauth2_client_credentials",
+        "auth_env": [
+          "IPAUSTRALIA_CLIENT_ID",
+          "IPAUSTRALIA_CLIENT_SECRET"
+        ]
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ip_australia_trademarks"
+      },
+      "last_verified": "2026-05-16",
+      "category": "registered_ip",
+      "transport": "mcp_proxy"
+    },
+    {
+      "id": "AU/IPAustralia/Designs",
+      "name": "IP Australia \u2014 Australian Designs Search",
+      "jurisdiction": "AU",
+      "wipo_st3_code": "AU",
+      "issuing_body": "IP Australia",
+      "rights": [
+        "design"
+      ],
+      "data_types": [
+        "bibliographic",
+        "legal_status",
+        "classification"
+      ],
+      "access": {
+        "method": "rest_api",
+        "auth": "oauth2_client_credentials",
+        "auth_env": [
+          "IPAUSTRALIA_CLIENT_ID",
+          "IPAUSTRALIA_CLIENT_SECRET"
+        ]
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ip_australia_designs"
+      },
+      "last_verified": "2026-05-16",
+      "category": "registered_ip",
+      "transport": "mcp_proxy"
+    },
+    {
+      "id": "AU/IPAustralia/Bulk",
+      "name": "IP Australia \u2014 IP RAPID (data.gov.au bulk register)",
+      "jurisdiction": "AU",
+      "wipo_st3_code": "AU",
+      "issuing_body": "IP Australia",
+      "rights": [
+        "patent",
+        "trademark",
+        "design",
+        "plant_variety"
+      ],
+      "data_types": [
+        "bulk_data",
+        "bibliographic",
+        "legal_status"
+      ],
+      "access": {
+        "method": "bulk_download",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ip_australia_bulk"
+      },
+      "last_verified": "2026-05-16",
+      "category": "registered_ip",
+      "transport": "mcp_proxy"
+    },
+    {
       "id": "JP/JPO",
       "name": "Japan Patent Office (JPO) \u2014 Open API",
       "jurisdiction": "JP",
@@ -1140,6 +1414,156 @@
       "transport": "mcp_proxy",
       "update_strategy": "live_proxy",
       "update_cadence": "irregular"
+    },
+    {
+      "id": "IN/IPO/Statutes",
+      "name": "IPO India \u2014 IP statutes (Patents Act 1970, Designs Act 2000, Trade Marks Act 1999, Copyright Act 1957, Patent Rules 2003)",
+      "jurisdiction": "IN",
+      "wipo_st3_code": "IN",
+      "issuing_body": "Office of the Controller General of Patents, Designs and Trade Marks",
+      "rights": [
+        "patent",
+        "trademark",
+        "design",
+        "copyright"
+      ],
+      "data_types": [
+        "statutes"
+      ],
+      "access": {
+        "method": "mcp_passthrough",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ipo_in_statutes"
+      },
+      "last_verified": "2026-05-16",
+      "category": "substantive_law",
+      "transport": "mcp_local",
+      "update_strategy": "scheduled_recrawl",
+      "update_cadence": "annual",
+      "last_synced": "2026-05-16",
+      "corpus_version": "seed v1"
+    },
+    {
+      "id": "IN/IPO/MPPP",
+      "name": "IPO India \u2014 Manual of Patent Practice & Procedure",
+      "jurisdiction": "IN",
+      "wipo_st3_code": "IN",
+      "issuing_body": "Office of the Controller General of Patents, Designs and Trade Marks",
+      "rights": [
+        "patent"
+      ],
+      "data_types": [
+        "guidelines"
+      ],
+      "access": {
+        "method": "mcp_passthrough",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.ipo_in_mppp"
+      },
+      "last_verified": "2026-05-16",
+      "category": "substantive_law",
+      "transport": "mcp_local",
+      "update_strategy": "scheduled_recrawl",
+      "update_cadence": "irregular",
+      "last_synced": "2026-05-16",
+      "corpus_version": "v3.0 (2019)"
+    },
+    {
+      "id": "DE/DPMA/Statutes",
+      "name": "DPMA Germany \u2014 IP statutes (PatG, MarkenG, GebrMG, DesignG, UrhG, GeschGehG)",
+      "jurisdiction": "DE",
+      "wipo_st3_code": "DE",
+      "issuing_body": "Deutsches Patent- und Markenamt",
+      "rights": [
+        "patent",
+        "trademark",
+        "design",
+        "copyright"
+      ],
+      "data_types": [
+        "statutes"
+      ],
+      "access": {
+        "method": "mcp_passthrough",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.dpma_statutes"
+      },
+      "last_verified": "2026-05-16",
+      "category": "substantive_law",
+      "transport": "mcp_local",
+      "update_strategy": "scheduled_recrawl",
+      "update_cadence": "annual",
+      "last_synced": "2026-05-16",
+      "corpus_version": "seed v1"
+    },
+    {
+      "id": "FR/Legifrance/IP",
+      "name": "L\u00e9gifrance \u2014 French IP statutes (Code de la propri\u00e9t\u00e9 intellectuelle + Code de commerce L.151 trade secrets)",
+      "jurisdiction": "FR",
+      "wipo_st3_code": "FR",
+      "issuing_body": "Direction de l'information l\u00e9gale et administrative (DILA)",
+      "rights": [
+        "patent",
+        "trademark",
+        "design",
+        "copyright",
+        "trade_secret"
+      ],
+      "data_types": [
+        "statutes"
+      ],
+      "access": {
+        "method": "mcp_passthrough",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.legifrance_ip"
+      },
+      "last_verified": "2026-05-16",
+      "category": "substantive_law",
+      "transport": "mcp_local",
+      "update_strategy": "scheduled_recrawl",
+      "update_cadence": "annual",
+      "last_synced": "2026-05-16",
+      "corpus_version": "seed v1"
+    },
+    {
+      "id": "TW/MOJ/TradeSecretsAct",
+      "name": "Taiwan \u2014 Trade Secrets Act (\u71df\u696d\u79d8\u5bc6\u6cd5, official English translation)",
+      "jurisdiction": "TW",
+      "wipo_st3_code": "TW",
+      "issuing_body": "Ministry of Justice (\u6cd5\u52d9\u90e8) \u2014 Laws & Regulations Database of the Republic of China",
+      "rights": [
+        "trade_secret"
+      ],
+      "data_types": [
+        "statutes"
+      ],
+      "access": {
+        "method": "mcp_passthrough",
+        "auth": "none"
+      },
+      "status": "active",
+      "connector": {
+        "module": "patent_client_agents.tw_trade_secrets"
+      },
+      "last_verified": "2026-05-16",
+      "category": "substantive_law",
+      "transport": "mcp_local",
+      "update_strategy": "scheduled_recrawl",
+      "update_cadence": "irregular",
+      "last_synced": "2026-05-16",
+      "corpus_version": "seed v1"
     }
   ]
 }
