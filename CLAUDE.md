@@ -52,6 +52,10 @@ src/
     ip_australia_trademarks/# IP Australia Trade Marks (needs IPAUSTRALIA_CLIENT_ID/SECRET)
     ip_australia_designs/   # IP Australia Designs (needs IPAUSTRALIA_CLIENT_ID/SECRET)
     ip_australia_bulk/      # IP RAPID bulk catalog on data.gov.au (no auth)
+    ipo_in_statutes/        # IPO India — Patents/Designs/TM/Copyright Acts
+                            #   + Patent Rules in one SQLite/FTS5 corpus.
+    ipo_in_mppp/            # IPO India Manual of Patent Practice &
+                            #   Procedure (MPPP v3.0, 2019). Static corpus.
     cpc/                    # CPC classification lookups (via EPO OPS)
     mpep/                   # Manual of Patent Examining Procedure search
     skills/ip_research/     # Skill content packaged with the wheel; downstream

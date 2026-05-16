@@ -69,6 +69,9 @@ patent-client-agents-build-epc-corpus = "patent_client_agents.epc.corpus.build:m
 patent-client-agents-build-caselaw-corpus = "patent_client_agents.epo_case_law.corpus.build:main"
 patent-client-agents-build-pct-guidelines-corpus = "patent_client_agents.epo_pct_guidelines.corpus.build:main"
 patent-client-agents-build-up-guidelines-corpus = "patent_client_agents.epo_up_guidelines.corpus.build:main"
+patent-client-agents-build-legifrance-ip-corpus = "patent_client_agents.legifrance_ip.corpus.build:main"
+patent-client-agents-build-ipo-in-statutes-corpus = "patent_client_agents.ipo_in_statutes.corpus.build:main"
+patent-client-agents-build-ipo-in-mppp-corpus = "patent_client_agents.ipo_in_mppp.corpus.build:main"
 
 [project.urls]
 Homepage = "https://github.com/parkerhancock/patent-client-agents"

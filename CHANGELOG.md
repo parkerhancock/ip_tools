@@ -9,6 +9,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **IPO India statutes + MPPP connector — first cut.** Brings the
+  Indian IP statutes and the IPO India examination manual into the
+  substantive-law catalog. Two packages ship in this PR, both
+  `category: substantive_law`, `transport: mcp_local`:
+  - `patent_client_agents.ipo_in_statutes` — bundles the four core
+    Indian IP Acts (Patents Act 1970, Designs Act 2000, Trade Marks Act
+    1999, Copyright Act 1957) plus the Patent Rules 2003 (with 2024
+    amendments) into one SQLite/FTS5 corpus discriminated by
+    `statute_name`. Citation parser accepts `Section 3(d) Patents Act`,
+    `Section 25(2) Patents Act`, `Rule 71 Patent Rules`, and bare
+    section numbers (`107A`); ambiguous bare numbers raise with a
+    cross-statute disambiguation hint.
+  - `patent_client_agents.ipo_in_mppp` — IPO India Manual of Patent
+    Practice & Procedure v3.0 (2019), the IPO India counterpart to the
+    USPTO MPEP and UKIPO MoPP. Citation form `MPPP Chapter 04.05.01`
+    (plus the bare-number / `Chapter` / `Ch.` shorthand variants).
+- **MCP tools (4 new, all envelope-shaped per CONNECTOR_STANDARDS.md
+  §5.9):** `search_ipo_in_statutes`, `get_ipo_in_section` (in
+  `mcp/tools/ipo_in_statutes.py`); `search_ipo_in_mppp`,
+  `get_ipo_in_mppp_section` (in `mcp/tools/ipo_in_mppp.py`). All four
+  surface `Provenance.corpus_synced_at` and `corpus_version` from each
+  package's `get_corpus_status()` callable; `get_*` accepts
+  `citation: str | list[str]` for portfolio workflows.
+- **Build CLIs.** `patent-client-agents-build-ipo-in-statutes-corpus`
+  and `patent-client-agents-build-ipo-in-mppp-corpus` ingest the
+  bundled JSON-lines seeds at
+  `src/patent_client_agents/ipo_in_statutes/data/seed.jsonl` and
+  `src/patent_client_agents/ipo_in_mppp/data/seed.jsonl` respectively.
+  The seed-driven approach (rather than scraping indiacode.nic.in /
+  ipindia.gov.in at build time) keeps CI deterministic and side-steps
+  the CAPTCHA-everywhere problem the IPO India research file flags.
+- **Manifest entries.** `coverage/sources.yaml` adds
+  `IN/IPO/Statutes` (`update_strategy: scheduled_recrawl`,
+  `update_cadence: annual`) and `IN/IPO/MPPP` (`update_cadence:
+  irregular`, `corpus_version: "v3.0 (2019)"`).
+
 - **IP Australia connector — first cut.** Adds Australian coverage to
   the registered-IP catalog. Four packages ship in this PR, gated on
   the shared `IPAUSTRALIA_CLIENT_ID` / `IPAUSTRALIA_CLIENT_SECRET`
