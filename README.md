@@ -233,6 +233,7 @@ Ask your agent to research patents and trademarks in natural language:
 | **USPTO Trademark Search (TESS)** | Live trademark register — search by wordmark, owner, goods/services — *requires the `[tmsearch]` extra (Playwright + curl_cffi) or a bring-your-own WAF token via `PCA_WAF_TOKEN_*`* |
 | **USPTO Trademark Assignments** | Trademark ownership transfers (Assignment Center) |
 | **EPO OPS** | European patents, Inpadoc families, legal events, EP Register |
+| **IP Australia** | Australian patents, trade marks, and registered designs from IP Australia's OAuth 2.0 search APIs, plus the weekly IP RAPID bulk catalog on data.gov.au (CC-BY 4.0) — *live-search MCP tools register when `IPAUSTRALIA_CLIENT_ID` + `IPAUSTRALIA_CLIENT_SECRET` are set; bulk catalog is public, no auth* |
 | **JPO** | Japanese patents, examination history, PCT national phase — *MCP tools register when `JPO_API_USERNAME` + `JPO_API_PASSWORD` are set; not exposed by the hosted demo* |
 | **MPEP** | Manual of Patent Examining Procedure search and section lookup — *runs against a local SQLite/FTS5 snapshot built by `patent-client-agents-build-mpep-corpus`; see docs/installation.md* |
 | **TMEP** | Trademark Manual of Examining Procedure search and section lookup — *runs against a local SQLite/FTS5 snapshot built by `patent-client-agents-build-tmep-corpus`; see docs/installation.md* |

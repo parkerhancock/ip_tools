@@ -14,7 +14,6 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from pydantic import BaseModel, ConfigDict
 
 from law_tools_core.envelope import ListEnvelope, Provenance
 from law_tools_core.exceptions import ValidationError
@@ -24,14 +23,15 @@ from patent_client_agents.mcp.tools.ip_australia_patents import (
 )
 
 
-class _FakeModel(BaseModel):
-    """Pydantic model that round-trips arbitrary camelCase fields via model_dump."""
+class _FakeModel:
+    """Fake upstream response: round-trips arbitrary camelCase fields via model_dump."""
 
-    model_config = ConfigDict(extra="allow")
+    def __init__(self, **kwargs: Any) -> None:
+        self._payload = kwargs
 
-    def model_dump(self, **kwargs: Any) -> dict:  # type: ignore[override]
-        kwargs.setdefault("by_alias", True)
-        return super().model_dump(**kwargs)
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        del kwargs
+        return dict(self._payload)
 
 
 def _make_patent_row(

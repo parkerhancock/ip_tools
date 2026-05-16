@@ -1,12 +1,8 @@
-"""Client-level tests for the IP Australia Patents client.
+"""Client-level tests for the IP Australia Trade Marks client.
 
-Three layers:
-- Constructor wiring: env-var resolution, host swap, OAuth handler attachment.
-- Request shape: search() builds the right ``POST /search/quick`` body
-  (filters, sort, changedSinceDate) and get_patent() hits the right path.
-- Response parsing: upstream JSON deserializes into the Pydantic models.
-
-HTTP is mocked with ``httpx.MockTransport``; no live API calls.
+Constructor wiring + ``POST /search/quick`` body shaping + the
+``GET /trade-mark/{n}`` detail path. HTTP mocked with
+``httpx.MockTransport``; no live API calls.
 """
 
 from __future__ import annotations
@@ -18,8 +14,7 @@ import httpx
 import pytest
 
 from law_tools_core.exceptions import ConfigurationError
-from law_tools_core.oauth2 import OAuth2ClientCredentialsAuth
-from patent_client_agents.ip_australia_patents import IpAustraliaPatentsClient
+from patent_client_agents.ip_australia_trademarks import IpAustraliaTrademarksClient
 
 
 @pytest.fixture
@@ -39,21 +34,13 @@ def test_missing_env_raises_configuration_error(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.delenv("IPAUSTRALIA_CLIENT_ID", raising=False)
     monkeypatch.delenv("IPAUSTRALIA_CLIENT_SECRET", raising=False)
     with pytest.raises(ConfigurationError, match="IPAUSTRALIA_CLIENT_ID"):
-        IpAustraliaPatentsClient()
+        IpAustraliaTrademarksClient()
 
 
-def test_constructor_wires_oauth_against_production_host(_au_env: None) -> None:
-    client = IpAustraliaPatentsClient()
+def test_constructor_uses_trademarks_api_path(_au_env: None) -> None:
+    client = IpAustraliaTrademarksClient()
     assert client.environment == "production"
-    assert client.base_url.startswith("https://production.api.ipaustralia.gov.au")
-    assert client.base_url.endswith("/public/australian-patent-search-api/v1")
-
-    auth = client._client.auth  # type: ignore[attr-defined]
-    assert isinstance(auth, OAuth2ClientCredentialsAuth)
-    assert (
-        auth._token_url  # type: ignore[attr-defined]
-        == "https://production.api.ipaustralia.gov.au/public/external-token-api/v1/access_token"
-    )
+    assert client.base_url.endswith("/public/australian-trade-mark-search-api/v1")
 
 
 def test_sandbox_environment_swaps_host(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -61,7 +48,7 @@ def test_sandbox_environment_swaps_host(monkeypatch: pytest.MonkeyPatch) -> None
     monkeypatch.setenv("IPAUSTRALIA_CLIENT_SECRET", "test-secret")
     monkeypatch.setenv("IPAUSTRALIA_ENV", "sandbox")
 
-    client = IpAustraliaPatentsClient()
+    client = IpAustraliaTrademarksClient()
     assert client.environment == "sandbox"
     assert client.base_url.startswith("https://test.api.ipaustralia.gov.au")
 
@@ -77,54 +64,56 @@ async def test_search_posts_quick_endpoint_with_query(_au_env: None) -> None:
             json={
                 "results": [
                     {
-                        "applicationNumber": "2019204205",
-                        "patentNumber": "2019204205",
-                        "title": "Sample patent",
-                        "status": "GRANTED",
-                        "applicationDate": "2019-06-25",
-                        "grantDate": "2022-03-17",
+                        "serialNumber": "1234567",
+                        "wordMark": "VEGEMITE",
+                        "status": "REGISTERED",
+                        "markType": "WORD",
+                        "applicationDate": "2020-01-15",
                     }
                 ],
                 "total": 1,
             },
         )
 
-    async with IpAustraliaPatentsClient(client=_mock_http(handler)) as client:
-        result = await client.search(query="blockchain")
+    async with IpAustraliaTrademarksClient(client=_mock_http(handler)) as client:
+        result = await client.search(query="VEGEMITE")
 
     assert len(captured) == 1
     req = captured[0]
     assert req.method == "POST"
     assert req.url.path.endswith("/search/quick")
-    assert json.loads(req.content) == {"query": "blockchain"}
+    assert json.loads(req.content) == {"query": "VEGEMITE"}
 
     assert result.total == 1
-    assert result.results[0].application_number == "2019204205"
-    assert result.results[0].status == "GRANTED"
+    assert result.results[0].serial_number == "1234567"
+    assert result.results[0].word_mark == "VEGEMITE"
 
 
 @pytest.mark.asyncio
-async def test_search_serializes_filters_sort_and_changed_since(_au_env: None) -> None:
+async def test_search_serializes_quick_search_type_filter(_au_env: None) -> None:
     captured: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured.append(request)
         return httpx.Response(200, json={"results": [], "total": 0})
 
-    async with IpAustraliaPatentsClient(client=_mock_http(handler)) as client:
+    async with IpAustraliaTrademarksClient(client=_mock_http(handler)) as client:
         await client.search(
             query="*",
-            status=["GRANTED", "ACCEPTED"],
-            changed_since="2026-01-01",
+            quick_search_type=["WORD", "IMAGE"],
+            status=["REGISTERED"],
+            changed_since="2025-12-01",
             sort_field="NUMBER",
             sort_direction="DESCENDING",
             extra={"customField": "x"},
         )
 
     body = json.loads(captured[0].content)
-    assert body["query"] == "*"
-    assert body["filters"] == {"status": ["GRANTED", "ACCEPTED"]}
-    assert body["changedSinceDate"] == "2026-01-01"
+    assert body["filters"] == {
+        "quickSearchType": ["WORD", "IMAGE"],
+        "status": ["REGISTERED"],
+    }
+    assert body["changedSinceDate"] == "2025-12-01"
     assert body["sort"] == {"field": "NUMBER", "direction": "DESCENDING"}
     assert body["customField"] == "x"
 
@@ -137,7 +126,7 @@ async def test_search_omits_optional_blocks_when_unset(_au_env: None) -> None:
         captured.append(request)
         return httpx.Response(200, json={"results": [], "total": 0})
 
-    async with IpAustraliaPatentsClient(client=_mock_http(handler)) as client:
+    async with IpAustraliaTrademarksClient(client=_mock_http(handler)) as client:
         await client.search(query="x")
 
     body = json.loads(captured[0].content)
@@ -147,7 +136,7 @@ async def test_search_omits_optional_blocks_when_unset(_au_env: None) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_patent_hits_detail_endpoint(_au_env: None) -> None:
+async def test_get_trademark_hits_detail_endpoint(_au_env: None) -> None:
     captured: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -155,20 +144,22 @@ async def test_get_patent_hits_detail_endpoint(_au_env: None) -> None:
         return httpx.Response(
             200,
             json={
-                "applicationNumber": "2019204205",
-                "patentNumber": "2019204205",
-                "title": "Sample",
-                "status": "GRANTED",
-                "applicationDate": "2019-06-25",
-                "grantDate": "2022-03-17",
-                "applicants": [{"name": "ACME"}],
+                "serialNumber": "1234567",
+                "wordMark": "VEGEMITE",
+                "status": "REGISTERED",
+                "markType": "WORD",
+                "applicationDate": "2020-01-15",
+                "registrationDate": "2020-08-22",
+                "niceClasses": [29, 30],
+                "owners": [{"name": "Bega Cheese Ltd"}],
             },
         )
 
-    async with IpAustraliaPatentsClient(client=_mock_http(handler)) as client:
-        record = await client.get_patent("2019204205")
+    async with IpAustraliaTrademarksClient(client=_mock_http(handler)) as client:
+        record = await client.get_trademark("1234567")
 
     assert captured[0].method == "GET"
-    assert captured[0].url.path.endswith("/patent/2019204205")
-    assert record.application_number == "2019204205"
-    assert record.applicants == [{"name": "ACME"}]
+    assert captured[0].url.path.endswith("/trade-mark/1234567")
+    assert record.serial_number == "1234567"
+    assert record.nice_classes == [29, 30]
+    assert record.owners == [{"name": "Bega Cheese Ltd"}]

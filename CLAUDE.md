@@ -47,6 +47,11 @@ src/
     epo_ops/                # EPO Open Patent Services (needs EPO_OPS_API_KEY/SECRET)
     google_patents/         # Scrapes Google Patents (no API key)
     jpo/                    # Japan Patent Office (needs JPO_API_USERNAME/PASSWORD)
+    ip_australia_common/    # Shared OAuth + host scaffolding for the AU OAuth APIs
+    ip_australia_patents/   # IP Australia Patents (needs IPAUSTRALIA_CLIENT_ID/SECRET)
+    ip_australia_trademarks/# IP Australia Trade Marks (needs IPAUSTRALIA_CLIENT_ID/SECRET)
+    ip_australia_designs/   # IP Australia Designs (needs IPAUSTRALIA_CLIENT_ID/SECRET)
+    ip_australia_bulk/      # IP RAPID bulk catalog on data.gov.au (no auth)
     cpc/                    # CPC classification lookups (via EPO OPS)
     mpep/                   # Manual of Patent Examining Procedure search
     skills/ip_research/     # Skill content packaged with the wheel; downstream

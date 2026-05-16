@@ -10,7 +10,6 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from pydantic import BaseModel, ConfigDict
 
 from law_tools_core.envelope import ListEnvelope, Provenance
 from law_tools_core.exceptions import ValidationError
@@ -20,12 +19,15 @@ from patent_client_agents.mcp.tools.ip_australia_designs import (
 )
 
 
-class _FakeModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
+class _FakeModel:
+    """Fake upstream response: round-trips arbitrary camelCase fields via model_dump."""
 
-    def model_dump(self, **kwargs: Any) -> dict:  # type: ignore[override]
-        kwargs.setdefault("by_alias", True)
-        return super().model_dump(**kwargs)
+    def __init__(self, **kwargs: Any) -> None:
+        self._payload = kwargs
+
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        del kwargs
+        return dict(self._payload)
 
 
 def _make_design_row(
