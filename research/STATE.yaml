@@ -32,16 +32,17 @@
 # When updating: bump `last_updated` and the affected row's `last_verified`.
 
 schema_version: 1
-last_updated: 2026-05-16  # specs written for TIPO, KIPO, INPI France
+last_updated: 2026-05-16  # TIPO 4-chunk build PASS (feature/tipo-opdata-connector @ 30e853f)
 
 stats:
   total_entities: 43
   synopses_filled: 17    # +5 from coverage-batch-2: Madrid, Hague, CNIPA, INPI France, TIPO
   fee_research_filled: 5
   connectors_shipped: 12
-  connectors_spec_ready: 3  # TIPO (green) + KIPO (yellow BYOK) + INPI France (yellow BYOK)
+  connectors_in_progress: 1  # TIPO (4 manifest rows; awaiting human integration of feature/tipo-opdata-connector)
+  connectors_spec_ready: 2   # KIPO (yellow BYOK) + INPI France (yellow BYOK)
   connectors_planned: 0
-  connectors_blocked: 7  # DPMA, UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
+  connectors_blocked: 7      # DPMA, UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
   next_unblocked_synopses: 22
 
 entities:
@@ -561,12 +562,18 @@ entities:
     connector_spec: specs/tw-tipo-connector-spec.md
     verdict: green
     verdict_basis: Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks
-    connector_status: spec_ready
-    manifest_ids: [TW/MOJ/TradeSecretsAct]
-    next_action: connector_build
+    connector_status: in_progress
+    manifest_ids: [TW/MOJ/TradeSecretsAct, TW/TIPO/Patents, TW/TIPO/UtilityModels, TW/TIPO/Designs, TW/TIPO/Trademarks]
+    next_action: human_integration
     blocked_by: []
     last_verified: 2026-05-16
-    notes: Only path to TW IP (not a WIPO member; no PCT/Madrid/Hague/INPADOC bridges). API base moved cloud.tipo.gov.tw (was tiponet); auth via `tk` query param. Per-record details on FTPS (proxy ships biblio-only). TWPAT retiring 2025-04-25 (iPKM replaced 2024-12-18)
+    notes: |
+      Connector built on feature/tipo-opdata-connector at SHA 30e853f
+      (4-chunk build 2026-05-16; verify_connector VERDICT: PASS, 99.3% coverage).
+      Awaiting human cherry-pick / merge to main. Only path to TW IP (not a
+      WIPO member; no PCT/Madrid/Hague/INPADOC bridges). Auth via `tk` query
+      param (TIPO_API_KEY). Per-record FTPS detail skipped in v1 (biblio-only).
+      TWPAT retiring 2025-04-25 (iPKM replaced 2024-12-18).
 
   - id: RU/Rospatent
     name: Rospatent Russia
