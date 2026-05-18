@@ -32,15 +32,15 @@
 # When updating: bump `last_updated` and the affected row's `last_verified`.
 
 schema_version: 1
-last_updated: 2026-05-17  # KIPO 4-chunk build PASS (feature/kipo-kipris-connector @ 989c825)
+last_updated: 2026-05-17  # INPI 4-chunk build PASS — all 3 connectors (TIPO/KIPO/INPI) now in_progress, awaiting integration
 
 stats:
   total_entities: 43
   synopses_filled: 17    # +5 from coverage-batch-2: Madrid, Hague, CNIPA, INPI France, TIPO
   fee_research_filled: 5
   connectors_shipped: 12
-  connectors_in_progress: 2  # TIPO (4 rows) + KIPO (3 rows); both awaiting human cherry-pick to main
-  connectors_spec_ready: 1   # INPI France (yellow BYOK; build in flight)
+  connectors_in_progress: 3  # TIPO (4 rows) + KIPO (3 rows) + INPI (2 rows); all awaiting human cherry-pick
+  connectors_spec_ready: 0
   connectors_planned: 0
   connectors_blocked: 7      # DPMA, UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
   next_unblocked_synopses: 22
@@ -442,12 +442,27 @@ entities:
     connector_spec: specs/fr-inpi-connector-spec.md
     verdict: yellow_byok
     verdict_basis: api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE — older survey was wrong); 10 req/min throttle
-    connector_status: spec_ready
-    manifest_ids: [FR/Legifrance/IP]
-    next_action: connector_build
+    connector_status: in_progress
+    manifest_ids: [FR/Legifrance/IP, FR/INPI/Trademarks, FR/INPI/Designs]
+    next_action: human_integration
     blocked_by: []
-    last_verified: 2026-05-16
-    notes: BYOK for TMs + designs (real gaps); skip patents (EPO OPS covers); FR IP case law via Judilibre over PISTE; PIBD froze 2026-03-11
+    last_verified: 2026-05-17
+    notes: |
+      Connector built on feature/inpi-pi-connector at SHA 303bfc4
+      (4-chunk build 2026-05-17; verify_connector VERDICT: PASS, 95.4%
+      coverage, 151 tests). Scope = TM + Design only (FR/INPI/Patents
+      deliberately excluded; EPO OPS covers FR patents). Synthesized
+      JSON+ST.66/ST.86 XML fixtures only — no live INPI traffic recorded
+      because data.inpi.fr signup is French-only (synopsis §6 open
+      question). Novel auth lifecycle implemented in session.py: XSRF
+      bootstrap → login → access_token + refresh_token → refresh-on-401
+      → re-login fallback. 10 req/min sliding-window throttle with
+      injectable clock. Manifest vocabulary clamps: `image` data_type
+      dropped (not in closed vocab; image-URL fields surfaced in the
+      connector but not in manifest); `auth: cookie_token` chosen over
+      spec-hinted `session_token` (latter not in closed vocab).
+      BYOK for TMs + designs (real gaps); FR IP case law via Judilibre
+      over PISTE; PIBD froze 2026-03-11.
 
 
 
