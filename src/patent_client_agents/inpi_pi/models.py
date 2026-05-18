@@ -1,818 +1,554 @@
-"""Pydantic models for JPO Patent Information Retrieval API responses.
+"""Pydantic v2 row models for INPI France TM (ST.66 v1.0) + Design (ST.86 v1.0).
 
-These models track the *actual* JSON returned by the live JPO Patent
-Information Retrieval API (handbook v14, validated against production
-2026-05-07). The OpenAPI spec at ``resources/jpo/jpo_api_openapi.json``
-is *not* always accurate (it sometimes describes objects where the API
-returns arrays, and uses different status-code keys); when the spec and
-the API disagree, the live API wins.
+INPI France ``api-gateway.inpi.fr`` returns WIPO-standard notices: ST.66
+v1.0 for trademarks (``/services/apidiffusion/api/marques/notice/...``)
+and ST.86 v1.0 for designs
+(``/services/apidiffusion/api/modeles/notice/...``). The search
+endpoints (``/marques/search``, ``/modeles/search``) return a JSON
+envelope by default (``Accept: application/json``); per the INPI tech
+doc, the XML representation of each row mirrors the same element names.
+The element names INPI uses are **PascalCase** ST.66/ST.86 names
+(``ApplicationNumber``, ``Mark``, ``ClassNumber``,
+``DesignApplicationNumber``, ``DesignTitle``, …), **not** generic
+camelCase. We preserve those as Field aliases and expose Python
+snake_case attributes.
 
-Field aliases preserve the camelCase keys returned by JPO. Japanese
-descriptions (from the handbook) are kept on each ``Field`` for
-reference. Pydantic ``populate_by_name`` is enabled so callers can
-construct models with snake_case kwargs in tests.
+Primary-source field discovery
+------------------------------
+Field lists are hand-curated from INPI primary-source documentation
+fetched 2026-05-17 (no live API access in v1 — credentials require a
+French ``data.inpi.fr`` account and chunk 4 falls back to synthesized
+fixtures; see spec §6 open item):
+
+* INPI Documentation Technique API PI v1.0 (PDF, 670 KB) —
+  https://www.inpi.fr/sites/default/files/Inpi_doc_tech_API_PI_v1.0_0.pdf
+  Sections §5 (API Marques) + §6 (API Dessins et Modèles): default
+  ``fields`` lists for search responses, plus the SolR Lucene search
+  index names — both reveal the actual element names INPI uses in the
+  notice payloads.
+* INPI Doc Technique « Dessins & Modèles français » v1.3 (PDF, 180 KB) —
+  https://www.inpi.fr/sites/default/files/doctech_dmfr_v1_3_.pdf
+  Section §3.C "Balises utilisées" — full enumeration of the ST.86
+  element tree INPI emits: ``DesignApplicationDetails``,
+  ``DesignDetails``, ``DesignRepresentationSheetDetails``,
+  ``IndicationProductDetails``, ``DesignRecordDetails``,
+  ``RelatedApplicationDetails``, ``PriorityDetails``,
+  ``ApplicantDetails``, ``RepresentativeDetails`` — with
+  ``ClassificationKindCode = Locarno`` for design classification.
+* WIPO ST.66 / ST.86 standard pages were fetched but resolved to SPA
+  shells (~12 KB each, identical JS bundles) and provided no usable
+  content; ST.66 trademark field choice below relies on the INPI
+  search-result default ``fields`` list (``ApplicationNumber``,
+  ``Mark``, ``ClassNumber``, ``MarkCurrentStatusCode``,
+  ``ApplicantIdentifier``, ``DEPOSANT``, ``DEPOTIT``,
+  ``Representative_LastName``, ``ApplicationDate``, ``ExpiryDate``)
+  combined with the ST.66 standard field set documented in the INPI
+  tech doc §5 and the ``inpi_france.md`` detail survey.
+
+Conventions
+-----------
+* **Aliases**: INPI element names use PascalCase (e.g.
+  ``ApplicationNumber``); Python attributes are snake_case
+  (``application_number``) with ``Field(alias="ApplicationNumber")``
+  and ``model_config = ConfigDict(populate_by_name=True,
+  extra="ignore")``. Chunk-3 client normalizes the (rarer)
+  XML-element path through an XML→dict adapter before constructing
+  rows, so a single alias suffices.
+* **Optional everywhere**: every field defaults to ``None`` — INPI
+  notices are sparse across lifecycle stages (e.g.
+  ``RegistrationNumber`` empty pre-grant; ``ExpiryDate`` empty for
+  lapsed marks).
+* **Date parsing**: INPI emits dates as ``YYYY-MM-DD`` ISO 8601 in
+  JSON responses and ``YYYYMMDD`` in XML notices. The
+  ``_parse_iso_date`` validator accepts both forms (and empty
+  strings) and coerces to ``date | None``.
+* **Repeated fields**: ST.66/ST.86 elements like ``ApplicantDetails``
+  and ``IndicationProductDetails/ClassDescription`` are inherently
+  multi-row. We flatten them to ``list[str]`` (names / classes) and
+  ``list[dict[str, str | None]]`` (priorities). The full structured
+  objects remain reachable through the raw search/notice payload via
+  the chunk-3 client's lean/full toggle.
+* **Forward compat**: ``extra="ignore"`` — INPI occasionally adds
+  fields, and we don't want unknown elements to raise validation
+  errors. The spec §6 open issue notes field exhaustiveness depends
+  on cassette validation in chunk 4 once credentials are available.
+
+No patent model
+---------------
+**Per spec §3, NO ``InpiPatentRow`` class is defined.** FR patent
+coverage is provided by ``patent_client_agents.epo_ops`` (country
+code FR), which covers EP-routed FR designations and FR national-route
+filings via INPADOC with adequate fidelity. The module-level docstring
+in ``__init__.py`` documents this substitution.
 """
 
 from __future__ import annotations
 
-from enum import StrEnum
+from datetime import date, datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
-# =============================================================================
-# Enums and code definitions
-# =============================================================================
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-class StatusCode(StrEnum):
-    """API status codes returned in the ``result.statusCode`` field.
+def _parse_iso_date(value: Any) -> date | None:
+    """Coerce INPI date strings to ``date``.
 
-    See: https://ip-data.jpo.go.jp/pages/api_status.html
+    Accepted forms:
+
+    * ``"2024-03-15"`` — ISO 8601 (default JSON response format)
+    * ``"20240315"`` — 8-digit (XML notice format and SolR query format)
+    * ``""`` / ``None`` / whitespace → ``None``
+    * Already-parsed ``date`` / ``datetime`` → ``date`` (passthrough)
+    * ``"00000000"`` or other sentinel-for-unknown → ``None``
+
+    Anything else is returned as ``None`` rather than raising — INPI
+    occasionally emits sentinel strings for "unknown" dates, and we
+    treat all such cases as missing data.
+    """
+    if value is None:
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if isinstance(value, datetime):
+        return value.date()
+    if not isinstance(value, str):
+        return None
+    cleaned = value.strip()
+    if not cleaned or cleaned == "00000000":
+        return None
+    # ISO 8601 first (JSON default)
+    try:
+        return date.fromisoformat(cleaned)
+    except ValueError:
+        pass
+    # 8-digit YYYYMMDD (XML notices)
+    if len(cleaned) == 8 and cleaned.isdigit():
+        try:
+            return datetime.strptime(cleaned, "%Y%m%d").date()
+        except ValueError:
+            return None
+    return None
+
+
+def _empty_str_to_none(value: Any) -> Any:
+    """Coerce empty/whitespace strings to ``None`` for ``Optional[str]`` fields.
+
+    INPI regularly emits empty XML elements (``<Mark></Mark>``) for
+    missing fields rather than omitting them, which would otherwise
+    leave us with ``""`` instead of ``None``.
+    """
+    if isinstance(value, str) and not value.strip():
+        return None
+    return value
+
+
+class _InpiRowBase(BaseModel):
+    """Shared config for INPI row models.
+
+    ``extra="ignore"`` is critical: INPI occasionally adds fields to
+    notices (especially ST.66/ST.86 minor-version bumps) and we don't
+    want unknown elements to raise validation errors.
     """
 
-    SUCCESS = "100"  # 正常終了 - Successful completion
-    NO_DATA = "107"  # 該当するデータがありません - No applicable data
-    NO_DOCUMENT = "108"  # 該当する書類実体がありません - No substantial documents
-    UNAVAILABLE_NUMBER = "111"  # 提供対象外の案件番号 - Unavailable registration number
-    DAILY_LIMIT_EXCEEDED = "203"  # 1日のアクセス上限を超過 - Daily access limit exceeded
-    INVALID_PARAMETER = "204"  # パラメーターの入力された値に問題 - Inappropriate parameter value
-    INVALID_CHARACTERS = "208"  # タブ文字、,、;、|は利用できません - Invalid characters
-    INVALID_TOKEN = "210"  # 無効なトークン - Invalid token
-    INVALID_AUTH = "212"  # 無効な認証情報 - Invalid authentication
-    URL_NOT_FOUND = "301"  # 指定されたURLは存在しません - URL does not exist
-    TIMEOUT = "302"  # タイムアウト - Timeout
-    CONCENTRATED_ACCESS = "303"  # アクセスが集中 - Concentrated access (transient)
-    INVALID_REQUEST = "400"  # 無効なリクエスト - Invalid request
-    UNEXPECTED_ERROR = "999"  # 想定外のエラー - Unexpected error
-
-
-# Status codes that mean "no result" but are not errors.
-EMPTY_STATUS_CODES = frozenset(
-    {
-        StatusCode.NO_DATA.value,
-        StatusCode.NO_DOCUMENT.value,
-        StatusCode.UNAVAILABLE_NUMBER.value,
-    }
-)
-
-
-class CaseNumberKind(StrEnum):
-    """Kind values for ``case_number_reference`` endpoints.
-
-    These are descriptive strings (not numeric codes). The JPO ``NumberType``
-    numeric codes (01-12) used elsewhere do **not** apply here.
-    """
-
-    APPLICATION = "application"
-    PUBLICATION = "publication"
-    REGISTRATION = "registration"
-
-
-class PctKind(StrEnum):
-    """Kind values for ``pct_national_phase_application_number`` endpoint."""
-
-    INTERNATIONAL_APPLICATION = "international_application"
-    INTERNATIONAL_PUBLICATION = "international_publication"
-
-
-class NumberType(StrEnum):
-    """Numeric number-type codes used in the bibliographyInformation arrays.
-
-    See: https://ip-data.jpo.go.jp/pages/api_code_definition.html (table 03020).
-
-    These are the codes that appear in the ``numberType`` field of
-    ``bibliographyInformation`` entries. They are *not* the right values
-    for ``case_number_reference`` or PCT national-phase endpoints — those
-    use the descriptive strings on :class:`CaseNumberKind` /
-    :class:`PctKind`.
-    """
-
-    APPLICATION = "01"  # 出願番号
-    PUBLICATION = "02"  # 公開番号
-    PCT_PUBLICATION_JP = "03"  # 公表番号
-    REPUBLICATION = "04"  # 再公表番号
-    EXAMINED_PUBLICATION = "05"  # 公告番号
-    REGISTRATION = "06"  # 登録番号
-    APPEAL = "07"  # 審判番号
-    ACTION = "08"  # 出訴事件番号
-    PRIORITY = "09"  # 優先権主張国・番号
-    PCT_APPLICATION = "10"  # 国際出願番号
-    PCT_PUBLICATION = "11"  # 国際公開番号
-    INTERNATIONAL_REGISTRATION = "12"  # 国際登録番号
-    CONTROL = "90"  # 庁内整理番号
-
-
-class ApplicantAttorneyClass(StrEnum):
-    """Applicant/attorney role flag (``applicantAttorneyClass``)."""
-
-    APPLICANT = "1"  # 出願人
-    ATTORNEY = "2"  # 代理人
-
-
-class DocumentSeparator(StrEnum):
-    """Document body classifier (``documentSeparator``).
-
-    See handbook code-table 03050.
-    """
-
-    NONE = " "  # 書類実体なし - No document body
-    BIBLIO = "S"  # 書誌 - Bibliographic data
-    CLAIMS = "L"  # 請求の範囲 - Claims
-    DESCRIPTION = "M"  # 明細書 - Description
-    SEQUENCE = "H"  # 配列表 - Sequence listings
-    DRAWINGS = "Z"  # 図面 - Drawings
-    ABSTRACT = "Y"  # 要約書 - Abstract
-    ATTACHMENT = "T"  # 添付書類 - Attached document
-    ORIGINAL = "G"  # 原データ - Original data
-    DRAFT = "K"  # 起案書 - Office action draft
-    INTERNAL = "C"  # 庁内書類 - Internal JPO document
-    UNSTRUCTURED = "N"  # 非構造化書類 - Unstructured document
-
-
-# Backwards compatibility alias — older callers imported ``DocumentType``.
-DocumentType = DocumentSeparator
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
 
 # =============================================================================
-# Result wrapper
+# Trademark — ST.66 v1.0
 # =============================================================================
 
 
-class ApiResult(BaseModel):
-    """The ``result`` envelope every JSON response is wrapped in."""
+class InpiTrademarkRow(_InpiRowBase):
+    """One row from ``marques/search`` or ``marques/notice/{n}`` (ST.66 v1.0).
 
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+    Bibliographic fields cover application, publication, and
+    registration phases — most fields are populated at different
+    lifecycle stages and remain empty until then. INPI element names
+    follow the WIPO ST.66 PascalCase convention; we preserve those as
+    aliases.
 
-    status_code: str = Field(alias="statusCode", description="ステータスコード")
-    error_message: str = Field(default="", alias="errorMessage", description="エラーメッセージ")
-    remain_access_count: str = Field(
-        default="", alias="remainAccessCount", description="残アクセス数"
-    )
-    data: dict[str, Any] | None = Field(default=None, description="詳細情報データ")
-
-    @property
-    def is_success(self) -> bool:
-        """``True`` if the request returned data successfully (status 100)."""
-        return self.status_code == StatusCode.SUCCESS.value
-
-    @property
-    def has_data(self) -> bool:
-        """``True`` unless the API explicitly says there's no data."""
-        return self.status_code not in EMPTY_STATUS_CODES
-
-
-# =============================================================================
-# Shared component models
-# =============================================================================
-
-
-class ApplicantAttorney(BaseModel):
-    """申請人 (出願人・代理人) — Applicant or attorney row."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    applicant_attorney_cd: str = Field(
-        default="", alias="applicantAttorneyCd", description="申請人コード"
-    )
-    repeat_number: str = Field(default="", alias="repeatNumber", description="繰返番号")
-    name: str = Field(default="", description="申請人氏名・名称")
-    applicant_attorney_class: str = Field(
-        default="", alias="applicantAttorneyClass", description="出願人・代理人識別"
-    )
-
-
-class PriorityInfo(BaseModel):
-    """優先権情報 — single row of priority/basic-application data.
-
-    The *real* response uses the ``priorityRightInformation`` array key
-    (not ``priorityInfo`` — that field name does not exist in production).
+    INID codes are noted where applicable (WIPO ST.9):
+        * 111 - Registration number
+        * 151 - Registration date
+        * 156 - Expiry date
+        * 220 - Application number / filing date
+        * 300 - Priority data (foreign filing)
+        * 442 - Publication of application
+        * 511 - Nice classification
+        * 540 - Reproduction of the mark
+        * 550 - Indication relating to nature/kind of mark
+        * 561 - Vienna classification
+        * 730 - Name of applicant
+        * 740 - Name of representative/agent
     """
 
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    paris_priority_application_number: str = Field(
-        default="",
-        alias="parisPriorityApplicationNumber",
-        description="パリ条約に基づく優先権出願番号",
+    # --- Identifiers (INID 220, 111) ----------------------------------
+    application_number: str | None = Field(
+        default=None,
+        alias="ApplicationNumber",
+        description="National application number, e.g. '4216963' (INID 220)",
     )
-    paris_priority_date: str = Field(
-        default="", alias="parisPriorityDate", description="パリ条約に基づく優先権主張日"
+    application_date: date | None = Field(
+        default=None,
+        alias="ApplicationDate",
+        description="Filing date (INID 220 date)",
     )
-    paris_priority_country_cd: str = Field(
-        default="", alias="parisPriorityCountryCd", description="パリ条約に基づく優先権国コード"
+    registration_number: str | None = Field(
+        default=None,
+        alias="RegistrationNumber",
+        description="Registration number once granted (INID 111)",
     )
-    national_priority_law_cd: str = Field(
-        default="", alias="nationalPriorityLawCd", description="国内優先権四法コード"
+    registration_date: date | None = Field(
+        default=None,
+        alias="RegistrationDate",
+        description="Registration date (INID 151)",
     )
-    national_priority_application_number: str = Field(
-        default="",
-        alias="nationalPriorityApplicationNumber",
-        description="国内優先権出願番号",
+    expiry_date: date | None = Field(
+        default=None,
+        alias="ExpiryDate",
+        description="Expiry / next-renewal-deadline date (INID 156)",
     )
-    national_priority_international_application_number: str = Field(
-        default="",
-        alias="nationalPriorityInternationalApplicationNumber",
-        description="国内優先権国際出願番号",
-    )
-    national_priority_date: str = Field(
-        default="", alias="nationalPriorityDate", description="国内優先権主張日"
-    )
-
-
-class ParentApplicationInfo(BaseModel):
-    """原出願情報 — parent (pre-divisional) application reference.
-
-    Patent responses include just ``parentApplicationNumber`` + ``filingDate``.
-    Design and trademark responses also include ``parentApplicationCategory``
-    and ``parentApplicationLawCode``.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    parent_application_number: str = Field(
-        default="", alias="parentApplicationNumber", description="原出願番号"
-    )
-    filing_date: str = Field(default="", alias="filingDate", description="出願日")
-    parent_application_category: str = Field(
-        default="", alias="parentApplicationCategory", description="原出願種別"
-    )
-    parent_application_law_code: str = Field(
-        default="", alias="parentApplicationLawCode", description="原出願四法コード"
+    publication_date: date | None = Field(
+        default=None,
+        alias="PublicationDate",
+        description="Publication-of-application date (INID 442 date)",
     )
 
-
-class DivisionalApplicationInfo(BaseModel):
-    """分割出願情報 — divisional-application descendant row.
-
-    Field set is from the live patent ``app_progress`` response. The OpenAPI
-    spec listed only ``applicationNumber``/``filingDate``/``relationship``
-    which is wrong — the real schema is much richer.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    publication_number: str = Field(default="", alias="publicationNumber", description="公開番号")
-    ad_publication_number: str = Field(
-        default="", alias="ADPublicationNumber", description="公開番号（西暦変換）"
+    # --- Mark representation (INID 540, 550) --------------------------
+    mark_text: str | None = Field(
+        default=None,
+        alias="Mark",
+        description=(
+            "Verbal element of the mark (INID 540) — INPI emits this "
+            "as ``Mark`` for both word marks and figurative marks "
+            "with text; figurative-only marks may have an empty value"
+        ),
     )
-    national_publication_number: str = Field(
-        default="", alias="nationalPublicationNumber", description="公表番号"
+    mark_image_url: str | None = Field(
+        default=None,
+        alias="MarkImageURI",
+        description=(
+            "URL to figurative reproduction (INID 540) — populated for "
+            "(semi-)figurative marks; resolves to "
+            "``/marques/image/{appl_no}/std`` on the INPI API gateway"
+        ),
     )
-    ad_national_publication_number: str = Field(
-        default="", alias="ADNationalPublicationNumber", description="公表番号（西暦変換）"
-    )
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    international_application_number: str = Field(
-        default="", alias="internationalApplicationNumber", description="国際出願番号"
-    )
-    international_publication_number: str = Field(
-        default="", alias="internationalPublicationNumber", description="国際公開番号"
-    )
-    erasure_identifier: str = Field(default="", alias="erasureIdentifier", description="抹消識別")
-    expire_date: str = Field(default="", alias="expireDate", description="存続期間満了年月日")
-    disappearance_date: str = Field(
-        default="", alias="disappearanceDate", description="本権利消滅日"
-    )
-    divisional_generation: str = Field(
-        default="", alias="divisionalGeneration", description="分割出願の世代"
+    kind_of_mark: str | None = Field(
+        default=None,
+        alias="KindMark",
+        description=(
+            "Kind of mark (INID 550): Individual / Collective / "
+            "Certification / Three-Dimensional / Sound / Hologram / "
+            "Position / Motion / etc."
+        ),
     )
 
-
-class BibliographyDocument(BaseModel):
-    """書類一覧 entry — a single document inside ``bibliographyInformation``."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    legal_date: str = Field(default="", alias="legalDate", description="受付日・発送日・作成日")
-    irir_flg: str = Field(default="", alias="irirFlg", description="IB書類フラグ")
-    availability_flag: str = Field(default="", alias="availabilityFlag", description="書類実体有無")
-    document_code: str = Field(default="", alias="documentCode", description="中間書類コード")
-    document_description: str = Field(default="", alias="documentDescription", description="書類名")
-    document_number: str = Field(default="", alias="documentNumber", description="書類番号")
-    version_number: str = Field(default="", alias="versionNumber", description="バージョン番号")
-    document_separator: str = Field(default="", alias="documentSeparator", description="書類識別")
-    number_of_pages: str = Field(default="", alias="numberOfPages", description="ページ数")
-    size_of_document: str = Field(
-        default="", alias="sizeOfDocument", description="ドキュメントサイズ"
-    )
-
-
-class BibliographyInformation(BaseModel):
-    """書類一覧（書誌） — file-wrapper bibliography group keyed by number.
-
-    The ``app_progress*`` endpoints return one of these per number type
-    (application / publication / registration), each containing a list
-    of documents.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    number_type: str = Field(default="", alias="numberType", description="番号種別")
-    number: str = Field(default="", description="番号")
-    document_list: list[BibliographyDocument] = Field(
-        default_factory=list, alias="documentList", description="書類一覧"
-    )
-
-
-class RightPersonInfo(BaseModel):
-    """権利者情報 — current rights-holder row in registration responses."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    right_person_cd: str = Field(default="", alias="rightPersonCd", description="権利者コード")
-    right_person_name: str = Field(default="", alias="rightPersonName", description="権利者名")
-
-
-class GoodsServiceInformation(BaseModel):
-    """商品区分情報 — Nice-class designation row in trademark responses."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    goods_service_class: str = Field(
-        default="", alias="goodsServiceClass", description="指定商品又は指定役務の区分"
-    )
-    goods_service_name: str = Field(
-        default="", alias="goodsServiceName", description="指定商品又は指定役務名"
-    )
-    similar_code: str = Field(default="", alias="similarCode", description="類似群コード")
-
-
-# =============================================================================
-# Patent — application progress
-# =============================================================================
-
-
-class PatentProgressData(BaseModel):
-    """特許出願経過情報 — full patent progress response data.
-
-    Field set matches the live ``/patent/v1/app_progress/{n}`` response.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    invention_title: str = Field(default="", alias="inventionTitle", description="発明の名称")
-    applicant_attorney: list[ApplicantAttorney] = Field(
-        default_factory=list, alias="applicantAttorney", description="申請人"
-    )
-    filing_date: str = Field(default="", alias="filingDate", description="出願日")
-    publication_number: str = Field(default="", alias="publicationNumber", description="公開番号")
-    ad_publication_number: str = Field(
-        default="", alias="ADPublicationNumber", description="公開番号（西暦変換）"
-    )
-    national_publication_number: str = Field(
-        default="", alias="nationalPublicationNumber", description="公表番号"
-    )
-    ad_national_publication_number: str = Field(
-        default="", alias="ADNationalPublicationNumber", description="公表番号（西暦変換）"
-    )
-    publication_date: str = Field(default="", alias="publicationDate", description="公開日")
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    registration_date: str = Field(default="", alias="registrationDate", description="登録日")
-    international_application_number: str = Field(
-        default="", alias="internationalApplicationNumber", description="国際出願番号"
-    )
-    international_publication_number: str = Field(
-        default="", alias="internationalPublicationNumber", description="国際公開番号"
-    )
-    international_publication_date: str = Field(
-        default="", alias="internationalPublicationDate", description="国際公開日"
-    )
-    erasure_identifier: str = Field(default="", alias="erasureIdentifier", description="抹消識別")
-    expire_date: str = Field(default="", alias="expireDate", description="存続期間満了年月日")
-    disappearance_date: str = Field(
-        default="", alias="disappearanceDate", description="本権利消滅日"
-    )
-    priority_right_information: list[PriorityInfo] = Field(
-        default_factory=list, alias="priorityRightInformation", description="優先権基礎情報"
-    )
-    parent_application_information: ParentApplicationInfo | None = Field(
-        default=None, alias="parentApplicationInformation", description="原出願情報"
-    )
-    divisional_application_information: list[DivisionalApplicationInfo] = Field(
+    # --- Classification (INID 511, 561) -------------------------------
+    nice_classes: list[str] = Field(
         default_factory=list,
-        alias="divisionalApplicationInformation",
-        description="分割出願群情報",
+        alias="ClassNumber",
+        description=(
+            "Nice classification class numbers (INID 511) — list of "
+            "1-45 integer-strings; INPI may emit a single "
+            "semicolon-delimited string or a JSON array depending on "
+            "endpoint"
+        ),
     )
-    bibliography_information: list[BibliographyInformation] = Field(
-        default_factory=list, alias="bibliographyInformation", description="書類一覧（書誌）"
-    )
-
-
-# Simple progress shares the same shape minus priority/parent/divisional.
-# The PatentProgressData model already makes those fields optional/empty by
-# default, so SimplifiedPatentProgressData is a thin alias kept for type
-# clarity at the API surface.
-class SimplifiedPatentProgressData(PatentProgressData):
-    """簡易特許出願経過情報 — same fields as PatentProgressData, minus
-    ``priorityRightInformation``, ``parentApplicationInformation``, and
-    ``divisionalApplicationInformation``. The simple endpoint just doesn't
-    populate those, so the parent model's defaults handle it cleanly.
-    """
-
-
-# =============================================================================
-# Patent — divisional information (single endpoint)
-# =============================================================================
-
-
-class DivisionalAppInfoData(BaseModel):
-    """Top-level data for ``/patent/v1/divisional_app_info``.
-
-    Wraps the parent reference and the list of divisional descendants.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    parent_application_information: ParentApplicationInfo | None = Field(
-        default=None, alias="parentApplicationInformation", description="原出願情報"
-    )
-    divisional_application_information: list[DivisionalApplicationInfo] = Field(
+    vienna_codes: list[str] = Field(
         default_factory=list,
-        alias="divisionalApplicationInformation",
-        description="分割出願群情報",
+        alias="ViennaClass",
+        description=(
+            "Vienna classification codes (INID 561) — figurative-element "
+            "codes, dot-separated (e.g. '03.07.17'); empty for "
+            "word marks"
+        ),
     )
 
+    # --- Parties (INID 730, 740) --------------------------------------
+    applicant_names: list[str] = Field(
+        default_factory=list,
+        alias="ApplicantName",
+        description=(
+            "Applicant name(s) (INID 730) — INPI element ``DEPOSANT`` "
+            "in some surfaces; may be multiple"
+        ),
+    )
+    holder_names: list[str] = Field(
+        default_factory=list,
+        alias="HolderName",
+        description=(
+            "Current holder name(s) (INID 732) — ``DEPOTIT`` in INPI "
+            "search index; populated when ownership has transferred "
+            "from the original applicant"
+        ),
+    )
+    agent_name: str | None = Field(
+        default=None,
+        alias="RepresentativeName",
+        description=(
+            "Representative / agent name (INID 740) — ``MANDATAIRE`` / "
+            "``Representative_LastName`` in INPI search index"
+        ),
+    )
+
+    # --- Priority (INID 300/320) --------------------------------------
+    priority_claims: list[dict[str, str | None]] = Field(
+        default_factory=list,
+        alias="PriorityDetails",
+        description=(
+            "Priority claims (INID 300/320) — list of dicts with "
+            "``country`` (ST.3 code), ``number``, ``date`` (ISO). "
+            "Empty when no foreign priority is claimed"
+        ),
+    )
+
+    # --- Status (INID 442 related) ------------------------------------
+    status: str | None = Field(
+        default=None,
+        alias="MarkCurrentStatusCode",
+        description=(
+            "Current mark status — INPI emits values like 'registered', "
+            "'filed', 'opposed', 'lapsed', 'expired', 'withdrawn'. The "
+            "exact controlled vocabulary is INPI-specific and not yet "
+            "validated against live responses (spec §6 open item)"
+        ),
+    )
+
+    # --- Date validators ----------------------------------------------
+    @field_validator(
+        "application_date",
+        "registration_date",
+        "expiry_date",
+        "publication_date",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_date(cls, value: Any) -> Any:
+        return _parse_iso_date(value)
+
+    # --- String validators (empty → None) -----------------------------
+    @field_validator(
+        "application_number",
+        "registration_number",
+        "mark_text",
+        "mark_image_url",
+        "kind_of_mark",
+        "agent_name",
+        "status",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_empty(cls, value: Any) -> Any:
+        return _empty_str_to_none(value)
+
 
 # =============================================================================
-# Number reference (case_number_reference)
+# Design — ST.86 v1.0
 # =============================================================================
 
 
-class NumberReference(BaseModel):
-    """番号照会結果 — single cross-reference row.
+class InpiDesignRow(_InpiRowBase):
+    """One row from ``modeles/search`` or ``modeles/notice/{n}`` (ST.86 v1.0).
 
-    Note: the live API returns a *single object* (not a list), e.g.::
+    INPI ST.86 v1.0 element names per the INPI "Dessins & Modèles
+    français" tech doc v1.3 §3.C "Balises utilisées". An INPI design
+    *application* (``DesignApplicationDetails``) may contain up to 100
+    individual *designs* (``DesignDetails``), each with multiple
+    *reproductions*/views (``DesignRepresentationSheetDetails``). This
+    row represents a single design within an application — the
+    ``application_number`` repeats across sibling designs sharing the
+    same deposit, while ``design_reference`` distinguishes them.
 
-        {
-          "applicationNumber": "2020123456",
-          "publicationNumber": "2021090037",
-          "registrationNumber": "7533889",
-          ...
-        }
+    INID codes (WIPO ST.80 for designs):
+        * 11 - Registration number
+        * 18 - Expected expiry date
+        * 21 - Application number
+        * 22 - Application date
+        * 30/31/32 - Priority data
+        * 45 - Publication date
+        * 51 - Locarno classification
+        * 54 - Title indication of product
+        * 57 - Reproduction(s) of the design
+        * 71 - Applicant name
+        * 72 - Designer name (creator)
+        * 74 - Representative / agent
     """
 
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    publication_number: str = Field(
-        default="", alias="publicationNumber", description="公開番号（西暦）"
+    # --- Identifiers (INID 21, 11, 22) --------------------------------
+    application_number: str | None = Field(
+        default=None,
+        alias="DesignApplicationNumber",
+        description=(
+            "National application / deposit number (INID 21) — e.g. "
+            "'FR20140182'. One application may contain up to 100 "
+            "individual designs"
+        ),
     )
-    national_publication_number: str = Field(
-        default="", alias="nationalPublicationNumber", description="公表番号（西暦）"
+    design_reference: str | None = Field(
+        default=None,
+        alias="DesignReference",
+        description=(
+            "Per-design reference within the application (typically "
+            "001-100). Distinguishes sibling designs sharing one "
+            "``application_number``"
+        ),
     )
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    international_publication_number: str = Field(
-        default="", alias="internationalPublicationNumber", description="国際公開番号"
+    application_date: date | None = Field(
+        default=None,
+        alias="DesignApplicationDate",
+        description="Filing date (INID 22)",
     )
-    # Design-only fields
-    international_registration_number: str = Field(
-        default="", alias="internationalRegistrationNumber", description="国際登録番号"
+    registration_number: str | None = Field(
+        default=None,
+        alias="RegistrationNumber",
+        description=(
+            "Registration number (INID 11) — for FR designs registered "
+            "post-application; legacy filings may reuse the application "
+            "number"
+        ),
     )
-    design_number: str = Field(default="", alias="designNumber", description="意匠番号")
-
-
-# =============================================================================
-# Citations
-# =============================================================================
-
-
-class PatentCitedDocument(BaseModel):
-    """特許文献情報データ — patent citation row inside ``cite_doc_info``."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    draft_date: str = Field(default="", alias="draftDate", description="起案日")
-    citation_type: str = Field(default="", alias="citationType", description="種別 (code 07010)")
-    citation_order: str = Field(default="", alias="citationOrder", description="引用順番")
-    document_number: str = Field(
-        default="", alias="documentNumber", description="文献番号 (code 07020)"
+    registration_date: date | None = Field(
+        default=None,
+        alias="RegistrationDate",
+        description="Registration date (INID 11 date)",
     )
-
-
-class NonPatentCitedDocument(BaseModel):
-    """非特許文献情報データ — non-patent citation row inside ``cite_doc_info``."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    draft_date: str = Field(default="", alias="draftDate", description="起案日")
-    citation_type: str = Field(default="", alias="citationType", description="種別 (code 07010)")
-    citation_order: str = Field(default="", alias="citationOrder", description="引用順番")
-    document_type: str = Field(
-        default="", alias="documentType", description="文献分類 (code 07060)"
+    expiry_date: date | None = Field(
+        default=None,
+        alias="ExpiryDate",
+        description=(
+            "Expected expiry date (INID 18) — for designs filed on or "
+            "after 1 October 2001, this is the next renewal deadline; "
+            "may be extended 4 × 5 years to a 25-year maximum"
+        ),
     )
-    author_name: str = Field(default="", alias="authorName", description="著者/翻訳者名")
-    paper_title: str = Field(default="", alias="paperTitle", description="論文名/タイトル")
-    publication_name: str = Field(default="", alias="publicationName", description="刊行物名")
-    issue_country_cd: str = Field(
-        default="", alias="issueCountryCd", description="発行国コード (code 07070)"
-    )
-    publisher: str = Field(default="", description="発行所／発行者")
-    issue_date: str = Field(default="", alias="issueDate", description="発行／受入年月日")
-    issue_date_type: str = Field(
-        default="", alias="issueDateType", description="年月日フラグ (code 07080)"
-    )
-    issue_number: str = Field(default="", alias="issueNumber", description="版数／巻／号数")
-    citation_pages: str = Field(default="", alias="citationPages", description="引用頁")
-
-
-class CitedDocumentsData(BaseModel):
-    """``cite_doc_info`` data wrapper — patent + non-patent citations.
-
-    The OpenAPI spec describes ``patentDoc`` and ``nonPatentDoc`` as
-    objects, but the live API returns arrays. This model accepts arrays.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    patent_doc: list[PatentCitedDocument] = Field(
-        default_factory=list, alias="patentDoc", description="特許文献情報データ"
-    )
-    non_patent_doc: list[NonPatentCitedDocument] = Field(
-        default_factory=list, alias="nonPatentDoc", description="非特許文献情報データ"
+    publication_date: date | None = Field(
+        default=None,
+        alias="PublicationDate",
+        description="Publication date (INID 45) — BOPI publication",
     )
 
-
-# Backwards-compatible alias (older callers used CitedDocumentInfo for the
-# combined wrapper, which conflated patent + non-patent into one shape).
-class CitedDocumentInfo(BaseModel):
-    """Legacy flat citation row, retained for callers that built records
-    with ``citationDocument``/``citationCategory``. New code should use
-    :class:`CitedDocumentsData`."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    document_number: str = Field(default="", alias="documentNumber", description="文献番号")
-    citation_category: str = Field(default="", alias="citationCategory", description="引用区分")
-    citation_document: str = Field(default="", alias="citationDocument", description="引用文献")
-
-
-# =============================================================================
-# Registration info
-# =============================================================================
-
-
-class RegistrationInfo(BaseModel):
-    """登録情報 — patent/design/trademark registration response.
-
-    All three flavours share most fields plus a few type-specific ones
-    (e.g. ``inventionTitle``, ``numberOfClaims`` for patents;
-    ``designArticle`` for designs; ``trademarkForDisplay`` etc. for
-    trademarks). All fields are optional/defaulted so the same model
-    serves all three.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    filing_date: str = Field(default="", alias="filingDate", description="出願日")
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    registration_date: str = Field(default="", alias="registrationDate", description="登録日")
-    decision_date: str = Field(default="", alias="decisionDate", description="査定日")
-    appeal_trial_decision_date: str = Field(
-        default="", alias="appealTrialDecisiondDate", description="審決日"
+    # --- Title / representation (INID 54, 57) -------------------------
+    design_title: str | None = Field(
+        default=None,
+        alias="DesignTitle",
+        description=(
+            "Indication of product / design title (INID 54) — French "
+            "by default; non-FR designs (Hague WO route) may include "
+            "multilingual titles which v1 takes the FR variant of"
+        ),
     )
-    right_person_information: list[RightPersonInfo] = Field(
-        default_factory=list, alias="rightPersonInformation", description="権利者情報"
-    )
-    invention_title: str = Field(default="", alias="inventionTitle", description="発明の名称")
-    number_of_claims: str = Field(default="", alias="numberOfClaims", description="請求項の数")
-    expire_date: str = Field(default="", alias="expireDate", description="存続期間満了年月日")
-    next_pension_payment_date: str = Field(
-        default="", alias="nextPensionPaymentDate", description="次期年金納付期限"
-    )
-    last_payment_yearly: str = Field(
-        default="", alias="lastPaymentYearly", description="最終納付年分"
-    )
-    erasure_identifier: str = Field(
-        default="", alias="erasureIdentifier", description="本権利抹消識別"
-    )
-    disappearance_date: str = Field(
-        default="", alias="disappearanceDate", description="本権利抹消日"
-    )
-    update_date: str = Field(default="", alias="updateDate", description="更新日付")
-    # Design-specific
-    design_article: str = Field(
-        default="", alias="designArticle", description="意匠に係る物品の名称"
-    )
-    # Trademark-specific
-    trademark_for_display: str = Field(
-        default="", alias="trademarkForDisplay", description="表示用商標"
-    )
-    transliteration: dict[str, Any] = Field(default_factory=dict, description="称呼")
-    vienna_class: dict[str, Any] = Field(
-        default_factory=dict, alias="viennaClass", description="ウィーン図形分類"
-    )
-    goods_service_information: list[GoodsServiceInformation] = Field(
-        default_factory=list, alias="goodsServiceInformation", description="商品区分情報"
+    image_urls: list[str] = Field(
+        default_factory=list,
+        alias="DesignRepresentationSheetURIs",
+        description=(
+            "URLs to design reproductions / views (INID 57) — one "
+            "design may have multiple views (per "
+            "``ViewSequenceNumber`` / ``ViewNumber`` in ST.86); "
+            "resolves to ``/modeles/image/{appl_no}/{design}/{view}/"
+            "std`` on the INPI API gateway"
+        ),
     )
 
-
-# =============================================================================
-# PCT national-phase data
-# =============================================================================
-
-
-class PctNationalPhaseData(BaseModel):
-    """``/patent/v1/pct_national_phase_application_number`` data.
-
-    The live API returns just ``applicationNumber`` — the JP national-phase
-    application that corresponds to the queried PCT international number.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    # Echo fields kept for backwards compatibility with older callers.
-    international_application_number: str = Field(
-        default="", alias="internationalApplicationNumber", description="国際出願番号"
-    )
-    international_publication_number: str = Field(
-        default="", alias="internationalPublicationNumber", description="国際公開番号"
+    # --- Classification (INID 51) -------------------------------------
+    loc_classes: list[str] = Field(
+        default_factory=list,
+        alias="ClassNumber",
+        description=(
+            "Locarno classification codes (INID 51) — INPI uses "
+            "``ClassificationKindCode='Locarno'``; values are "
+            "4-digit (e.g. '0701') or 2-digit class only (e.g. '07')"
+        ),
     )
 
-    @property
-    def national_application_number(self) -> str:
-        """Backwards-compat alias — same value as ``application_number``."""
-        return self.application_number
-
-
-# =============================================================================
-# Document downloads (zip / oversize URL)
-# =============================================================================
-
-
-class DocumentBundleResult(BaseModel):
-    """Result of a document-download endpoint (``app_doc_cont_*``).
-
-    These endpoints return either:
-
-    * the ZIP archive bytes directly (Content-Type ``application/zip``,
-      ``zip_bytes`` populated, ``download_url`` empty); or
-    * a JSON envelope pointing at a hosted ZIP (``download_url`` populated,
-      ``zip_bytes`` empty) when the archive exceeds the 10 MB inline cap.
-
-    When neither is present (e.g. status 107 / 108), the bundle is empty.
-    Both paths leave the consumer responsible for unzipping and parsing
-    the JPO XML inside.
-    """
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", description="Application number queried")
-    zip_bytes: bytes | None = Field(default=None, description="Inline ZIP bytes (<10 MB)")
-    download_url: str = Field(default="", description="Hosted ZIP URL when >10 MB")
-    content_type: str = Field(default="", description="HTTP Content-Type header")
-
-    @property
-    def is_empty(self) -> bool:
-        """True if the API found no documents for this number."""
-        return self.zip_bytes is None and not self.download_url
-
-
-# =============================================================================
-# Design / trademark progress
-# =============================================================================
-
-
-class DesignProgressData(BaseModel):
-    """意匠出願経過情報 — design application progress response."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    design_article: str = Field(
-        default="", alias="designArticle", description="意匠に係る物品の名称"
+    # --- Parties (INID 71, 72, 74) ------------------------------------
+    applicant_names: list[str] = Field(
+        default_factory=list,
+        alias="ApplicantName",
+        description=(
+            "Applicant / depositor name(s) (INID 71) — INPI element "
+            "``DEPOSANT`` in some surfaces; ``ApplicantDetails`` in "
+            "ST.86 notice XML"
+        ),
     )
-    design_class: str = Field(default="", alias="designClass", description="意匠分類")
-    applicant_attorney: list[ApplicantAttorney] = Field(
-        default_factory=list, alias="applicantAttorney", description="申請人"
+    holder_names: list[str] = Field(
+        default_factory=list,
+        alias="HolderName",
+        description=(
+            "Current holder name(s) — ``DEPOTIT`` in INPI search "
+            "index; populated when ownership has transferred"
+        ),
     )
-    filing_date: str = Field(default="", alias="filingDate", description="出願日")
-    publication_date: str = Field(default="", alias="publicationDate", description="公開日")
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    registration_date: str = Field(default="", alias="registrationDate", description="登録日")
-    principal_design_application_number: str = Field(
-        default="", alias="principalDesignApplicationNumber", description="本意匠番号"
+    designer_names: list[str] = Field(
+        default_factory=list,
+        alias="DesignerName",
+        description=(
+            "Designer / creator name(s) (INID 72) — INPI does NOT "
+            "always populate this; ST.86 allows the field but FR "
+            "national filings frequently omit it"
+        ),
     )
-    erasure_identifier: str = Field(default="", alias="erasureIdentifier", description="抹消識別")
-    expire_date: str = Field(default="", alias="expireDate", description="存続期間満了年月日")
-    disappearance_date: str = Field(
-        default="", alias="disappearanceDate", description="本権利消滅日"
-    )
-    priority_right_information: list[PriorityInfo] = Field(
-        default_factory=list, alias="priorityRightInformation", description="優先権基礎情報"
-    )
-    parent_application_information: ParentApplicationInfo | None = Field(
-        default=None, alias="parentApplicationInformation", description="原出願情報"
-    )
-    bibliography_information: list[BibliographyInformation] = Field(
-        default_factory=list, alias="bibliographyInformation", description="書類一覧"
+    agent_name: str | None = Field(
+        default=None,
+        alias="RepresentativeName",
+        description=(
+            "Representative / agent name (INID 74) — ``MANDATAIRE`` "
+            "in INPI search index"
+        ),
     )
 
-    # Backwards-compat aliases for the earlier (now-incorrect) field names.
-    @property
-    def design_title(self) -> str:
-        """Deprecated alias — use ``design_article``."""
-        return self.design_article
-
-
-class TrademarkProgressData(BaseModel):
-    """商標出願経過情報 — trademark application progress response."""
-
-    model_config = ConfigDict(populate_by_name=True, extra="ignore")
-
-    application_number: str = Field(default="", alias="applicationNumber", description="出願番号")
-    applicant_attorney: list[ApplicantAttorney] = Field(
-        default_factory=list, alias="applicantAttorney", description="申請人"
-    )
-    filing_date: str = Field(default="", alias="filingDate", description="出願日")
-    publication_date: str = Field(default="", alias="publicationDate", description="公開日")
-    registration_number: str = Field(default="", alias="registrationNumber", description="登録番号")
-    registration_date: str = Field(default="", alias="registrationDate", description="登録日")
-    erasure_identifier: str = Field(default="", alias="erasureIdentifier", description="抹消識別")
-    expire_date: str = Field(default="", alias="expireDate", description="存続期間満了年月日")
-    disappearance_date: str = Field(
-        default="", alias="disappearanceDate", description="本権利消滅日"
-    )
-    trademark_for_display: str = Field(
-        default="", alias="trademarkForDisplay", description="表示用商標"
-    )
-    transliteration: dict[str, Any] = Field(default_factory=dict, description="称呼")
-    vienna_class: dict[str, Any] = Field(
-        default_factory=dict, alias="viennaClass", description="ウィーン図形分類"
-    )
-    goods_service_information: list[GoodsServiceInformation] = Field(
-        default_factory=list, alias="goodsServiceInformation", description="商品区分情報"
-    )
-    priority_right_information: list[PriorityInfo] = Field(
-        default_factory=list, alias="priorityRightInformation", description="優先権基礎情報"
-    )
-    parent_application_information: ParentApplicationInfo | None = Field(
-        default=None, alias="parentApplicationInformation", description="原出願情報"
-    )
-    bibliography_information: list[BibliographyInformation] = Field(
-        default_factory=list, alias="bibliographyInformation", description="書類一覧"
+    # --- Priority (INID 30/31/32) -------------------------------------
+    priority_claims: list[dict[str, str | None]] = Field(
+        default_factory=list,
+        alias="PriorityDetails",
+        description=(
+            "Priority claims (INID 30/31/32) — list of dicts with "
+            "``country`` (ST.3 code), ``number``, ``date`` (ISO), "
+            "and optional ``holder_name``. Empty when no foreign "
+            "priority is claimed"
+        ),
     )
 
-    # Backwards-compat alias.
-    @property
-    def trademark_name(self) -> str:
-        """Deprecated alias — use ``trademark_for_display``."""
-        return self.trademark_for_display
+    # --- Status (INID 18 related) -------------------------------------
+    status: str | None = Field(
+        default=None,
+        alias="DesignCurrentStatusCode",
+        description=(
+            "Current design status — INPI emits values like "
+            "'registered', 'published', 'lapsed', 'expired', "
+            "'renounced'. Controlled vocabulary is INPI-specific and "
+            "not yet validated against live responses (spec §6 open "
+            "item)"
+        ),
+    )
 
-    @property
-    def goods_services(self) -> list[str]:
-        """Backwards-compat: flat list of goods/service descriptions."""
-        return [g.goods_service_name for g in self.goods_service_information]
+    # --- Date validators ----------------------------------------------
+    @field_validator(
+        "application_date",
+        "registration_date",
+        "expiry_date",
+        "publication_date",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_date(cls, value: Any) -> Any:
+        return _parse_iso_date(value)
 
-
-# =============================================================================
-# Public re-exports
-# =============================================================================
+    # --- String validators (empty → None) -----------------------------
+    @field_validator(
+        "application_number",
+        "design_reference",
+        "registration_number",
+        "design_title",
+        "agent_name",
+        "status",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_empty(cls, value: Any) -> Any:
+        return _empty_str_to_none(value)
 
 
 __all__ = [
-    # Enums
-    "StatusCode",
-    "EMPTY_STATUS_CODES",
-    "NumberType",
-    "CaseNumberKind",
-    "PctKind",
-    "ApplicantAttorneyClass",
-    "DocumentSeparator",
-    "DocumentType",
-    # Wrappers
-    "ApiResult",
-    # Common components
-    "ApplicantAttorney",
-    "PriorityInfo",
-    "ParentApplicationInfo",
-    "DivisionalApplicationInfo",
-    "BibliographyDocument",
-    "BibliographyInformation",
-    "RightPersonInfo",
-    "GoodsServiceInformation",
-    # Patent
-    "PatentProgressData",
-    "SimplifiedPatentProgressData",
-    "DivisionalAppInfoData",
-    "PatentCitedDocument",
-    "NonPatentCitedDocument",
-    "CitedDocumentsData",
-    "CitedDocumentInfo",  # legacy
-    # Reference / PCT
-    "NumberReference",
-    "PctNationalPhaseData",
-    # Documents
-    "DocumentBundleResult",
-    # Registration
-    "RegistrationInfo",
-    # Design / trademark
-    "DesignProgressData",
-    "TrademarkProgressData",
+    "InpiTrademarkRow",
+    "InpiDesignRow",
 ]
