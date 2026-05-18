@@ -1,15 +1,18 @@
 <p align="center">
-  <img src="docs/_static/patent_client_agents_logo.png" alt="patent-client-agents" width="600">
+  <a href="https://patentclient.com/atlas">
+    <img src="docs/_static/atlas_hero.png" alt="Patent Client Agents — worldwide coverage atlas" width="800">
+  </a>
 </p>
 
 **Give your AI agent access to the world's patent and trademark data.**
 
 [![CI](https://github.com/parkerhancock/patent-client-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/parkerhancock/patent-client-agents/actions/workflows/ci.yml)
+[![Website](https://img.shields.io/badge/web-patentclient.com-008cc8.svg)](https://patentclient.com/)
 [![Docs](https://img.shields.io/badge/docs-docs.patentclient.com-008cc8.svg)](https://docs.patentclient.com/)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
-**Full documentation: [docs.patentclient.com](https://docs.patentclient.com/)**
+**Project home: [patentclient.com](https://patentclient.com/)** · **Full documentation: [docs.patentclient.com](https://docs.patentclient.com/)**
 
 ## Use the hosted demo
 
@@ -218,7 +221,16 @@ Ask your agent to research patents and trademarks in natural language:
 
 > "Search the TMEP for guidance on Section 2(d) likelihood-of-confusion refusals"
 
-`patent-client-agents` connects your MCP-speaking agent to USPTO (patents, trademark search via TESS, and trademark prosecution), EPO, EUIPO (EU trademarks and designs), Google Patents, and JPO — plus the Federal Circuit, US International Trade Commission (Section 337), the US Copyright Office, and the Unified Patent Court (decisions feed + statutes corpus) for the litigation and adjacent-IP slice. JPO, CanLII, and EUIPO MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry those credentials, so those tool families don't appear there.
+`patent-client-agents` covers the major patent and trademark offices worldwide — see the full map at **[patentclient.com/atlas](https://patentclient.com/atlas)**.
+
+- **Americas** — USPTO (patents, trademarks, assignments, office actions), US Copyright Office, Federal Circuit (CAFC), US International Trade Commission (Section 337), CanLII Canada
+- **Europe** — EPO OPS, EUIPO (EU trademarks + designs), Unified Patent Court (decisions + statutes), DPMA Germany (statutes), INPI France (TM + designs), Légifrance (French IP code + trade secrets)
+- **Asia** — JPO Japan, KIPO Korea, TIPO Taiwan, IPO India (Acts + MPPP), Taiwan Trade Secrets Act
+- **Oceania** — IP Australia (patents, trade marks, designs, bulk catalog)
+- **Multilateral** — Google Patents (global search), WIPO Lex (~50k IP statutes across ~200 jurisdictions)
+- **Examiner & classification corpora** — MPEP, TMEP, EPC + four EPO Guidelines families, Case Law of the Boards of Appeal, CPC (with IPC mapping)
+
+JPO, CanLII, EUIPO, IP Australia, KIPO, TIPO, and INPI MCP tools register on the local stdio server and the Claude Code plugin only when their credentials are set in the environment; the hosted demo at `mcp.patentclient.com` does not carry those credentials, so those tool families don't appear there.
 
 ## Coverage
 
@@ -483,17 +495,27 @@ No API key required, but requires a one-time corpus build —
 │                  (Natural language → API calls)                       │
 ├──────────────────────────────────────────────────────────────────────┤
 │                  patent_client_agents Python library                  │
-│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌──────┐ ┌────────┐ │
-│  │  USPTO  │ │  USPTO  │ │   EPO   │ │ Google  │ │ JPO* │ │ EUIPO* │ │
-│  │ patents │ │  marks  │ │   OPS   │ │ Patents │ │      │ │  marks │ │
-│  │ ODP+    │ │TSDR+TM  │ │  + CPC  │ │  +MPEP  │ │      │ │ + RCDs │ │
-│  │ PPUBS   │ │assigns  │ │         │ │  +TMEP  │ │      │ │        │ │
-│  └─────────┘ └─────────┘ └─────────┘ └─────────┘ └──────┘ └────────┘ │
-│       + CanLII* (case law) + WIPO Lex (global IP statutes)            │
+│                                                                       │
+│  Multilateral  · Google Patents · WIPO Lex                            │
+│  Americas      · USPTO (patents · trademarks · assignments ·          │
+│                  office actions) · US Copyright Office · CAFC ·       │
+│                  USITC (EDIS/DataWeb/HTS/IDS) · CanLII Canada*        │
+│  Europe        · EPO OPS · EUIPO* · UPC (decisions + statutes) ·      │
+│                  DPMA Germany · INPI France* · Légifrance (CPI)       │
+│  Asia          · JPO Japan* · KIPO Korea* · TIPO Taiwan* ·            │
+│                  IPO India (Acts + MPPP) · Taiwan Trade Secrets       │
+│  Oceania       · IP Australia* (patents · TM · designs · bulk)        │
+│                                                                       │
+│  Statutes & manuals · MPEP · TMEP · EPC · EPO Guidelines (Exam +      │
+│                       PCT-EPO + Unitary Patent) · Case Law (white     │
+│                       book) · UPC Agreement & Rules                   │
+│  Classification     · CPC (with IPC mapping)                          │
 └──────────────────────────────────────────────────────────────────────┘
 * MCP tools register only when the corresponding credentials are set
-  on the server (JPO_API_*, CANLII_API_KEY, EUIPO_CLIENT_ID/SECRET);
-  the hosted demo does not carry these credentials.
+  on the server (JPO_API_*, CANLII_API_KEY, EUIPO_CLIENT_ID/SECRET,
+  IPAUSTRALIA_CLIENT_ID/SECRET, KIPO_KIPRIS_API_KEY, TIPO_API_KEY,
+  INPI_USERNAME/PASSWORD); the hosted demo does not carry these
+  credentials.
 ```
 
 ## Development
