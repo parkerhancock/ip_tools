@@ -36,8 +36,7 @@ catalog is explicitly restricted to "collaborating IP Offices" (not
 commercial third parties); and the public UI has been hardened with
 CAPTCHAs that block automated access.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **Madrid IRs in a unified search** — search Madrid IRs alongside national TMs without per-office plumbing.
 - **Article 6ter state emblems / IGO marks** — also reachable via the Article 6ter Express API separately ([`wipo-patentscope.md`](wipo-patentscope.md) §3).
 - **National TMs from offices that don't have their own public API** — the long-tail value.
@@ -84,7 +83,7 @@ building a partner API program** that hasn't been announced yet.
 | Verdict | ⏳ Watch — no current path, but signals future opening |
 | Primary source | Observed 2026-05-16 — [waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md](../waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md) §"Surprises" |
 
-## §4 Fee schedule
+## §4 Fees
 
 Madrid System filing fees (the source of most Brand DB records) live
 with the Madrid System, not Brand DB.

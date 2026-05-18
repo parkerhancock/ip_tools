@@ -90,14 +90,13 @@ Mentioned for completeness — the REST API supersedes it for the live-proxy use
 
 Out of scope for any TIPO-style connector — different agency (Judicial Yuan, not MOEA). Tracked but not proxied.
 
-## §4 Fee schedule (snapshot pending)
+## §4 Fees
 
-**Detail file:** *no `fee-schedules/tw-tipo-fees.md` yet — queued for future research*
-**Official schedules:** [TIPO Patent fees (EN)](https://www.tipo.gov.tw/en/cp-289-855395-15881-2.html), [TIPO Trademark fees (EN)](https://www.tipo.gov.tw/en/lp-282-2.html)
-**Currency:** New Taiwan Dollar (NT$ / TWD)
-**Effective date:** pending dedicated fee research
+TIPO publishes patent and trade mark fee schedules in TWD.
 
-Headline figures: **pending dedicated fee research.**
+- **Patent fees (EN):** [TIPO — Patent fees](https://www.tipo.gov.tw/en/cp-289-855395-15881-2.html)
+- **Trademark fees (EN):** [TIPO — Trademark fees](https://www.tipo.gov.tw/en/lp-282-2.html)
+
 
 ## §5 Connector strategy
 

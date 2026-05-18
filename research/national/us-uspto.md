@@ -45,8 +45,7 @@ Bulk Data, plus substantive-law layers (MPEP, TMEP, CAFC opinions, USITC).
 
 If you only proxied one office's data, you'd proxy USPTO.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **Full prosecution file wrappers** (file history, IDS, transactions) via ODP and bulk
 - **Real-time application status** (vs. INPADOC's lag of weeks-to-months)
 - **Office actions full text** with structured rejection codes
@@ -106,53 +105,28 @@ Covers applications, PTAB, Petitions in one API.
 | Endpoint | `https://tmsearch.uspto.gov/` |
 | Auth | varies (some endpoints public, some session-based) |
 | Verdict | 🟢 Green — operational via [`patent_client_agents.uspto_tmsearch`](../../src/patent_client_agents/uspto_tmsearch/) |
-| Note | Egress filtering concern: TESS (predecessor) was blocked from Cloud Run egress per [`memory/project_cloud_run_egress.md`](../../../../.claude/projects/-Users-parkerhancock-Projects-parker-monorepo-tools-patent-client-agents/memory/project_cloud_run_egress.md). TM Search may have similar filtering — verify per deployment. |
+| Note | Egress filtering concern: TESS (predecessor) was blocked from Cloud Run egress. TM Search may have similar filtering — verify per deployment. |
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** [`fee-schedules/us-uspto-fees.md`](../fee-schedules/us-uspto-fees.md)
-**Official schedule:** [USPTO Fee Schedule](https://www.uspto.gov/learning-and-resources/fees-and-payment/uspto-fee-schedule)
-**Consolidated PDF:** [USPTO-fee-schedule_current.pdf (eff. 2025-01-19, rev. 2026-05-01)](https://www.uspto.gov/sites/default/files/documents/USPTO-fee-schedule_current.pdf)
-**Statutory basis:** 35 USC + 37 CFR Part 1 (patents) / 37 CFR Part 2 (trademarks); USPTO fee-setting authority under §10 of the Patent Act (sunsets 2026-09-16 — see notes below)
+USPTO publishes patent and trademark fee schedules in USD with
+entity-size tiers (large / small / micro). Patent categories: filing,
+search, examination, issue, maintenance (years 3.5 / 7.5 / 11.5), RCE,
+appeal forwarding, and a long list of procedural fees. Trademark
+categories: application per class (with a base + surcharges
+structure post-2025), Statement of Use, renewal.
 
-### Patent fees (current — large entity baseline)
+- **Official schedule:** [USPTO Fee Schedule](https://www.uspto.gov/learning-and-resources/fees-and-payment/uspto-fee-schedule)
+- **Consolidated PDF:** [USPTO-fee-schedule_current.pdf](https://www.uspto.gov/sites/default/files/documents/USPTO-fee-schedule_current.pdf)
+- **Statutory basis:** 35 USC + 37 CFR Part 1 (patents) / 37 CFR Part 2 (trademarks). USPTO fee-setting authority is under §10 of the Patent Act (UAIA); confirm whether that authority is still in force when consulting figures, as it has a statutory sunset.
 
-| Category | Amount (USD) | Notes |
-|---|---|---|
-| Filing (basic) | 320 | Plus search + examination fees |
-| Search | 700 | |
-| Examination | 800 | |
-| Issue | 1,290 | |
-| Maintenance yr 3.5 | 2,000 | |
-| Maintenance yr 7.5 | 3,760 | |
-| Maintenance yr 11.5 | 7,700 | |
-| RCE (1st) | 1,500 | |
-| RCE (2nd+) | 2,000 | |
-| Appeal forwarding | 2,560 | |
+Discount programs:
 
-**Entity-size tiers:**
-- **Small entity (≤500 employees)** — **60%** off most fees (up from 50% pre-UAIA, late 2022)
-- **Micro entity** — **80%** off most fees (up from 75% pre-UAIA)
+- **Small entity** — reduced rate on most patent fees (eligibility under 37 CFR 1.27).
+- **Micro entity** — further-reduced rate (37 CFR 1.29).
+- **Trademark TEAS Plus / Standard tiers were retired** in the 2025 trademark fee rulemaking; the current model is a base application fee with surcharges (free-text ID, missing info, oversized ID).
 
-### Trademark fees (current)
-
-**Major change 2025-01-18:** TEAS Plus / TEAS Standard tiers **abolished**.
-Single base fee + surcharges replaces the old two-tier model.
-
-| Category | Amount (USD) | Notes |
-|---|---|---|
-| Application (1 class) | 350 | Single base fee |
-| Free-text ID surcharge | 200 / class | |
-| Missing info surcharge | 100 / class | |
-| Oversized ID surcharge | 200 / class | |
-| Statement of use | 100 / class | |
-| Renewal (every 10 yr) | 425 / class | |
-
-### Notes
-
-- **Director's §10 fee-setting authority sunsets 2026-09-16** — further fee adjustments require legislation or rulemaking before this date.
-- **USPTO is the most fee-litigated office in the world** — recent rulemakings include 89 FR 91898 (FY25 Patent), 89 FR 91062 (FY25 Trademark).
-- Any cost model relying on the **pre-UAIA discount tiers (50% / 75%)** or the **TEAS Plus/Standard structure** is stale.
+*(frozen at the date written; consult the official URLs above for current figures).*
 
 ## §5 Connector strategy
 
@@ -204,10 +178,9 @@ Primary sources only.
 
 **Detail in this repo:**
 - [`MIGRATION_PLAYBOOK.md`](../../MIGRATION_PLAYBOOK.md) — rows 1-8 for USPTO migrations
-- [`fee-schedules/us-uspto-fees.md`](../fee-schedules/us-uspto-fees.md)
 
 ## §8 Change log
 
 | Date | Change | Source |
 |---|---|---|
-| 2026-05-16 | Initial synopsis. **Reconciled TEAS Plus/Standard abolition (2025-01-18) and UAIA discount-tier shift (small 50%→60%, micro 75%→80%, late 2022).** Both invalidate older fee logic in the codebase if it exists. | [fee-schedules/us-uspto-fees.md](../fee-schedules/us-uspto-fees.md) |
+| 2026-05-16 | Initial synopsis. Noted TEAS Plus/Standard tiers retired in the 2025 trademark fee rulemaking; UAIA small/micro discount tiers were adjusted in late 2022. Any cached fee logic should be re-derived from the official schedule. | — |

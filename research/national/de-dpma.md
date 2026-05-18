@@ -34,8 +34,7 @@ TM and design level — and German utility models (Gebrauchsmuster), a
 distinctive German right type not in EP — remain DPMA-exclusive but
 are not proxyable under the current contract terms.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **German utility models (Gebrauchsmuster, GebrMG)** — a registered right distinct from patents; not covered by EP filings; only path is DPMA.
 - **National-only DE trademarks** — those filed directly with DPMA, not via Madrid IR or EUTM.
 - **National-only DE designs** — those filed directly with DPMA, not via Hague IR or RCD/REUD.
@@ -51,7 +50,7 @@ are not proxyable under the current contract terms.
 | Endpoint | `https://dpmaconnect.dpma.de/dpmaws/rest-services/` (separate services per right) |
 | Auth | HTTP Basic (username + password); paper contract required |
 | Format | XML on ST.36 (patents) / ST.66 (TMs) / ST.87 (designs) extension schemas |
-| Cost | EUR 200 one-time + provision fees |
+| Cost | One-time access fee + provision costs (see contract page) |
 | Rate limit | No published per-second / per-day numbers; contract §2.13 disclaims uninterrupted access |
 | ToS posture | **§3.2 explicitly prohibits passing data to third parties** — proxy-as-a-service is barred |
 | Verdict (zero-infra proxy) | 🔴 **Red** — clean technical surface, but contract terms preclude our model |
@@ -94,17 +93,17 @@ documented pagination; signed paper contract by Munich postal mail.
 | Format | WIPO ST.36 patents, ST.86 designs, images |
 | Verdict | 🔴 Red — bulk doesn't fit our zero-infra constraint |
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** *no fee-schedules/de-dpma-fees.md yet — queued for future research*
-**Official schedule (EN):** [DPMA — Fees and Costs (English)](https://www.dpma.de/english/services/fees/index.html)
-**Official schedule (DE):** [DPMA — Gebühren](https://www.dpma.de/service/gebuehren/index.html)
-**Statutory basis:** Patentkostengesetz (PatKostG) — DE patent costs act
+DPMA publishes separate fee schedules for patents, utility models,
+designs, and trademarks. Statutory basis is the **Patentkostengesetz
+(PatKostG)** — German Patent Costs Act. DPMAconnectPlus (the bulk API
+contract) has its own separate access fee.
 
-Headline figures **pending dedicated fee research**. DPMA's fee structure
-covers patent + utility model + design + trademark separately, with the
-DPMAconnectPlus API access fees documented in the contract page above
-(EUR 200 one-time + provision costs).
+- **Official schedule (EN):** [DPMA — Fees and Costs (English)](https://www.dpma.de/english/services/fees/index.html)
+- **Official schedule (DE):** [DPMA — Gebühren](https://www.dpma.de/service/gebuehren/index.html)
+- **Statutory basis:** [Patentkostengesetz (PatKostG)](https://www.gesetze-im-internet.de/patkostg/) — full text at gesetze-im-internet.de.
+
 
 ## §5 Connector strategy
 
@@ -115,7 +114,7 @@ DPMAconnectPlus API access fees documented in the contract page above
 
 ### What we should NOT add (and why)
 
-- **DPMAconnectPlus proxy** — contract §3.2 prohibits passing data to third parties. Even paying the EUR 200 and signing the paper contract doesn't unlock a proxy model. The "buy access and proxy it" path is foreclosed by the legal terms, not by cost.
+- **DPMAconnectPlus proxy** — contract §3.2 prohibits passing data to third parties. Even paying the contract fee and signing the paper contract doesn't unlock a proxy model. The "buy access and proxy it" path is foreclosed by the legal terms, not by cost.
 - **DEPATISnet scrape** — brittle, UI-only, and redundant with EPO OPS DE coverage at the biblio/family layer.
 - **DPMAregister live scrape** — same; CAPTCHA-gated and unsupported as a programmatic interface.
 
@@ -131,7 +130,7 @@ DPMAconnectPlus API access fees documented in the contract page above
 
 ## §6 Open questions
 
-- **Does paying the EUR 200 contract fee + signing the standard contract unlock any path other than the §3.2-restricted one?** Primary source says the standard contract is what's offered; bespoke terms would require direct negotiation.
+- **Does paying the contract fee + signing the standard contract unlock any path other than the §3.2-restricted one?** Primary source says the standard contract is what's offered; bespoke terms would require direct negotiation.
 - **Are there exceptions for academic / research use?** §3.2's language is categorical; no carve-out in the public-facing contract.
 - **DPMAregister modernization timeline.** No primary source found.
 

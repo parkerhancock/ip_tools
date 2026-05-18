@@ -76,25 +76,27 @@ One sentence explaining why the verdict is what it is.
 
 (repeat)
 
-## §4 Fee schedule (snapshot YYYY-MM-DD)
+## §4 Fees
 
-Headline figures only — link to the full schedule for detail. Fees
-change; cite a snapshot date and the effective date of the schedule.
+**Policy: link only.** Reproducing fee amounts is *not our job* — fees
+drift, and the only authoritative figure is whatever the official
+schedule says *today*. Document what categories of fees exist (in their
+local currency) and where the authoritative source lives. Don't paste
+tables, percentages, or specific effective dates.
 
-**Detail file:** [`fee-schedules/<office>-fees.md`](../fee-schedules/<office>-fees.md)
-**Official schedule:** [primary URL](https://...)
-**Effective date:** YYYY-MM-DD
+{Office name} publishes a fee schedule (in {LOCAL_CURRENCY}) covering
+{high-level categories that exist — e.g. filing, search, examination,
+grant, opposition, appeal, renewal}.
 
-| Category | Amount (local) | USD approx | Notes |
-|---|---|---|---|
-| Filing — basic | XXX | $XXX | entity tier if applicable |
-| Search | XXX | $XXX | |
-| Examination | XXX | $XXX | |
-| Grant / registration | XXX | $XXX | |
-| Renewal — yr N | XXX | $XXX | escalates with age |
-| Other (RCE / appeal / opposition / …) | XXX | $XXX | |
+- **Official schedule:** [primary URL](https://...)
+- **Statutory basis:** [law / regulation URL](https://...) *(if separate)*
+- **Rate adjustment notices:** [official journal / gazette URL](https://...) *(if separate)*
 
-Notes on discounts, tiers, recent changes.
+Notable discount programs *(name + one-line eligibility — no specific
+amounts or dates)*:
+
+- **Rule N.NN** — {who qualifies}
+- ...
 
 ## §5 Connector strategy
 

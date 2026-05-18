@@ -2,7 +2,7 @@
 
 How an orchestrator agent spawns a research subagent for the coverage
 pipeline. Two task types: **§A discovery** (write synopsis + wave file)
-and **§B fee schedule** (write fee-schedule file).
+and **§B fee schedule** (*deliberately out of scope — see below*).
 
 For each, this doc gives:
 - Input — what the orchestrator passes
@@ -61,7 +61,7 @@ You will produce TWO files:
    - §1 Mission
    - §2 What's unique here (not covered by higher layers)
    - §3 Programmatic surfaces — per-surface mini-table with verdict (🟢/🟡/🔴) + primary-source URL
-   - §4 Fee schedule — link to official URL; **headline figures: pending dedicated fee research** if no fee_research file yet
+   - §4 Fees — link only. State the local currency, list the fee categories the office charges in structural terms, and name any discount programs. **Do not paste tables, percentages, or effective dates.** See [`templates/office-synopsis.md`](templates/office-synopsis.md) §4 for the policy.
    - §5 Connector strategy — what we cover today (cross-reference existing manifest IDs); what we should add; what we should NOT add (with reason); next steps
    - §6 Open questions
    - §7 References — primary sources only
@@ -92,7 +92,7 @@ The agent writes exactly two files. The orchestrator:
    - `verdict: <from agent's return summary>`
    - `verdict_basis: <one-line>`
    - `connector_status:` advance to `none` (if verdict = red) or `planned` (if verdict = green/yellow)
-   - `next_action: fee_research` (if synopsis is filled but fee_research is null) or `spec_writing` (if connector should be planned) or `monitor` (if red)
+   - `next_action: spec_writing` (if connector should be planned) or `monitor` (if red) or `none`
    - `last_verified: <today>`
 
 ### Pitfalls
@@ -104,66 +104,18 @@ The agent writes exactly two files. The orchestrator:
 
 ---
 
-## §B Fee schedule research
+## §B Fee schedule research — **not in scope**
 
-**Trigger:** STATE.yaml row with `synopsis: <non-null>` and `fee_research: null` and `next_action: fee_research`.
+We deliberately do **not** do fee-schedule research. Synopsis §4 lists
+the categories of fees an office charges (in local currency), the
+discount programs by name, and links to the official schedule. That is
+the full extent of fee documentation in this repo. Reproducing tables,
+percentages, or effective dates is out of scope — fees drift, the
+office's own page is authoritative, and mirroring it would only
+introduce stale data that misleads readers.
 
-### Input the orchestrator needs
-
-| Field | Source | Example |
-|---|---|---|
-| `entity_id` | STATE.yaml `.id` | `KR/KIPO` |
-| `entity_name` | STATE.yaml `.name` | `KIPO Korea` |
-| `iso2` | STATE.yaml `.iso2` | `KR` |
-| `rights` | STATE.yaml `.rights` | `[patent, utility_model, trademark, design]` |
-| `fee_path` | derived: `fee-schedules/<iso2>-<office>-fees.md` | `fee-schedules/kr-kipo-fees.md` |
-| `currency` | best guess from jurisdiction | `KRW` |
-| `synopsis_path` | from STATE | `national/kr-kipo.md` (to update §4) |
-
-### Prompt template
-
-```
-Find primary-source URLs and current headline figures for **{{ entity_name }}** fee schedules covering {{ rights }}. I need this for a research synopsis file.
-
-Output: write a short markdown file at `{{ fee_path }}` with:
-
-1. **Per-right fee tables** — link to the official fee schedule page for each right ({{ rights }}). Pull headline figures (in {{ currency }}) for: filing, search, examination, grant/registration, representative annuities (years 4 / 10 / 20), plus opposition / appeal where applicable.
-
-2. **Entity-size tiers** — if the office has small-entity / micro-entity / individual-applicant discounts (USPTO style), list the percentage reductions.
-
-3. **Snapshot date** — when the data was captured.
-
-4. **Effective date** — of the current schedule.
-
-5. **Primary sources only** — domains owned by {{ entity_name }} or the relevant national / EU government body. Hyperlink everything. Reject third-party summaries, Wikipedia, blog explainers.
-
-6. **Notes section** — flag if fees changed recently (last 24 months) or are scheduled to change. Office-specific quirks (claim-count-dependent annuities for JP, frozen schedules for X years, etc.).
-
-After writing the file, return ≤200 words: confirm the file is written, list the 3 most important primary-source URLs you found, flag any surprises.
-
-Hyperlink discipline: every fee figure must trace to a primary-source URL. If a figure is not in primary docs, omit it.
-
-Do NOT modify STATE.yaml.
-
-Use WebSearch + WebFetch. The official schedule typically lives under the {{ entity_name }} site's "fees" navigation.
-```
-
-### Output contract
-
-Agent writes one file. The orchestrator:
-
-1. Verifies the file exists.
-2. Updates STATE.yaml row:
-   - `fee_research: {{ fee_path }}`
-   - `last_verified: <today>`
-3. Edits the synopsis file's §4 to link the new fee research file (one-line Edit; replaces `*no fee-schedules/... yet — queued for future research*` with `[{{ fee_path }}]({{ fee_path }})`).
-
-### Pitfalls
-
-- **Egress filtering.** JPO origin was blocked from our network in the 2026-05-16 wave; agent had to use web.archive.org. USPTO TESS, unifiedpatentcourt.org also affected per memory note. Wayback fallback is acceptable for primary-source content as long as the Wayback URL is cited.
-- **Currency conversion.** Don't fabricate USD approximations from memory; if needed, cite the exchange-rate source.
-- **Effective date confusion.** Some offices revise fees periodically; the *currently in force* date is what matters for the synopsis, not the most recent rulemaking date.
-- **Fee structure changes.** Major recent shifts: USPTO TEAS Plus/Standard abolished 2025-01-18; EUIPO RCD → REUD under Reg 2024/2822; EPO Rule 7a EPC micro-entity 2024-04-01. Watch for similar regime shifts at the office under research.
+If an existing synopsis is missing the §4 fee-categories blurb, fill it
+in by reading the official page; do **not** paste figures.
 
 ---
 
@@ -198,7 +150,7 @@ Research agents are **markdown-only**. They do not:
 
 Research agents DO:
 
-- Write to `research/waves/`, `research/multilateral/`, `research/regional/`, `research/national/`, `research/fee-schedules/`, `research/specs/`
+- Write to `research/waves/`, `research/multilateral/`, `research/regional/`, `research/national/`, `research/specs/`
 - WebFetch, WebSearch
 - Cite primary sources only
 
@@ -210,7 +162,7 @@ The clean separation matters: research mistakes are reversible (revert markdown)
 
 The orchestrator typically runs 4-5 research agents in parallel per batch. Workflow:
 
-1. Read STATE.yaml. Filter for `next_action: synopsis_discovery` (for §A) or `next_action: fee_research` (for §B). Sort by tier/priority from BACKLOG.md.
+1. Read STATE.yaml. Filter for `next_action: synopsis_discovery`. Sort by tier/priority from BACKLOG.md.
 2. Pick N (4-5).
 3. Spawn N background agents using the template above. Pass each agent a self-contained prompt (no shared context).
 4. **Do not poll.** Background agents notify on completion.

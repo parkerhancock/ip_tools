@@ -129,27 +129,23 @@ Useful only for filers reading their own portfolio.
 The fee schedule is HTML and stable — a tractable scrape target *if* we
 ever decide to surface Hague fees, but not a search surface.
 
-## §4 Fee schedule (snapshot 2026-05-16)
+## §4 Fees
 
-**Detail file:** none yet — fees inline below.
-**Official schedule:** [Hague System Schedule of Fees](https://www.wipo.int/en/web/hague-system/fees/sched)
-**Fee calculator:** [Hague System Fee Calculator](https://www.wipo.int/en/web/hague-system/fees/calculator)
-**Effective date:** 2025-01-01 (per page title "Schedule of Fees (as in force on January 1, 2025)")
-**Currency:** Swiss francs (CHF) only — all Hague fees ([source](https://www.wipo.int/en/web/paying-for-ip-services/hague-system-fees))
+The Hague System charges in **CHF only**. Fee categories: basic fee per
+design, publication fees per reproduction / extra page, **standard
+designation fees** (three levels) or **individual designation fees**
+chosen by each Contracting Party.
 
-| Category | Amount (CHF) | Notes |
-|---|---|---|
-| Basic fee — one design | 397 | International application |
-| Basic fee — each additional design | 50 | Same international application (raised from 19 effective 2024-01-01) |
-| Publication — per reproduction | 17 | |
-| Publication — each extra page of reproductions | 150 | After the first |
-| Standard designation fee — level one, one design | 42 | Plus 2 CHF per additional design |
-| Standard designation fee — level two, one design | 60 | Plus 20 CHF per additional design |
-| Standard designation fee — level three, one design | 90 | Plus 50 CHF per additional design |
-| Individual designation fees | varies | Per contracting party — see [`/fees/individ-fee`](https://www.wipo.int/en/web/hague-system/fees/individ-fee) |
-| LDC applicant reduction | × 10% | Reduced to 10% of standard for applicants whose sole entitlement is connection with an LDC |
+- **Official schedule:** [Hague System Schedule of Fees](https://www.wipo.int/en/web/hague-system/fees/sched)
+- **Fee calculator:** [Hague System Fee Calculator](https://www.wipo.int/en/web/hague-system/fees/calculator)
+- **Individual designation fees (per CP):** [Hague — individual designation fees](https://www.wipo.int/en/web/hague-system/fees/individ-fee)
+- **Currency reference:** [Hague System Fees overview](https://www.wipo.int/en/web/paying-for-ip-services/hague-system-fees)
 
-USD conversion intentionally omitted — Hague fees are paid only in CHF.
+Discount programs:
+
+- **LDC applicant reduction** — applicants whose sole entitlement is
+  connection with a Least Developed Country pay a reduced fraction of
+  standard fees.
 
 ## §5 Connector strategy
 

@@ -119,18 +119,18 @@ Partner-IP-office-only filing and document-exchange surfaces, not search
 APIs — irrelevant to a third-party proxy. See
 [`mm_ld_wg_23_roundtable_1_ib.pdf`](https://www.wipo.int/edocs/mdocs/madrid/en/mm_ld_wg_23/mm_ld_wg_23_roundtable_1_ib.pdf).
 
-## §4 Fee schedule (snapshot 2026-05-16)
+## §4 Fees
 
-**Official schedule:** [Madrid System Schedule of Fees](https://www.wipo.int/en/web/madrid-system/fees/sched)
-**Fee calculator:** [`https://madrid.wipo.int/feecalcapp/`](https://madrid.wipo.int/feecalcapp/)
-**Fees & payments hub:** [`https://www.wipo.int/en/web/madrid-system/fees`](https://www.wipo.int/en/web/madrid-system/fees)
-**Individual fees (per Contracting Party):** [`https://www.wipo.int/madrid/en/fees/ind_taxes.html`](https://www.wipo.int/madrid/en/fees/ind_taxes.html)
+Madrid fees are charged in CHF and combine a basic fee + complementary
+or individual fee per designated office + supplementary fee per class
+beyond three. Renewal cycle is 10 years. Individual fees move per WIPO
+Information Notices, so the fee calculator is the only authoritative
+source at any given time.
 
-Madrid fees are charged in CHF and combine basic fee + complementary or
-individual fee per designated office + supplementary fee per class
-beyond three. Renewal cycle is 10 years. Headline ranges intentionally
-not snapshotted — the calculator is the only authoritative source and
-individual fees move per WIPO Information Notices.
+- **Official schedule:** [Madrid System Schedule of Fees](https://www.wipo.int/en/web/madrid-system/fees/sched)
+- **Fee calculator:** [Madrid fee calculator](https://madrid.wipo.int/feecalcapp/)
+- **Fees & payments hub:** [Madrid System — fees](https://www.wipo.int/en/web/madrid-system/fees)
+- **Individual fees (per Contracting Party):** [Madrid — individual fees](https://www.wipo.int/madrid/en/fees/ind_taxes.html)
 
 ## §5 Connector strategy
 
@@ -148,12 +148,12 @@ through national TM connectors:
 
 ### What we should add (if anything)
 
-Nothing for now. Any Madrid connector would require (1) a CHF 30,000/yr
-bulk ICC FTP mirror — violates zero-infra; (2) proxying Madrid Monitor —
-violates [ToS §5/§6](https://www3.wipo.int/madrid/monitor/en/terms.jsp);
-or (3) reselling a commercial Madrid aggregator — out of scope. A BYOK
-config path for clients with their own bulk subscription is possible but
-not on the roadmap.
+Nothing for now. Any Madrid connector would require one of:
+(1) the paid bulk **ICC FTP** mirror — violates zero-infra;
+(2) proxying Madrid Monitor — violates [ToS §5/§6](https://www3.wipo.int/madrid/monitor/en/terms.jsp);
+or (3) reselling a commercial Madrid aggregator — out of scope.
+A BYOK config path for clients with their own bulk subscription is
+possible but not on the roadmap.
 
 ### What we should NOT add
 

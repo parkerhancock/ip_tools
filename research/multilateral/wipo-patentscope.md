@@ -34,8 +34,7 @@ not via an API. The only programmatic surface is a paid bulk product
 over SFTP, and the public web UI's ToS explicitly prohibits automated
 queries.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **PCT application data not yet entered into national phase** — PCT international applications are visible via PATENTSCOPE before they hit any national office's register.
 - **WIPO's machine-translated abstracts** in WIPO-supported languages.
 - **Cross-jurisdictional unified search UI** — one query across ~70 collections (this is the part WIPO won't let us proxy).
@@ -90,9 +89,8 @@ Note: Article 6ter is a small but clean dataset — not patent search. Useful
 for trademark conflict analysis (state emblems can't be registered as
 trademarks).
 
-## §4 Fee schedule (PCT system, not PATENTSCOPE API access)
+## §4 Fees
 
-**Detail file:** *no fee-schedules/wipo-pct-fees.md yet — queued*
 **Official PCT fee schedule:** [WIPO — PCT fees](https://www.wipo.int/en/web/pct-system/fees)
 **Statutory basis:** PCT Regulations (Rule 96) + Schedule of Fees
 

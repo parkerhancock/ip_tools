@@ -35,8 +35,7 @@ family. National-only GB TMs and registered designs are gaps with no
 proxyable substitute under our zero-infra constraint until the One IPO
 APIs ship.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **National-only GB trademarks** — not designated in Madrid IRs
 - **National-only GB registered designs** — not designated in Hague IRs
 - **UK Patent Office decisions** (Comptroller, Hearing Officer rulings)
@@ -104,15 +103,14 @@ doesn't meet our zero-infra constraint.
 | ToS | Open Government Licence v3.0 |
 | Verdict | 🔴 Red for proxy (bulk-shaped); could be Shape-E catalog connector if user demand justifies it |
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** *no fee-schedules/gb-ukipo-fees.md yet — queued for future research*
-**Official schedule:** [UKIPO fees (gov.uk)](https://www.gov.uk/topic/intellectual-property/fees)
-**Statutory basis:** Patents (Fees) Rules 2007 + amendments; Trade Marks (Fees) Rules 2008; Registered Designs Rules 2006
+UKIPO publishes patent, trade mark, and design fee schedules (GBP).
+Since Brexit, UK-only filings sit outside EUIPO and the Unitary Patent.
 
-Headline figures **pending dedicated fee research**. UKIPO fees are paid
-in GBP. UK left the EU patent + design system (Brexit), so post-2020
-filing fees apply only to UK-specific national filings.
+- **Official schedule:** [UKIPO fees (gov.uk)](https://www.gov.uk/topic/intellectual-property/fees)
+- **Statutory basis:** [Patents (Fees) Rules 2007](https://www.legislation.gov.uk/uksi/2007/3292/contents), [Trade Marks (Fees) Rules 2008](https://www.legislation.gov.uk/uksi/2008/1958/contents), [Registered Designs Rules 2006](https://www.legislation.gov.uk/uksi/2006/1975/contents).
+
 
 ## §5 Connector strategy
 

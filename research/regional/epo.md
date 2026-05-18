@@ -41,8 +41,7 @@ once.
 For agents needing patent biblio, family, or legal events for nearly any
 jurisdiction outside Russia/some Asian gaps, EPO OPS is the first stop.
 
-## §2 What's unique here (not covered by other layers)
-
+## §2 What's unique here
 - **EP-filed and EP-granted patents** — applications and grants under the European Patent Convention.
 - **INPADOC family data** — DOCDB simple families + INPADOC extended families across ~100 contributing offices.
 - **INPADOC legal events** — legal-status events for ~50 contributing offices (subset of DOCDB coverage).
@@ -83,34 +82,23 @@ delivery via FTP.
 | Auth | Same OPS credentials |
 | Verdict | 🟢 Green — operational via [`patent_client_agents.cpc`](../../src/patent_client_agents/cpc/) |
 
-## §4 Fee schedule (effective 2026-04-01; CA/D 9/25)
+## §4 Fees
 
-**Detail file:** [`fee-schedules/ep-epo-fees.md`](../fee-schedules/ep-epo-fees.md)
-**Official schedule:** [EPO Schedule of Fees](https://www.epo.org/en/legal/fees)
-**Effective date:** 2026-04-01 (CA/D 9/25, decided 11 Dec 2025)
-**Notable:** ~5% bump on procedural fees; filing, opposition, and appeal fees **frozen** (asymmetric adjustment)
-**Statutory basis:** [Rules relating to Fees, EPC Implementing Regulations](https://www.epo.org/en/legal/epc/2020/r-fees.html)
+EPO publishes a fee schedule covering filing, search, designation,
+examination, grant, opposition, appeal, and renewal (years 3–20), plus
+separate Unitary Patent renewal fees decided by the Select Committee.
+Rate adjustments are issued by Administrative Council decision (look
+for `CA/D` references) and published in the EPO Official Journal.
 
-| Category | Amount (EUR) | Notes |
-|---|---|---|
-| Filing (online) | 135 | Paper +180 surcharge |
-| Search | 1,520 | |
-| Designation (one fee for all) | 720 | +5% from 685 in 2024 |
-| Examination | ~2,055 | |
-| Grant | 1,135 | +5% from 1,080 in 2024 |
-| Opposition | 920 | Frozen |
-| Appeal | varies | Frozen |
-| Renewal yr 3-5 | ~545-735 | escalates |
-| Renewal yr 10+ | ~1,810+ | |
-| UP renewal yr 2 | 35 | True TOP 4 — single fee covers all UP states; unchanged since 2015 |
-| UP renewal yr 10 | 1,175 | |
+- **Official schedule:** [EPO Schedule of Fees](https://www.epo.org/en/legal/fees) — authoritative; updated periodically.
+- **Statutory basis:** [Rules relating to Fees, EPC Implementing Regulations](https://www.epo.org/en/legal/epc/2020/r-fees.html).
+- **Rate adjustment notices:** [EPO Official Journal](https://www.epo.org/en/legal/official-journal).
 
-**Notable discount tiers:**
-- **Rule 7a EPC micro-entity discount** (in force 2024-04-01) — stackable with Rule 6 language reduction; up to **~51% total off** on most procedural fees for qualifying applicants.
-- **Rule 6 language reduction** for natural persons / SMEs / universities / non-profits filing in a non-official language.
+Discount programs:
 
-See the [fee-schedules detail file](../fee-schedules/ep-epo-fees.md) for the
-full breakdown and the EPO OJ supplementary publication references.
+- **Rule 7a EPC micro-entity** — for individual applicants under defined size thresholds; stackable with Rule 6.
+- **Rule 6 language reduction** — for natural persons / SMEs / universities / non-profits filing in a non-official EPO language.
+
 
 ## §5 Connector strategy
 
@@ -167,4 +155,4 @@ Primary sources only.
 
 | Date | Change | Source |
 |---|---|---|
-| 2026-05-16 | Initial synopsis. Reconciled fee data to 2026-04-01 schedule (was 2024). Flagged §5.9 envelope sweep (MIGRATION_PLAYBOOK row 9) as pending. | [fee-schedules/ep-epo-fees.md](../fee-schedules/ep-epo-fees.md) |
+| 2026-05-16 | Initial synopsis. Flagged §5.9 envelope sweep (MIGRATION_PLAYBOOK row 9) as pending. | — |

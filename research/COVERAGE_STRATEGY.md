@@ -273,8 +273,6 @@ The research/ folder restructured on 2026-05-16. Current shape:
   - [`connectors/`](connectors/) — preserved as canonical detail-research location
 - **Time-stamped research products** (frozen audit trail):
   - [`waves/`](waves/) — see [`waves/2026-05-16-registered-ip-discovery/`](waves/2026-05-16-registered-ip-discovery/) for the wave that triggered this restructure
-- **Fee schedules** (per-office, primary-source URLs, snapshot dates):
-  - [`fee-schedules/`](fee-schedules/) — USPTO, EPO, EUIPO, JPO, IP Australia complete; others queued
 - **Strategic top-level docs**:
   - This file ([`COVERAGE_STRATEGY.md`](COVERAGE_STRATEGY.md)) — strategic theory + decision rules
   - [`BACKLOG.md`](BACKLOG.md) — ranked work queue + reconciliation log of drift between original surveys and current state
@@ -284,51 +282,30 @@ The research/ folder restructured on 2026-05-16. Current shape:
 | Wave | Date | Subject | Files |
 |---|---|---|---|
 | Registered-IP discovery | 2026-05-16 | KIPO + WIPO trio + DPMA + UKIPO + CIPO | [`waves/2026-05-16-registered-ip-discovery/`](waves/2026-05-16-registered-ip-discovery/) |
-| Fee schedule research | 2026-05-16 | USPTO + EPO + EUIPO + JPO + IP Australia | [`fee-schedules/`](fee-schedules/) |
 | Tool-surface audit | 2026-05-14 | Existing tools vs CONNECTOR_STANDARDS §5 | [`tool-surface-audit-2026-05-14.md`](tool-surface-audit-2026-05-14.md) |
 
 Future research waves to add here as they happen.
 
 ---
 
-## §10 Fee-schedule data architecture
+## §10 Fee data — out of scope
 
-Fee schedules surface in two places under this strategy:
+We deliberately do **not** mirror fee schedules. Every synopsis §4
+describes the structural shape of an office's fees (categories charged,
+local currency, named discount programs) and links to the office's
+official schedule page. That's the entire fee story in this repo.
 
-1. **Per-office synopsis §4 (link + headline)** — every office synopsis under
-   [`multilateral/`](multilateral/), [`regional/`](regional/), [`national/`](national/)
-   includes a §4 "Fee schedule" section with:
-   - Link to the official primary-source schedule page
-   - Effective date of the current schedule
-   - Headline figures for the major categories (filing, examination, grant, renewals)
-   - Link to the detailed [`fee-schedules/<office>-fees.md`](fee-schedules/) research file
+Reasons:
 
-   Synopsis §4 is human-readable strategic context, not a structured data
-   product.
+- Fees drift; mirrored amounts go stale and mislead readers.
+- The office's own page is the only authoritative source at any moment.
+- Building a "fee schedule MCP tool" would commit us to a permanent
+  re-research treadmill across dozens of offices in dozens of currencies
+  with dozens of rulemaking cadences. Not our job.
 
-2. **Future: structured fee data exposed via API and MCP tools** — a
-   separate connector category in [`coverage/sources.yaml`](../coverage/sources.yaml)
-   ("fee schedules" data type, complementing "statutes" / "registered_ip"
-   / etc.) would let agents query authoritative office fee data
-   programmatically. Per the 2026-05-16 product direction, this is
-   queued as a backlog architectural item. The fee-schedule research
-   files in [`fee-schedules/`](fee-schedules/) are the raw material for
-   such a connector.
-
-   Open architecture decisions:
-   - Is fee data a new `data_types: [fee_schedule]` entry per existing
-     office manifest entries, or a separate office-shaped wrapper (e.g.,
-     `US/USPTO/Fees` as a sibling to `US/USPTO/ODP/Applications`)?
-   - How do we represent currency, entity-size tiers (US small/micro),
-     claim-count dependencies (JP), and language reductions (EPO Rule 6)?
-   - Refresh cadence — fees change by official rulemaking (USPTO ~annual;
-     EPO ~biennial; JPO multi-year; UKIPO irregular). Should the
-     connector return the *current* schedule + the *effective date*, or
-     historical schedules too?
-   - Source of truth — primary-source URL fetched live, vs. snapshot
-     stored in the wheel?
-
-   These are queued for design after the first MVP synopses are in.
+If a downstream user needs structured fee data, they should follow the
+official link and consume the office's own (often machine-readable)
+schedule directly.
 
 ---
 

@@ -16,7 +16,6 @@
 **Detail surveys:**
 - [`connectors/ip_australia.md`](../connectors/ip_australia.md) — 2026-05 detail survey (192 lines)
 - [`connectors/ip_australia_endpoints.md`](../connectors/ip_australia_endpoints.md) — full endpoint inventory (334 lines)
-- [`fee-schedules/au-ipaustralia-fees.md`](../fee-schedules/au-ipaustralia-fees.md) — 2026-05-16 fee research
 
 **Higher / sibling layers carrying overlapping data:**
 - **EPO INPADOC** — AU patent biblio + family
@@ -39,8 +38,7 @@ this codebase.
 Our KIPO BYOK design (and any future national-office BYOK work) should
 mirror this pattern.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **AU patent prosecution status** in real time
 - **AU file wrappers**
 - **National-only AU trademarks** — not in Madrid IRs
@@ -90,48 +88,18 @@ Same pattern: `https://api.business.gov.au/ip-australia/design-search/v1/`.
 | Auth | none |
 | Verdict | 🟡 Yellow — niche; case-law layer; deferred per BACKLOG until tribunal coverage demand emerges |
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** [`fee-schedules/au-ipaustralia-fees.md`](../fee-schedules/au-ipaustralia-fees.md)
-**Official schedules:**
-- [Patents](https://www.ipaustralia.gov.au/patents/timeframes-and-fees)
-- [Trade marks](https://www.ipaustralia.gov.au/trade-marks/timeframes-and-fees)
-- [Designs](https://www.ipaustralia.gov.au/designs/timeframes-and-fees)
-- [Renewals (year-by-year table)](https://www.ipaustralia.gov.au/manage-my-ip/how-to-renew-my-ip-right)
+IP Australia publishes separate fee schedules for patents, trade marks,
+and designs (charged in AUD).
 
-**Statutory basis:** Patent Regulations 1991 ([Schedule 7 — Fees](http://classic.austlii.edu.au/au/legis/cth/consol_reg/pr1991218/sch7.html))
+- **Patents:** [IPA — Patents timeframes and fees](https://www.ipaustralia.gov.au/patents/timeframes-and-fees) (filing, examination, acceptance, annuities yrs 4–20, excess-claim fees)
+- **Trade marks:** [IPA — Trade marks timeframes and fees](https://www.ipaustralia.gov.au/trade-marks/timeframes-and-fees) (application per class with picklist vs free-text tiers, renewal)
+- **Designs:** [IPA — Designs timeframes and fees](https://www.ipaustralia.gov.au/designs/timeframes-and-fees) (filing, registration, renewal)
+- **Renewal tables:** [Renewals year-by-year](https://www.ipaustralia.gov.au/manage-my-ip/how-to-renew-my-ip-right)
+- **Statutory basis:** [Patent Regulations 1991 — Schedule 7 (Fees)](http://classic.austlii.edu.au/au/legis/cth/consol_reg/pr1991218/sch7.html)
 
-### Patent fees (current — AUD; check fee research file for exact figures)
-
-| Category | Range (AUD) | Notes |
-|---|---|---|
-| Filing (standard application) | ~370 | |
-| Examination | ~490 | |
-| Acceptance | ~250 | |
-| Annuity yr 4 | ~315 | Held flat in 2024 revision |
-| Annuity yr 5 | ~315 | Held flat |
-| Annuity yr 10 | ~825 | Ramped in 2024 |
-| Annuity yr 20 | ~3,650 | |
-
-### Trade mark fees
-
-| Category | Amount (AUD) | Notes |
-|---|---|---|
-| Application (e-filing, picklist) | 250 / class | |
-| Application (free-text) | 400 / class | |
-| Renewal (10 yr) | 400 / class | |
-
-### Design fees
-
-| Category | Amount (AUD) | Notes |
-|---|---|---|
-| Filing | 250 | |
-| Registration | 70 | |
-| Renewal | varies | |
-
-**Notable recent changes (2024):**
-- **Excess-claim fees moved to first examination report** (was at acceptance) — real prosecution-cost shift for >20-claim specifications.
-- **Patent annuities held flat for years 4-5** but ramped for years 6-19 — back-loaded cost curve.
+*(frozen at the date written; consult the official URLs above for current figures).*
 
 ## §5 Connector strategy
 
@@ -187,10 +155,9 @@ Primary sources only.
 **Detail surveys + fee research:**
 - [`connectors/ip_australia.md`](../connectors/ip_australia.md) — main detail survey
 - [`connectors/ip_australia_endpoints.md`](../connectors/ip_australia_endpoints.md) — endpoint inventory
-- [`fee-schedules/au-ipaustralia-fees.md`](../fee-schedules/au-ipaustralia-fees.md)
 
 ## §8 Change log
 
 | Date | Change | Source |
 |---|---|---|
-| 2026-05-16 | Initial synopsis. Confirmed IP RAPID licence is **CC-BY 4.0 International** (corrected from older CC-BY 2.5 AU). Flagged 2024 fee-structure shifts: excess-claim fees at first examination report (not acceptance); annuity ramp 6-19 with 4-5 held flat. | [fee-schedules/au-ipaustralia-fees.md](../fee-schedules/au-ipaustralia-fees.md) |
+| 2026-05-16 | Initial synopsis. Confirmed IP RAPID licence is **CC-BY 4.0 International** (corrected from older CC-BY 2.5 AU). Noted the 2024 patent fee-structure shifts (excess-claim fees timing and renewal curve restructure); current figures are on the official schedule. | — |

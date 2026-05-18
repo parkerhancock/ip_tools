@@ -43,8 +43,7 @@ PISTE-fronted French IP-relevant API. The INPI Data PI APIs are on a
 **separate authentication stack** at `api-gateway.inpi.fr` — they are
 NOT on PISTE.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **FR national trademarks** — ~190k active national TMs not registered as
   EUTMs and not visible in EUIPO eSearch. ([INPI marks search base](https://www.inpi.fr/ressources/propriete-intellectuelle/rechercher-une-marque-base-marques))
 - **FR national designs** — filed directly with INPI, not via Hague IR or
@@ -128,29 +127,20 @@ proxy impractical for interactive agent UX.
 | Verdict (zero-infra proxy) | 🔴 Red — not open to private SaaS proxies |
 | Primary source | [api.gouv.fr/producteurs/inpi](https://api.gouv.fr/producteurs/inpi) |
 
-## §4 Fee schedule (snapshot 2026-05-16)
+## §4 Fees
 
-**Detail file:** *no fee-schedules/fr-inpi-fees.md yet — queued for future research*
-**Official schedule:** [Tarifs des procédures et prestations de l'INPI](https://www.inpi.fr/ressources/propriete-intellectuelle/tarifs-procedures-et-prestations-de-linpi)
-**Official schedule (PDF):** [Tarifs applicables au 27 avril 2026](https://www.inpi.fr/inpi-block/download-document?id=20516)
-**Effective date:** 2026-04-27
+INPI publishes a consolidated French-language tariff covering patents
+(filing, search report, grant, annuities yrs 2–20), trade marks
+(filing/renewal per class), and designs.
 
-Headline figures (50% reduction for individuals, SMEs <1000 employees, and
-education/research non-profits applies on filing/grant/maintenance):
+- **Official schedule:** [Tarifs des procédures et prestations de l'INPI](https://www.inpi.fr/ressources/propriete-intellectuelle/tarifs-procedures-et-prestations-de-linpi)
 
-| Category | Amount (EUR) | USD approx | Notes |
-|---|---|---|---|
-| Patent — filing | 26 | ~$28 | basic |
-| Patent — search report | 520 | ~$565 | |
-| Patent — grant (délivrance) | 90 | ~$98 | |
-| Patent — annuities (yr 2 → yr 20) | 38 → 790 | ~$41 → ~$860 | ~€4,500 total over 20 years |
-| Trademark — filing (1 class) | 190 | ~$207 | +€40/additional class |
-| Trademark — renewal (1 class) | 290 | ~$315 | +€40/additional class; 10-year term |
-| Trademark — similarity search (≤3 classes) | 50 | ~$54 | |
-| Design — filing | (pending dedicated fee research) | — | |
+Discount programs:
 
-Full fee research deferred. Primary source for all figures is the
-**2026-04-27 official tariff PDF** linked above.
+- **50% reduction** for individuals, SMEs (under defined size
+  thresholds), and education/research non-profits, applied on filing,
+  grant, and maintenance fees.
+
 
 ## §5 Connector strategy
 

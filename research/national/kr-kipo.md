@@ -38,8 +38,7 @@ substitutes for KR patent biblio + family at the regional layer, but
 prosecution depth, native-language full text, utility models, and
 trademark/design data are only available directly from KIPO.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **Korean-language full text** of patents and utility models (EPO OPS full text covers ~30 collections; KR patent full text typically lives in KIPRIS only).
 - **Real-time KR patent prosecution status** (vs. INPADOC's lag).
 - **Utility models** — Korea is a major UM jurisdiction; UMs are a distinct right not covered by EP-only systems.
@@ -57,7 +56,7 @@ trademark/design data are only available directly from KIPO.
 | Endpoint | `http://kipo-api.kipi.or.kr/openapi/service/{patUtliInfoSearchService,trademarkInfoSearchService,designInfoSearchService}/{getWordSearch,getAdvancedSearch,…}` |
 | Auth | Per-user API key (one key per member account) — passed as `serviceKey` query parameter |
 | Format | **XML only** (no JSON variant on the English portal) |
-| Rate limit | Development tier: ~1,000 calls/month free; Operation tier: ~USD 1,783/yr, "carefully reviewed and approved on a limited basis" |
+| Rate limit | Two tiers (Development — free quota; Operation — paid, "carefully reviewed and approved on a limited basis"). See the KIPRIS Plus terms for the current quota and price. |
 | ToS posture | **Per-user only** — §11 forbids sharing Authentication Keys with others |
 | Verdict (zero-infra proxy) | 🟡 **Yellow** — BYOK architecture viable; shared-key proxy is ToS-prohibited |
 | Primary sources | [Service Introduction (EN)](https://plus.kipris.or.kr/eng/main/contents.do?menuNo=300024) · [Terms of use (EN) §11](https://plus.kipris.or.kr/eng/main/contents.do?menuNo=300030) · [Patent-Utility doc page (EN)](https://plus.kipris.or.kr/eng/data/clas/DBII_000000000000001/view.do?menuNo=310000) |
@@ -92,22 +91,18 @@ API path above is the supported method. Verdict: 🔴 red.
 Inter-office only (not available to private developers per the existing
 detail survey [`connectors/kipo.md`](../connectors/kipo.md)). Verdict: 🔴 red.
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** *no fee-schedules/kr-kipo-fees.md yet — queued for a future research wave*
-**Official schedule:** [KIPO English fee page — patent fees](https://www.kipo.go.kr/en/MainApp) (fees navigate via the English service portal) · [KIPRIS fee notice (Korean)](https://plus.kipris.or.kr/portal/main/contents.do?menuNo=210168)
+KIPO charges in KRW across patent, utility model, design, and trade
+mark — filing, search, examination, grant, and renewal categories,
+with discount tiers for small entities and individual applicants.
+KIPRIS Plus API access has its own separate fee structure (development
+tier vs. operation tier).
 
-Headline figures **pending dedicated fee research**. The KIPO fee structure
-covers patent + utility model + design + trademark filing / search /
-examination / grant / renewals separately, with discount tiers for
-small entities and individual applicants. Korean Won (KRW); USD
-conversion ~1,400 KRW/USD as of 2026-05.
+- **KIPO fee landing (EN):** [KIPO main portal](https://www.kipo.go.kr/en/MainApp) — navigate via the service portal.
+- **KIPRIS Plus access fees (Korean):** [KIPRIS Plus fee notice](https://plus.kipris.or.kr/portal/main/contents.do?menuNo=210168)
+- **KIPRIS Plus EN service introduction:** [KIPRIS Plus service introduction](https://plus.kipris.or.kr/eng/main/contents.do?menuNo=300024)
 
-KIPRIS Plus API access fees are documented separately:
-- Development tier: free up to ~1,000 calls/month per key
-- Operation tier: approximately USD 1,783/year per primary source
-
-**Next step:** queue a fee-schedule research wave for kr-kipo-fees.md once the KIPO BYOK connector enters the design phase.
 
 ## §5 Connector strategy
 
@@ -148,7 +143,6 @@ EUIPO / IP Australia pattern.
 1. Verify foreign-developer signup path: register at KIPRIS Plus EN portal and `data.go.kr` to confirm whether Korean phone / i-PIN is mandatory. Cite `kiprisplus@kipi.or.kr` as the documented manual workaround.
 2. Once a working `serviceKey` is obtained, smoke-test `patUtliInfoSearchService/getWordSearch`, `trademarkInfoSearchService/getWordSearch`, `designInfoSearchService/getWordSearch` to confirm the XML response shape.
 3. Design `patent_client_agents.kipo_kipris` package per the JPO connector pattern (`patent_client_agents.jpo` is the closest existing template — BYOK + XML response parsing).
-4. Queue a dedicated fee-schedule research wave to produce `fee-schedules/kr-kipo-fees.md`.
 
 ## §6 Open questions
 

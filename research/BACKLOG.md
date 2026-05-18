@@ -12,7 +12,6 @@ as the second top-level strategic doc.
 - [`multilateral/`](multilateral/), [`regional/`](regional/), [`national/`](national/) — per-office strategic synopses (current state, distilled from detail surveys + waves + reconciliation)
 - [`connectors/`](connectors/) — detail surveys per office (the deep dives, dated mostly 2026-05; treat as canonical detail-research)
 - [`waves/`](waves/) — time-stamped research products (frozen audit trail; latest: [`2026-05-16-registered-ip-discovery/`](waves/2026-05-16-registered-ip-discovery/))
-- [`fee-schedules/`](fee-schedules/) — primary-source fee references per office (used by synopses)
 - [`templates/`](templates/) — canonical synopsis template
 
 ## Reconciliation log — drift between original surveys and current state
@@ -26,13 +25,13 @@ though specific lines are stale.
 | Office | Original entry status | 2026-05-16 finding | Source |
 |---|---|---|---|
 | **KIPO** | "Tier 1 Rank 9-10; gated on confirming foreign-developer ServiceKey path" | API is real and clean, but **ToS §11 explicitly forbids sharing Authentication Keys** — proxy-as-a-service is barred. Architecture must be BYOK (env-gated, per-user keys). | [waves/2026-05-16-registered-ip-discovery/kipo-kipris-plus.md](waves/2026-05-16-registered-ip-discovery/kipo-kipris-plus.md) |
-| **DPMA** | "Tier 2; DPMAconnectPlus paid (€200 + contract)" | Cost wasn't the blocker — **contract §3.2 explicitly prohibits passing data to third parties**, which a proxy connector does by definition. Use EPO OPS for DE patents. | [waves/2026-05-16-registered-ip-discovery/dpma-germany.md](waves/2026-05-16-registered-ip-discovery/dpma-germany.md) |
+| **DPMA** | "Tier 2; DPMAconnectPlus paid contract" | Cost wasn't the blocker — **contract §3.2 explicitly prohibits passing data to third parties**, which a proxy connector does by definition. Use EPO OPS for DE patents. | [waves/2026-05-16-registered-ip-discovery/dpma-germany.md](waves/2026-05-16-registered-ip-discovery/dpma-germany.md) |
 | **UKIPO** | "Tier 2; One IPO REST APIs in build, ships H2-2025/2026; don't scrape registers" | **One IPO Patents Service launched 2026-03-31 without a public search API.** IPO has explicitly stated "exact timeline for releasing APIs is still to be confirmed." Treat as red until announced. | [waves/2026-05-16-registered-ip-discovery/ukipo-uk.md](waves/2026-05-16-registered-ip-discovery/ukipo-uk.md) |
 | **CIPO** | "Tier 2; CanLII + bulk + manuals path" | The entire ISED API Catalogue lists 3 APIs total across the department; the only CIPO entry is the Nice-class classification helper. **Zero REST search APIs across patents/TMs/designs.** CanLII remains the recommended path. | [waves/2026-05-16-registered-ip-discovery/cipo-canada.md](waves/2026-05-16-registered-ip-discovery/cipo-canada.md) |
-| **WIPO PATENTSCOPE / Global Brand DB / Global Design DB** | "Tier 1 hard skip; ToS forbids automation" | Confirmed and grounded. **PATENTSCOPE only has paid SOAP/SFTP (CHF 600–2,000/yr)**; Brand DB public API is restricted to "collaborating IP Offices"; UI now CAPTCHA-walled with AltCha proof-of-work. The original "skip" verdict stands; undocumented `public-api.branddb.wipo.int` suggests a future partner program. | [waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md](waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md) |
-| **EUIPO Designs** | "RCD" terminology throughout | **Terminology changed 1 May 2025** to **REUD** (Registered European Union Design) under Reg. 2024/2822. Design renewal periods are 5/10/15/20 (4 renewals, terminate at year 25) — original prompt listed 5 periods. Application fees restructured: registration + publication merged into single €350 fee. | [fee-schedules/em-euipo-fees.md](fee-schedules/em-euipo-fees.md) |
-| **USPTO Trademarks** | "TEAS Plus / TEAS Standard" | **TEAS Plus/Standard abolished 2025-01-18.** Single base fee ($350/class) + surcharges. Statutory discount tiers shifted in late 2022 (UAIA): small 50%→60%, micro 75%→80%. | [fee-schedules/us-uspto-fees.md](fee-schedules/us-uspto-fees.md) |
-| **EPO fees** | Default 2024 schedule | **New schedule effective 2026-04-01 (CA/D 9/25)**: ~5% bump on procedural fees; filing, opposition, and appeal frozen (asymmetric). **Rule 7a EPC micro-entity discount** in force since 2024-04-01 — stackable with Rule 6 language reduction, ~51% total off. | [fee-schedules/ep-epo-fees.md](fee-schedules/ep-epo-fees.md) |
+| **WIPO PATENTSCOPE / Global Brand DB / Global Design DB** | "Tier 1 hard skip; ToS forbids automation" | Confirmed and grounded. PATENTSCOPE only offers paid SOAP/SFTP; Brand DB public API is restricted to "collaborating IP Offices"; UI now CAPTCHA-walled with AltCha proof-of-work. The original "skip" verdict stands; undocumented `public-api.branddb.wipo.int` suggests a future partner program. | [waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md](waves/2026-05-16-registered-ip-discovery/wipo-global-databases.md) |
+| **EUIPO Designs** | "RCD" terminology throughout | **Terminology changed 1 May 2025** to **REUD** (Registered European Union Design) under Reg. 2024/2822. Design renewal periods are 5/10/15/20 (4 renewals, terminate at year 25); application fees restructured (registration + publication merged into a single application fee). | — |
+| **USPTO Trademarks** | "TEAS Plus / TEAS Standard" | TEAS Plus/Standard tiers retired in the 2025 trademark fee rulemaking; current model is a base application fee with surcharges. Patent small/micro discount tiers were adjusted in late 2022 (UAIA). | — |
+| **EPO fees** | Default 2024 schedule | EPO schedule updated periodically by Administrative Council decision (see EPO Official Journal `CA/D` references). **Rule 7a EPC micro-entity discount** in force; stackable with Rule 6 language reduction. | — |
 | **WIPO Hague Express** | "Tier 1 Rank 14 — polite scrape; trivial" | **CORRECTION: not a separable system.** Hague Express is just a `collection=Hague` filter on the Global Design Database UI — same backend, same compiled JS bundle, same ToS, same robots.txt disallow. There is no Hague-specific public API. The `wipo_hague_express` BACKLOG entry should be considered subsumed under the closed Global Design DB verdict. | [waves/2026-05-16-coverage-batch-2/wipo-hague.md](waves/2026-05-16-coverage-batch-2/wipo-hague.md) |
 | **INPI France PISTE** | "Tier 3 Rank 1 — PISTE OAuth2 client + Légifrance + Judilibre" | **CORRECTION: PISTE does NOT host the INPI patent/TM/design APIs.** PISTE only fronts Légifrance / Judilibre / API Entreprise. The INPI register APIs live at `api-gateway.inpi.fr` with **session-bearer + XSRF token bound to a personal data.inpi.fr account** — not OAuth2. Free registration; 10 req/min throttle; 10K daily cap; 10K-result query cap. Right shape is BYOK for TMs + designs (skip patents — EPO OPS covers them). | [waves/2026-05-16-coverage-batch-2/fr-inpi.md](waves/2026-05-16-coverage-batch-2/fr-inpi.md) |
 | **PIBD migration** | "summer 2026" | **PIBD jurisprudence froze 2026-03-11** (earlier than projected). Replacement on data.inpi.fr has no published API schema. Route FR IP case law to Judilibre via PISTE instead. | [waves/2026-05-16-coverage-batch-2/fr-inpi.md](waves/2026-05-16-coverage-batch-2/fr-inpi.md) |
@@ -94,7 +93,7 @@ once the first is built.
 | 4 | `wipo_lex` | WIPO Lex | Free polite scrape; ~50k statutes/treaties/decisions across ~200 jurisdictions; the *universal* substantive-law backbone |
 | 5 | `eurlex_cellar` | EUR-Lex CELLAR (SPARQL + REST) | One client covers CJEU/General Court IP rulings AND EU statutory law (EUTMR 2017/1001, CDR 6/2002, Trade Secrets Dir 2016/943, GI Reg 2024/1143). Free, no auth |
 | 6 | `euipo_guidelines` | EUIPO Examination Guidelines (TM + Design) | Static HTML/PDF; mirrors `mpep` / `tmep`; cheap |
-| 7 | `wipo_patentscope_bulk` | PCT SFTP raw-data feed | CHF 400/yr; weekly XML for ~280k PCT/yr; cleanest WIPO data deal |
+| 7 | `wipo_patentscope_bulk` | PCT SFTP raw-data feed | paid SFTP; weekly XML for ~280k PCT/yr; cleanest WIPO data deal |
 | 8 | `wipo_article6ter` | Article 6ter Express API | Free REST/JSON, no auth, small dataset (state emblems / IGO marks); 1-2 day wrapper |
 | 9 | `kipo_kipris_patents` | KIPRIS Plus — patent endpoints | XML over ServiceKey; ~46 services × 126 products; **gated on confirming foreign-developer ServiceKey path** |
 | 10 | `kipo_kipris_trademarks` | KIPRIS Plus — TM endpoints | Same auth as #9; Nice classes localize to EN; low marginal cost |
@@ -111,8 +110,8 @@ once the first is built.
 Across all four offices, these are *not worth* the engineering effort right now:
 
 - **WIPO Global Brand Database** and **Global Design Database** — ToS forbids automation, anti-scrape defenses, not redistributable
-- **Madrid Monitor bulk XML** — CHF ~30,000/yr; budget conversation, not engineering
-- **PATENTSCOPE SOAP search service** — CHF 2,600/yr, SOAP, poor stack fit; SFTP bulk gives most of the data cheaper
+- **Madrid Monitor bulk XML** — paid bulk; budget conversation, not engineering
+- **PATENTSCOPE SOAP search service** — paid SOAP, poor stack fit; SFTP bulk gives most of the data cheaper
 - **UPOV PLUTO** consumer side — no public bulk path, niche
 - **CNIPA PSS / SBJ direct scrape** — CAPTCHA + JS + ToS-hostile + brittle; go via EPO OPS / Patentscope
 - **CNIPA bulk data contracts** — need a Chinese entity counterparty
@@ -147,7 +146,7 @@ Below is the synthesis — the key headline is that **digital maturity varies wi
 |---|---|---|---|---|
 | **IP Australia** | OAuth 2.0 JSON ✓ | IP RAPID weekly CC-BY ✓✓ | Wrap full API + bulk | **Likely the easiest connector on the entire roadmap.** All four IP rights from one agency; OpenAPI'd; no prior Python client |
 | **CIPO** | None (mid-NGP migration) | IP Horizons ST.36 weekly ✓ | CanLII + bulk + manuals | **CanLII is the real prize** — free JSON REST covering FC/FCA/SCC + TMOB + PAB + statutes. More developer-friendly than half the patent offices |
-| **DPMA** | DPMAconnectPlus paid (€200 + contract); no free REST | Paid backfile only | DEPATISnet scrape + gesetze-im-internet + RiI XML | **Utility models (Gebrauchsmuster) only path** — EPO OPS doesn't cover them; Germany is the heavy GM jurisdiction |
+| **DPMA** | DPMAconnectPlus paid contract; no free REST | Paid backfile only | DEPATISnet scrape + gesetze-im-internet + RiI XML | **Utility models (Gebrauchsmuster) only path** — EPO OPS doesn't cover them; Germany is the heavy GM jurisdiction |
 | **UKIPO** | **Coming H2-2025/2026** ("One IPO" REST APIs in build) | TMJ weekly XML; on-request bulk | MoPP + TM Manual + statutes (legislation.gov.uk CLML/AKN) | **Don't scrape registers** — they'll be obsoleted in ~12 months when One IPO ships |
 | **INPI Brazil** | None | RPI XML weekly ✓ + dados.gov.br annual ✓ | RPI XML parser + LPI mirror | **Unified LPI statute** (Lei 9.279/96 covers patents, designs, marks, GIs, trade secrets in one law) — feature for static-law module pattern |
 | **IPO India** | **Zero** | None | Static law/MPPP + Patent Journal PDFs + Delhi HC IPD | Every live asset is CAPTCHA-gated; canonical records are 200-500MB weekly PDF journals; lean on static side |
@@ -178,7 +177,7 @@ Below is the synthesis — the key headline is that **digital maturity varies wi
 
 ## Tier 2 hard skips
 
-- **DPMAconnectPlus (v1)** — €200 one-time + contract paperwork + username/password (generationally behind EUIPO OAuth); reconsider only if a paying customer needs DE prosecution file wrappers
+- **DPMAconnectPlus (v1)** — contract paperwork + username/password (generationally behind EUIPO OAuth); reconsider only if a paying customer needs DE prosecution file wrappers
 - **DPMA paid backfile XML** — redundant with EPO OPS for DE patent publications
 - **MyCIPO Patents** — account-scoped, no public API; revisit post-NGP
 - **CPD / Canadian TM / Canadian Designs live scrapers (v1)** — viable but brittle mid-NGP; bulk + CanLII covers most needs
@@ -222,7 +221,7 @@ Top 16 across all tiers + UPC by leverage (data value × access cleanliness ÷ e
 9. **`tipo_bulkdata` + `tipo_api` + `tw_statutes`** (T3) — TIPO ships a real REST API + clean bulk portal + standalone Trade Secrets Act in EN; one of the cleanest non-IP5 stacks surveyed.
 10. **`dpma_depatisnet` + `de_caselaw`** (T2) — only path to Gebrauchsmuster corpus + real DE patent-litigation data layer.
 11. **`ukipo_mopp` + `ukipo_tm_manual` + `uk_statutes`** (T2) — MPEP-shape × 2 + CLML statute fetcher with point-in-time queries.
-12. **`wipo_patentscope_bulk`** (T1) — CHF 400/yr SFTP for weekly PCT XML; cleanest WIPO data deal.
+12. **`wipo_patentscope_bulk`** (T1) — paid SFTP for weekly PCT XML; cleanest WIPO data deal.
 13. **`inpi_rpi` + `brazil_law`** (T2) — weekly XML bulletin + unified LPI corpus; whole BR stack in two modules.
 14. **`israel_statutes` + `israel_data_gov_il`** (T3) — 8-statute mirror (incl. unusual Commercial Torts Law statutory trade secrets) + weekly TM CKAN feed; statute-heavy "register-light" build pattern.
 15. **`inpi_bulk`** (T3) — INPI SFTP for D&M ST.86 (parser shared with EUIPO) + patents/TM weekly XML; bulk-first pattern, defer live INPI API to v2.

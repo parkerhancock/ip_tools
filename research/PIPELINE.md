@@ -61,17 +61,12 @@ In order:
 
 **Tool:** subagent following [`RUNBOOK-research.md`](RUNBOOK-research.md) §A.
 
-**On completion:** agent updates STATE.yaml row — sets `synopsis: <path>`, `synopsis_status: filled`, `last_verified: <date>`, sets `verdict: <green|yellow_byok|...|watch>`, sets `next_action: <fee_research|spec_writing|none>`.
+**On completion:** agent updates STATE.yaml row — sets `synopsis: <path>`, `synopsis_status: filled`, `last_verified: <date>`, sets `rating: <green|yellow_byok|...|watch>`, sets `next_action: <spec_writing|none>`.
 
-### Step type B — Fee schedule research
-
-**Input:** entity row with `fee_research: null`.
-
-**Goal:** produce `fee-schedules/<id>-fees.md` per the existing 5-file pattern (USPTO/EPO/EUIPO/JPO/IPA).
-
-**Tool:** subagent following [`RUNBOOK-research.md`](RUNBOOK-research.md) §B.
-
-**On completion:** agent updates STATE.yaml row — sets `fee_research: <path>`, updates the synopsis §4 to link the new file.
+> **Note:** We deliberately do **not** do fee-schedule research. Synopses
+> describe what fee categories exist and link to the office's official
+> schedule. Reproducing fee figures is not our job — see the §4 policy
+> in [`templates/office-synopsis.md`](templates/office-synopsis.md).
 
 ### Step type C — Spec authoring (manual or agent)
 
@@ -106,7 +101,6 @@ A "batch" is N parallel agents of the same type. Recommended batch sizes (lesson
 | Step type | Recommended batch | Notes |
 |---|---|---|
 | A (discovery research) | 4-5 | Independent; web-fetch agents tolerate concurrency |
-| B (fee research) | 4-5 | Same shape as A |
 | C (spec writing) | Usually 1-3 | Often faster manual |
 | D (connector build) | 2-3 | Each in own worktree; verify_connector serialized |
 
@@ -134,15 +128,9 @@ status_filter:
   blocked_by: []
   # rank by tier/priority from BACKLOG.md
   
-# Fee research batch candidates
-status_filter:
-  fee_research: null
-  synopsis: not null
-  blocked_by: []
-  
 # Spec writing batch candidates
 status_filter:
-  verdict: green | yellow_byok
+  rating: green | yellow_byok
   connector_status: planned
   connector_spec: null
   blocked_by: []

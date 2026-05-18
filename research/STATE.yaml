@@ -14,16 +14,15 @@
 #   rights:             list from {patent, utility_model, trademark, design, copyright, plant_variety, gi, trade_secret}
 #   synopsis:           path or null (null = not written)
 #   detail_survey:      path or null
-#   fee_research:       path or null
-#   connector_spec:     path or null (when verdict crosses into build)
-#   verdict:            green | yellow_byok | yellow_paid | red_tos | red_no_api |
+#   connector_spec:     path or null (when rating crosses into build)
+#   rating:           green | yellow_byok | yellow_paid | red_tos | red_no_api |
 #                       red_bulk_only | red_contract | watch | tbd
-#   verdict_basis:      one-line explanation
+#   rating_basis:       one-line explanation
 #   connector_status:   none | planned | spec_ready | in_progress | shipped |
 #                       skipped | blocked
 #   manifest_ids:       list of IDs in coverage/sources.yaml (when shipped)
 #   next_action:        what's next; drives agent selection
-#                       (synopsis_discovery | fee_research | spec_writing |
+#                       (synopsis_discovery | spec_writing |
 #                        connector_build | monitor_partner_api | none)
 #   blocked_by:         list of other entity IDs that must complete first
 #   last_verified:      date of last research touch (YYYY-MM-DD)
@@ -37,7 +36,6 @@ last_updated: 2026-05-17  # INPI 4-chunk build PASS — all 3 connectors (TIPO/K
 stats:
   total_entities: 43
   synopses_filled: 17    # +5 from coverage-batch-2: Madrid, Hague, CNIPA, INPI France, TIPO
-  fee_research_filled: 5
   connectors_shipped: 12
   connectors_in_progress: 3  # TIPO (4 rows) + KIPO (3 rows) + INPI (2 rows); all awaiting human cherry-pick
   connectors_spec_ready: 0
@@ -58,10 +56,9 @@ entities:
     rights: [patent]
     synopsis: multilateral/wipo-patentscope.md
     detail_survey: connectors/wipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_tos
-    verdict_basis: ToS §2.1 forbids automated queries; paid SOAP/SFTP only
+    rating: red_tos
+    rating_basis: ToS §2.1 forbids automated queries; paid SOAP/SFTP only
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_partner_api
@@ -76,10 +73,9 @@ entities:
     rights: [trademark]
     synopsis: multilateral/wipo-madrid.md
     detail_survey: connectors/wipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_tos
-    verdict_basis: ToS §6 bans automated queries (≤10 actions/min/IP); CHF 30,000/yr ICC FTP bulk is only programmatic path
+    rating: red_tos
+    rating_basis: ToS §6 bans automated queries (≤10 actions/min/IP); CHF 30,000/yr ICC FTP bulk is only programmatic path
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_partner_api
@@ -94,10 +90,9 @@ entities:
     rights: [design]
     synopsis: multilateral/wipo-hague.md
     detail_survey: connectors/wipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_tos
-    verdict_basis: Hague Express is just a collection=Hague filter on Global Design DB (same backend, same ToS, robots.txt disallow); Hague Web Services is partner-IP-office-only
+    rating: red_tos
+    rating_basis: Hague Express is just a collection=Hague filter on Global Design DB (same backend, same ToS, robots.txt disallow); Hague Web Services is partner-IP-office-only
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_partner_api
@@ -112,10 +107,9 @@ entities:
     rights: [patent, utility_model, trademark, design, copyright, gi, trade_secret]
     synopsis: null
     detail_survey: connectors/wipo_lex_api_discovery.md
-    fee_research: null
     connector_spec: null
-    verdict: green
-    verdict_basis: Free polite scrape; substantive-law backbone
+    rating: green
+    rating_basis: Free polite scrape; substantive-law backbone
     connector_status: shipped
     manifest_ids: [WO/WIPO/Lex]
     next_action: write_synopsis
@@ -130,10 +124,9 @@ entities:
     rights: [trademark]
     synopsis: multilateral/wipo-global-brand-db.md
     detail_survey: connectors/wipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_tos
-    verdict_basis: ToS prohibits automation; idAPI 188 restricted to "collaborating IP Offices"; CAPTCHA-walled UI
+    rating: red_tos
+    rating_basis: ToS prohibits automation; idAPI 188 restricted to "collaborating IP Offices"; CAPTCHA-walled UI
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_partner_api
@@ -148,10 +141,9 @@ entities:
     rights: [design]
     synopsis: multilateral/wipo-global-design-db.md
     detail_survey: connectors/wipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_tos
-    verdict_basis: ToS prohibits automation; only Hague Web Services (filing-side, IP-office-only); 24-hour IP block
+    rating: red_tos
+    rating_basis: ToS prohibits automation; only Hague Web Services (filing-side, IP-office-only); 24-hour IP block
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_partner_api
@@ -170,10 +162,9 @@ entities:
     rights: [patent]
     synopsis: regional/epo.md
     detail_survey: null
-    fee_research: fee-schedules/ep-epo-fees.md
     connector_spec: null
-    verdict: green
-    verdict_basis: Free OAuth2 OPS API; INPADOC backbone for ~100 offices
+    rating: green
+    rating_basis: Free OAuth2 OPS API; INPADOC backbone for ~100 offices
     connector_status: shipped
     manifest_ids: [EP/EPO/OPS, EP/EPO/CPC, EP/EPC/Statute, EP/EPO/Guidelines, EP/EPO/CaseLaw, UP/EPO/UPGuidelines]
     next_action: migration_playbook_row_9
@@ -188,10 +179,9 @@ entities:
     rights: [trademark, design]
     synopsis: regional/euipo.md
     detail_survey: connectors/euipo.md
-    fee_research: fee-schedules/em-euipo-fees.md
     connector_spec: null
-    verdict: green
-    verdict_basis: Free OAuth2 OpenAPI; EUTM + REUD (formerly RCD)
+    rating: green
+    rating_basis: Free OAuth2 OpenAPI; EUTM + REUD (formerly RCD)
     connector_status: shipped
     manifest_ids: [EM/EUIPO/Trademarks, EM/EUIPO/Designs]
     next_action: rcd_to_reud_cleanup
@@ -206,10 +196,9 @@ entities:
     rights: [patent]
     synopsis: null
     detail_survey: connectors/upc.md
-    fee_research: null
     connector_spec: null
-    verdict: green
-    verdict_basis: OAuth2 public API; PDF decisions; opt-out registry; UPCA + RoP corpus
+    rating: green
+    rating_basis: OAuth2 public API; PDF decisions; opt-out registry; UPCA + RoP corpus
     connector_status: shipped
     manifest_ids: [UPC/UPC/Statutes, UPC/UPC/Decisions]
     next_action: write_synopsis
@@ -224,10 +213,9 @@ entities:
     rights: [patent]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -242,10 +230,9 @@ entities:
     rights: [patent, utility_model, design, trademark, plant_variety]
     synopsis: null
     detail_survey: connectors/aripo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Robots.txt Disallow:/; covered via EPO INPADOC (country code AP)
+    rating: red_no_api
+    rating_basis: Robots.txt Disallow:/; covered via EPO INPADOC (country code AP)
     connector_status: skipped
     manifest_ids: []
     next_action: write_synopsis
@@ -260,10 +247,9 @@ entities:
     rights: [patent, design, trademark, gi]
     synopsis: null
     detail_survey: connectors/oapi.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: No public REST; covered via EPO INPADOC (country code OA)
+    rating: red_no_api
+    rating_basis: No public REST; covered via EPO INPADOC (country code OA)
     connector_status: skipped
     manifest_ids: []
     next_action: write_synopsis
@@ -278,10 +264,9 @@ entities:
     rights: [patent]
     synopsis: null
     detail_survey: connectors/gcc_patent.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Closed for new applications since 2021-01-06; legacy register sunsets ~2041
+    rating: red_no_api
+    rating_basis: Closed for new applications since 2021-01-06; legacy register sunsets ~2041
     connector_status: skipped
     manifest_ids: []
     next_action: write_synopsis
@@ -300,10 +285,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: national/us-uspto.md
     detail_survey: null
-    fee_research: fee-schedules/us-uspto-fees.md
     connector_spec: null
-    verdict: green
-    verdict_basis: Free public APIs across all services; statutory open-data mandate
+    rating: green
+    rating_basis: Free public APIs across all services; statutory open-data mandate
     connector_status: shipped
     manifest_ids: [US/USPTO/ODP/Applications, US/USPTO/ODP/PTAB, US/USPTO/ODP/Petitions, US/USPTO/PPUBS, US/USPTO/Assignments/Patents, US/USPTO/OfficeActions, US/USPTO/BulkData, US/USPTO/TSDR, US/USPTO/TMSearch, US/USPTO/Assignments/Trademarks, US/USPTO/MPEP, US/USPTO/TMEP]
     next_action: migration_playbook_rows_4_8
@@ -318,10 +302,9 @@ entities:
     rights: [copyright]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: green
-    verdict_basis: Free; copyright public records API
+    rating: green
+    rating_basis: Free; copyright public records API
     connector_status: shipped
     manifest_ids: [US/USCO/Registrations]
     next_action: write_synopsis
@@ -336,10 +319,9 @@ entities:
     rights: [patent, utility_model, trademark, design]
     synopsis: national/jp-jpo.md
     detail_survey: null
-    fee_research: fee-schedules/jp-jpo-fees.md
     connector_spec: null
-    verdict: green
-    verdict_basis: Free with credentials (JPO_API_USERNAME + PASSWORD); BYOK pattern
+    rating: green
+    rating_basis: Free with credentials (JPO_API_USERNAME + PASSWORD); BYOK pattern
     connector_status: shipped
     manifest_ids: [JP/JPO]
     next_action: monitor
@@ -354,10 +336,9 @@ entities:
     rights: [patent, utility_model, trademark, design]
     synopsis: national/kr-kipo.md
     detail_survey: connectors/kipo.md
-    fee_research: null
     connector_spec: specs/kr-kipo-connector-spec.md
-    verdict: yellow_byok
-    verdict_basis: KIPRIS Plus API real and clean; ToS §11 forbids key sharing → BYOK only
+    rating: yellow_byok
+    rating_basis: KIPRIS Plus API real and clean; ToS §11 forbids key sharing → BYOK only
     connector_status: in_progress
     manifest_ids: [KR/KIPO/Patents, KR/KIPO/Trademarks, KR/KIPO/Designs]
     next_action: human_integration
@@ -384,10 +365,9 @@ entities:
     rights: [patent, utility_model, trademark, design]
     synopsis: national/cn-cnipa.md
     detail_survey: connectors/cnipa.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Every endpoint WAF-blocked from US egress; 2025 TM platform requires CN mainland mobile + real-name verification — foreigners structurally excluded
+    rating: red_no_api
+    rating_basis: Every endpoint WAF-blocked from US egress; 2025 TM platform requires CN mainland mobile + real-name verification — foreigners structurally excluded
     connector_status: skipped
     manifest_ids: []
     next_action: monitor_register_modernization
@@ -402,10 +382,9 @@ entities:
     rights: [patent, utility_model, trademark, design]
     synopsis: national/de-dpma.md
     detail_survey: connectors/dpma.md
-    fee_research: null
     connector_spec: null
-    verdict: red_contract
-    verdict_basis: Contract §3.2 prohibits proxy use; statutes shipped separately
+    rating: red_contract
+    rating_basis: Contract §3.2 prohibits proxy use; statutes shipped separately
     connector_status: skipped
     manifest_ids: [DE/DPMA/Statutes]
     next_action: monitor_register_modernization
@@ -420,10 +399,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: national/gb-ukipo.md
     detail_survey: connectors/ukipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: IPSUM retired Jan 2025; One IPO replacement HTML-only; no API timeline
+    rating: red_no_api
+    rating_basis: IPSUM retired Jan 2025; One IPO replacement HTML-only; no API timeline
     connector_status: skipped
     manifest_ids: [GB/UKIPO/MoPP]
     next_action: monitor_one_ipo
@@ -438,10 +416,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: national/fr-inpi.md
     detail_survey: connectors/inpi_france.md
-    fee_research: null
     connector_spec: specs/fr-inpi-connector-spec.md
-    verdict: yellow_byok
-    verdict_basis: api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE — older survey was wrong); 10 req/min throttle
+    rating: yellow_byok
+    rating_basis: api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE — older survey was wrong); 10 req/min throttle
     connector_status: in_progress
     manifest_ids: [FR/Legifrance/IP, FR/INPI/Trademarks, FR/INPI/Designs]
     next_action: human_integration
@@ -473,10 +450,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: national/ca-cipo.md
     detail_survey: connectors/cipo.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Zero REST APIs across all rights; CanLII covers case law
+    rating: red_no_api
+    rating_basis: Zero REST APIs across all rights; CanLII covers case law
     connector_status: skipped
     manifest_ids: [CA/CanLII]
     next_action: monitor_ngp
@@ -491,10 +467,9 @@ entities:
     rights: [patent, trademark, design, plant_variety]
     synopsis: national/au-ipaustralia.md
     detail_survey: connectors/ip_australia.md
-    fee_research: fee-schedules/au-ipaustralia-fees.md
     connector_spec: null
-    verdict: green
-    verdict_basis: Modern OAuth2 OpenAPI across all rights + IP RAPID bulk (CC-BY 4.0)
+    rating: green
+    rating_basis: Modern OAuth2 OpenAPI across all rights + IP RAPID bulk (CC-BY 4.0)
     connector_status: shipped
     manifest_ids: [AU/IPAustralia/Patents, AU/IPAustralia/Trademarks, AU/IPAustralia/Designs, AU/IPAustralia/Bulk]
     next_action: monitor
@@ -513,10 +488,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: connectors/ipo_india.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Per older survey — every live asset CAPTCHA-gated; statutes shipped
+    rating: red_no_api
+    rating_basis: Per older survey — every live asset CAPTCHA-gated; statutes shipped
     connector_status: skipped
     manifest_ids: [IN/IPO/Statutes, IN/IPO/MPPP]
     next_action: write_synopsis
@@ -531,10 +505,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: connectors/inpi_brazil.md
-    fee_research: null
     connector_spec: null
-    verdict: yellow_paid
-    verdict_basis: RPI weekly XML bulk + dados.gov.br annual; live register has no API
+    rating: yellow_paid
+    rating_basis: RPI weekly XML bulk + dados.gov.br annual; live register has no API
     connector_status: in_progress
     manifest_ids: []
     next_action: write_synopsis
@@ -549,10 +522,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: connectors/ipos_singapore.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: IP2SG transactional APIs CorpPass-gated to SG entities; data.gov.sg shallow
+    rating: red_no_api
+    rating_basis: IP2SG transactional APIs CorpPass-gated to SG entities; data.gov.sg shallow
     connector_status: in_progress
     manifest_ids: []
     next_action: write_synopsis
@@ -567,10 +539,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: connectors/israel_pto.md
-    fee_research: null
     connector_spec: null
-    verdict: red_no_api
-    verdict_basis: Register portal Angular SPA + reCAPTCHA; data.gov.il weekly TM CKAN feed only
+    rating: red_no_api
+    rating_basis: Register portal Angular SPA + reCAPTCHA; data.gov.il weekly TM CKAN feed only
     connector_status: in_progress
     manifest_ids: []
     next_action: write_synopsis
@@ -585,10 +556,9 @@ entities:
     rights: [patent, utility_model, trademark, design]
     synopsis: national/tw-tipo.md
     detail_survey: connectors/tipo_taiwan.md
-    fee_research: null
     connector_spec: specs/tw-tipo-connector-spec.md
-    verdict: green
-    verdict_basis: Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks
+    rating: green
+    rating_basis: Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks
     connector_status: in_progress
     manifest_ids: [TW/MOJ/TradeSecretsAct, TW/TIPO/Patents, TW/TIPO/UtilityModels, TW/TIPO/Designs, TW/TIPO/Trademarks]
     next_action: human_integration
@@ -609,10 +579,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: connectors/rospatent.md
-    fee_research: null
     connector_spec: null
-    verdict: red_blocked
-    verdict_basis: Politics + economics (Decree 299 zeros foreign-patentee compensation); statutes only
+    rating: red_blocked
+    rating_basis: Politics + economics (Decree 299 zeros foreign-patentee compensation); statutes only
     connector_status: skipped
     manifest_ids: []
     next_action: write_synopsis
@@ -627,10 +596,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -645,10 +613,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -663,10 +630,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -681,10 +647,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -703,10 +668,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -721,10 +685,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -739,10 +702,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -757,10 +719,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -775,10 +736,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -793,10 +753,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -811,10 +770,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -829,10 +787,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -847,10 +804,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -865,10 +821,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -883,10 +838,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Not yet researched
+    rating: tbd
+    rating_basis: Not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -901,10 +855,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: UAE Patent Hive 2025 initiative; not yet researched
+    rating: tbd
+    rating_basis: UAE Patent Hive 2025 initiative; not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -919,10 +872,9 @@ entities:
     rights: [patent, trademark, design]
     synopsis: null
     detail_survey: null
-    fee_research: null
     connector_spec: null
-    verdict: tbd
-    verdict_basis: Saudi Vision 2030 initiative; not yet researched
+    rating: tbd
+    rating_basis: Saudi Vision 2030 initiative; not yet researched
     connector_status: none
     manifest_ids: []
     next_action: synopsis_discovery
@@ -931,5 +883,5 @@ entities:
     notes: Only Gulf national office with usable public search per BACKLOG
 
 # When new entities are added, document them above with the same field
-# shape. When entities are completed, update synopsis/fee_research paths
+# shape. When entities are completed, update synopsis paths
 # and next_action accordingly.

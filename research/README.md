@@ -14,8 +14,9 @@ Indexed and updated as new research lands. Last refactor: 2026-05-16.
 - [`regional/`](regional/) — multi-state offices (EPO, EUIPO, UPC, EAPO, ARIPO, OAPI, GCC)
 - [`national/`](national/) — single-state offices (US, JP, KR, CN, DE, GB, FR, CA, AU, IN, BR, SG, IL, TW, MX, RU, …)
 
-Each office has a synopsis file: distilled strategic view, fee schedule
-URLs, connector verdict in context, cross-references to detail and
+Each office has a synopsis file: distilled strategic view, official
+fee-schedule URLs (no inline figures — we don't reproduce drift-prone
+content), connector rating in context, cross-references to detail and
 waves.
 
 **Need the deep dive?**
@@ -23,7 +24,7 @@ waves.
 - [`waves/`](waves/) — time-stamped research products (frozen audit trail, full primary-source hyperlinks).
 
 **Need fee details?**
-- [`fee-schedules/`](fee-schedules/) — per-office fee research files with primary-source URLs and snapshot dates.
+- Follow the official fee-schedule URL in the synopsis §4. We deliberately do not mirror fee data — see [`templates/office-synopsis.md`](templates/office-synopsis.md) §4 policy.
 
 **Writing a new synopsis?**
 - [`templates/office-synopsis.md`](templates/office-synopsis.md) — canonical template.
@@ -54,9 +55,6 @@ research/
 │   └── 2026-05-16-registered-ip-discovery/
 │       └── 00-summary.md + per-office files
 │
-├── fee-schedules/                     ← per-office fee references (primary-source URLs)
-│   └── us-uspto-fees.md, ep-epo-fees.md, ...
-│
 ├── templates/                         ← canonical templates
 │   └── office-synopsis.md
 │
@@ -75,8 +73,7 @@ research/
 
 1. **New office research:** add a wave under `waves/<date>-<subject>/`; write deep-dive files there. Update the relevant synopsis file in `multilateral/` or `regional/` or `national/` to integrate the findings. Add a row to the BACKLOG reconciliation log if the wave contradicts a prior entry.
 2. **New connector ships:** update the relevant synopsis §5 (Connector strategy). Update `coverage/sources.yaml` (the manifest). Update `COVERAGE_STRATEGY.md` §5 if the coverage matrix shifts.
-3. **Fee schedule refresh:** re-run the fee-schedule agent for that office; update `fee-schedules/<office>-fees.md` with new snapshot date. Update the synopsis §4 if headline figures changed.
-4. **Quarterly watch-list rechecks:** see `BACKLOG.md` quarterly watch list. Update the reconciliation log if anything moved.
+3. **Quarterly watch-list rechecks:** see `BACKLOG.md` quarterly watch list. Update the reconciliation log if anything moved.
 
 ## Glossary
 

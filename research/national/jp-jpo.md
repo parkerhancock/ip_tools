@@ -12,7 +12,6 @@
 
 **Detail surveys:**
 - *No standalone `connectors/jpo.md` exists* — coverage is established and the connector is operational.
-- [`fee-schedules/jp-jpo-fees.md`](../fee-schedules/jp-jpo-fees.md) — 2026-05-16 fee research
 
 **Higher / sibling layers carrying overlapping data:**
 - **EPO INPADOC** — JP patent biblio + family (INPADOC has strong JP coverage); legal events partial
@@ -35,8 +34,7 @@ review, JPO is the authoritative source for Japanese-language full text
 and JP-specific procedural events. EPO INPADOC substitutes for JP
 patent biblio + family at the regional layer.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **Japanese-language patent full text** (EPO OPS full-text doesn't cover JP applications in native Japanese for the most part)
 - **Real-time JP patent prosecution status** (vs. INPADOC's lag)
 - **JP utility models** — Japan is a top global jurisdiction for UM filings
@@ -59,10 +57,10 @@ patent biblio + family at the regional layer.
 | ToS posture | Permissive for proxy with proper credentials (per existing connector ToS handling) |
 | Verdict (zero-infra proxy) | 🟢 **Green** — operational |
 
-Important operational note: per [`memory/project_cloud_run_egress.md`](../../../../.claude/projects/-Users-parkerhancock-Projects-parker-monorepo-tools-patent-client-agents/memory/project_cloud_run_egress.md),
-**JPO origin server filters Cloud Run egress harder than residential
-IPs** — same egress pattern as USPTO TESS. Test JPO API access per
-deployment. The recent fee research [agent had to route through web.archive.org](../fee-schedules/jp-jpo-fees.md) because direct JPO origin was blocked from our network.
+Important operational note: **JPO origin server filters Cloud Run
+egress harder than residential IPs** — same egress pattern as USPTO
+TESS. Test JPO API access per deployment; some research has had to
+route through web.archive.org when direct JPO origin is blocked.
 
 ### J-PlatPat web UI
 
@@ -77,49 +75,16 @@ deployment. The recent fee research [agent had to route through web.archive.org]
 We expose a helper `get_jpo_jplatpat_url(application_number)` for
 direct URL construction without scraping.
 
-## §4 Fee schedule (current — JPY; **effective 2022-04-01, unchanged since**)
+## §4 Fees
 
-**Detail file:** [`fee-schedules/jp-jpo-fees.md`](../fee-schedules/jp-jpo-fees.md)
-**Official schedule:** [JPO fee schedule (EN)](https://www.jpo.go.jp/e/system/process/tesuryo/hyou.html)
-**Effective date:** 2022-04-01
-**Statutory basis:** Patent Act + Utility Model Act + Design Act + Trademark Act, with fees in supplementary tables
+JPO publishes patent, trade mark, and design fee schedules in JPY.
+Patent annuities **and** examination requests are **claim-count-dependent
+at every band** — a structural quirk worth knowing when modeling
+prosecution cost.
 
-**Notable:** JPO fees have **not been updated since 1 April 2022** —
-that schedule is still live. The 2022 revision was a meaningful jump
-(examination request base went ¥118,000 → ¥138,000; trademark renewal
-¥38,800 → ¥43,600 per class).
+- **Official schedule (EN):** [JPO fee schedule](https://www.jpo.go.jp/e/system/process/tesuryo/hyou.html)
+- **Statutory basis:** Patent Act, Utility Model Act, Design Act, and Trademark Act, with fees set in supplementary tables.
 
-### Patent fees
-
-| Category | Amount (JPY) | Notes |
-|---|---|---|
-| Application filing | 14,000 | |
-| Request for examination | 138,000 + (4,000 × claims) | **Claim-count-dependent** |
-| Patent fee yr 1-3 | 2,300 + (200 × claims) per year | |
-| Patent fee yr 4-6 | 7,200 + (700 × claims) per year | |
-| Patent fee yr 7-9 | 21,600 + (1,800 × claims) per year | |
-| Patent fee yr 10+ | 61,600 + (4,800 × claims) per year | |
-
-**Note:** Unlike many offices, **JPO patent annuities are claim-count-dependent at every band** (not just at examination).
-
-### Trademark fees
-
-| Category | Amount (JPY) | Notes |
-|---|---|---|
-| Application (1 class) | 12,000 | |
-| Each additional class | 8,600 | |
-| Registration (1 class, 10 yr) | 32,900 | |
-| Renewal (1 class) | 43,600 | (up from 38,800 pre-2022) |
-| Split payment registration | 17,200 / 5 yr × 2 | |
-
-### Design fees
-
-| Category | Amount (JPY) | Notes |
-|---|---|---|
-| Application | 16,000 | per design |
-| Registration | 8,500 / yr | |
-| Annual fees yr 1-3 | 8,500 | |
-| Annual fees yr 4+ | 16,900 | escalates per band |
 
 ## §5 Connector strategy
 
@@ -178,11 +143,10 @@ Primary sources only.
 - [Japan Patent Act (EN)](https://www.japaneselawtranslation.go.jp/en/laws/view/3915) — via Japanese Law Translation Database
 
 **Detail in this repo:**
-- [`fee-schedules/jp-jpo-fees.md`](../fee-schedules/jp-jpo-fees.md)
 - [`MIGRATION_PLAYBOOK.md`](../../MIGRATION_PLAYBOOK.md) row 11 (JPO migration ✅)
 
 ## §8 Change log
 
 | Date | Change | Source |
 |---|---|---|
-| 2026-05-16 | Initial synopsis. Flagged 2022-04-01 fee schedule (4+ years stable; 2022 was a meaningful jump). Confirmed JPO Cloud Run egress blocked per memory note. | [fee-schedules/jp-jpo-fees.md](../fee-schedules/jp-jpo-fees.md) |
+| 2026-05-16 | Initial synopsis. Confirmed JPO Cloud Run egress blocked per memory note. | — |

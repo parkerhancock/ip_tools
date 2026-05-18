@@ -35,8 +35,7 @@ For Canadian IP work, the recommended path is EPO INPADOC for patent
 biblio/family + CanLII for case law and statutes. National-only TM and
 design data has no proxyable substitute.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **CA patent prosecution status** in real time (vs. INPADOC's lag)
 - **CA file wrappers** (national-only direct filings)
 - **National-only CA trademarks** (pre-Madrid-accession 2019; post-accession non-Madrid filings)
@@ -105,9 +104,8 @@ ingestion.
 | ToS | Open Government Licence — Canada |
 | Verdict | 🔴 Red (bulk-shaped, not proxy-shaped) |
 
-## §4 Fee schedule
+## §4 Fees
 
-**Detail file:** *no fee-schedules/ca-cipo-fees.md yet — queued for future research*
 **Official schedule:** [CIPO — Fees (ised-isde.canada.ca)](https://ised-isde.canada.ca/site/canadian-intellectual-property-office/en/fees)
 **Statutory basis:** Patent Rules, Trademarks Regulations, Industrial Design Regulations (under the respective Acts)
 

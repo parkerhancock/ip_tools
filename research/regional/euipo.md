@@ -14,7 +14,6 @@
 **Detail surveys:**
 - [`connectors/euipo.md`](../connectors/euipo.md) — 2026-05 detail survey (172 lines)
 - [`euipo_api_authoritative.md`](../euipo_api_authoritative.md) — earlier authoritative API research
-- [`fee-schedules/em-euipo-fees.md`](../fee-schedules/em-euipo-fees.md) — 2026-05-16 fee research
 
 **Sibling layers carrying overlapping data:**
 - **National TM offices** — for national-only TMs filed at DE/FR/IT/etc. offices (not via EUTM). EUIPO does NOT cover these.
@@ -39,8 +38,7 @@ For national-only EU TMs and designs, national connectors are still
 required and most are not proxyable under current ToS constraints (see
 [`COVERAGE_STRATEGY.md`](../COVERAGE_STRATEGY.md) §3).
 
-## §2 What's unique here (not covered by other layers)
-
+## §2 What's unique here
 - **EUTMs** — single application across all 27 EU states (1996+, ~3.7M marks)
 - **REUDs** (Registered European Union Designs) — single application across all 27 EU states (2003+, ~1.7M designs)
 - **EUTM oppositions / invalidity proceedings**
@@ -115,38 +113,18 @@ Used for fetching prosecution-record documents.
 OpenAPIs in [`research/openapi/`](../openapi/). Auxiliary lookups for
 Nice classification, applicant normalization, Locarno classification.
 
-## §4 Fee schedule (post-Reg. 2024/2822 reform; Phase I effective 2025-05-01)
+## §4 Fees
 
-**Detail file:** [`fee-schedules/em-euipo-fees.md`](../fee-schedules/em-euipo-fees.md)
-**TM schedule:** [EUIPO TM fees](https://www.euipo.europa.eu/en/trade-marks/before-applying/fees-payable-direct-to-the-euipo)
-**Design schedule:** [EUIPO Design fees](https://www.euipo.europa.eu/en/designs/before-applying/fees-payable-direct-to-the-euipo)
-**Legal basis:** [Regulation (EU) 2024/2822](https://eur-lex.europa.eu/eli/reg/2024/2822/oj)
+EUIPO publishes two schedules — EUTM (trade marks) and REUD (Registered
+EU Design, post-reform name for RCD).
 
-### EUTM fees (stable since EUTMR 2017/1001)
+- **EUTM fees:** application (per class), opposition, renewal (10-year term).
+  - [EUIPO TM fees](https://www.euipo.europa.eu/en/trade-marks/before-applying/fees-payable-direct-to-the-euipo)
+- **REUD fees:** application (combined registration + publication after Reg. (EU) 2024/2822), deferment, renewal in a back-loaded curve across years 5/10/15/20. Design rights terminate after 25 years.
+  - [EUIPO Design fees](https://www.euipo.europa.eu/en/designs/before-applying/fees-payable-direct-to-the-euipo)
+- **Legal basis:** [Regulation (EU) 2024/2822](https://eur-lex.europa.eu/eli/reg/2024/2822/oj) (REUD reform); EUTMR ([Reg. 2017/1001](https://eur-lex.europa.eu/eli/reg/2017/1001/oj)) for EUTM.
 
-| Category | Amount (EUR) | Notes |
-|---|---|---|
-| Application (1 class, e-filing) | 850 | Paper: 1,000 |
-| 2nd class | 50 | |
-| 3rd+ class | 150 each | |
-| Opposition | 320 | |
-| Renewal (1 class) | 850 (10 yr) | |
-
-### REUD fees (post-reform; major restructure)
-
-**Notable: registration + publication merged into single application fee.**
-
-| Category | Amount (EUR) | Notes |
-|---|---|---|
-| Application (single design) | 350 | Combined fee — replaces old €230 registration + €120 publication |
-| Deferment | 40 | Flat fee (replaced old surcharge structure) |
-| 1st renewal (yr 5) | 150 | |
-| 2nd renewal (yr 10) | 250 | |
-| 3rd renewal (yr 15) | 400 | |
-| 4th renewal (yr 20) | 700 | **Almost 4× the old €180 — back-loaded cost curve** |
-| Termination | yr 25 | (only 4 renewals; design rights terminate after 25 years total) |
-
-**Notable: late-payment surcharges abolished.**
+*(frozen at the date written; consult the official URLs above for current figures).*
 
 ## §5 Connector strategy
 
@@ -160,7 +138,7 @@ Nice classification, applicant normalization, Locarno classification.
 
 - **Terminology cleanup** — update `EM/EUIPO/Designs` manifest entry and connector code to reflect **REUD** rather than RCD throughout. The old RCD language is grandfathered but new code should use the current term. ([Reconciliation log entry in BACKLOG.md](../BACKLOG.md).)
 - **§5.9 envelope sweep on EUIPO tools** — completed in [MIGRATION_PLAYBOOK.md row 10](../../MIGRATION_PLAYBOOK.md) ✅. Tools are envelope-compliant.
-- **Fee modeling** — REUD renewal fee changes (especially the 4th renewal jumping from €180 to €700) are material for clients renewing older designs. If we expose fees via API/MCP, this needs to be in the data.
+- **Fee modeling** — the REUD reform back-loaded the renewal curve significantly (4th renewal at year 20 is now a multiple of the old fee). If we expose fees via API/MCP, that curve needs to be modeled accurately — see the EUIPO design fees page linked above for current figures.
 
 ### What we should NOT add
 
@@ -208,10 +186,9 @@ Primary sources only.
 **Detail survey + fee research:**
 - [`connectors/euipo.md`](../connectors/euipo.md)
 - [`euipo_api_authoritative.md`](../euipo_api_authoritative.md)
-- [`fee-schedules/em-euipo-fees.md`](../fee-schedules/em-euipo-fees.md)
 
 ## §8 Change log
 
 | Date | Change | Source |
 |---|---|---|
-| 2026-05-16 | Initial synopsis. **Reconciled RCD → REUD terminology (Reg. 2024/2822 Phase I, 2025-05-01).** REUD renewal periods are 5/10/15/20 with 4th renewal almost 4× the old fee. Single €350 application fee replaces old €230 registration + €120 publication. Late-payment surcharges abolished. | [fee-schedules/em-euipo-fees.md](../fee-schedules/em-euipo-fees.md) |
+| 2026-05-16 | Initial synopsis. Reconciled RCD → REUD terminology (Reg. 2024/2822 Phase I). Noted REUD reform restructured the renewal curve (years 5/10/15/20 with a steep 4th renewal) and replaced separate registration + publication fees with a single application fee. Late-payment surcharges abolished. | — |

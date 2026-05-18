@@ -38,9 +38,8 @@ the spec tells you *what to build, exactly*.
 # Connector spec — {{ office_name }} ({{ entity_id }})
 
 **Source synopsis:** [`../{{ synopsis_path }}`](../{{ synopsis_path }})
-**Source fee research:** [`../fee-schedules/{{ fee_path }}`](../fee-schedules/{{ fee_path }}) (if exists)
 **Authoring date:** YYYY-MM-DD
-**Verdict basis:** copy from STATE.yaml `.verdict_basis`
+**Rating basis:** copy from STATE.yaml `.rating_basis`
 
 ## §1 Package layout
 
@@ -134,7 +133,6 @@ Tests required:
 - Synopsis: [`../{{ synopsis_path }}`](../{{ synopsis_path }})
 - Detail survey: [`../connectors/{{ survey_path }}`](../connectors/{{ survey_path }}) (if exists)
 - Wave research: [`../waves/{{ wave_path }}`](../waves/{{ wave_path }}) (if exists)
-- Fee research: [`../fee-schedules/{{ fee_path }}`](../fee-schedules/{{ fee_path }}) (if exists)
 - Canonical template connector: `src/patent_client_agents/{{ template_slug }}/`
 - CONNECTOR_STANDARDS.md §x.y
 ```

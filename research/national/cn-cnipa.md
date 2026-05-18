@@ -41,8 +41,7 @@ closed to foreign programmatic users. Practical access flows
 through three higher-layer proxies (EPO OPS, WIPO Patentscope, WIPO
 Hague) for as much of the data as those proxies cover.
 
-## §2 What's unique here (only available from CNIPA, if at all)
-
+## §2 What's unique here
 - **CN-language full text** (description + claims) of utility
   models and pre-1996 inventions — EPO OPS and Patentscope are
   thinner here than for inventions from 1996+.
@@ -106,36 +105,21 @@ Material details for the most consequential of these:
   facing, not searcher-facing, but indicates the internal data is
   already ST.96-shaped.
 
-## §4 Fee schedule (snapshot 2026-05-16)
+## §4 Fees
 
-**Detail file:** *pending dedicated fee research*
-**Official schedule:** [`english.cnipa.gov.cn/col/col3000/`](https://english.cnipa.gov.cn/col/col3000/index.html) (Patent Fee Schedule, in CNY)
-**Effective date:** Current schedule; reduced-fee policy for SME annuities (85% discount) in effect; open-license annuity discount 15% (2024).
+CNIPA publishes patent fee schedules in CNY covering filing (invention /
+utility model / design), additional priority claims, publication
+printing, substantive examination (invention only), annuities (banded
+across years 1–20 plus PTA-period annuities), reexamination, evaluation
+reports (UM/design), and invalidation petitions. Trade mark and IC
+layout-design schedules sit on the same English landing.
 
-Indicative headline figures in CNY (from CNIPA English fee schedule, 2026-05-16 snapshot):
+- **Official schedule (EN):** [CNIPA — Patent Fee Schedule](https://english.cnipa.gov.cn/col/col3000/index.html)
 
-| Category | Amount (CNY) | Notes |
-|---|---|---|
-| Filing — invention patent | 900 | excludes additional fees |
-| Filing — utility model | 500 | |
-| Filing — design | 500 | |
-| Filing — additional priority claim, each | 150 | |
-| Printing fee on publication | 100 | |
-| Substantive examination | 2,500 | invention only |
-| Annuity yrs 1–3 | 900 | per year |
-| Annuity yrs 4–6 | 1,200 | per year |
-| Annuity yrs 7–9 | 2,000 | per year |
-| Annuity yrs 10–12 | 4,000 | per year |
-| Annuity yrs 13–15 | 6,000 | per year |
-| Annuity yrs 16–20 | 8,000 | per year |
-| PTA-period annuity (per year of extension) | 8,000 | post-2020 Patent Law |
-| Reexamination | 1,000 | invention |
-| Evaluation report (utility model / design) | 2,400 | |
-| Invalidation petition | 3,000 | |
+Discount programs:
 
-Fee reductions for individuals and SMEs run up to 85% on annuities;
-open-license patents get a separate 15% reduction. TM and IC
-layout-design schedules are on the same English Fees landing.
+- **Fee reductions for individuals and SMEs** on annuities (eligibility under State Council policy).
+- **Open-license patent annuity reduction** (introduced under the 2020 Patent Law amendment).
 
 ## §5 Connector strategy
 
@@ -191,7 +175,6 @@ If we want richer CN coverage beyond what EPO OPS gives:
 3. Confirm via a live INPADOC call that the December 2024 ST.27
    legal-status events actually appear in the EPO OPS CN feed
    today (not just announced by CNIPA).
-4. Dedicated fee-schedule research file (`fee-schedules/cn-cnipa-fees.md`).
 
 ## §6 Open questions
 

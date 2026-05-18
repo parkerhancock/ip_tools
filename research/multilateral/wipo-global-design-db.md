@@ -36,8 +36,7 @@ prohibits automated queries, and there's no public search API at all —
 only Hague Web Services, which is a filing-side back-end for IP offices,
 not a search surface.
 
-## §2 What's unique here (not covered by higher layers)
-
+## §2 What's unique here
 - **Hague IRs in a unified search** — Hague IRs are reachable via WIPO Madrid-equivalent processes but the Global Design DB is the consumer-facing search.
 - **National designs from offices that don't have their own public API.**
 - **Hague-specific bibliographic detail** that doesn't always flow up to national designations.
@@ -85,7 +84,7 @@ Limited to Hague IRs (not the broader Global Design DB aggregation).
 | ToS posture | Subject to WIPO general ToS |
 | Verdict | 🟡 Yellow — polite scrape conceivable; smaller scope (Hague IRs only); see [BACKLOG Tier 1 Rank 14](../BACKLOG.md) for `wipo_hague_express` |
 
-## §4 Fee schedule
+## §4 Fees
 
 Hague System filing fees (the source of most Design DB records) live
 with the Hague System, not Design DB.
