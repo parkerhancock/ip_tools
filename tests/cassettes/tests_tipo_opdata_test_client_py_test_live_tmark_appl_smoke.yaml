@@ -1,0 +1,95 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - application/json
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - cloud.tipo.gov.tw
+      user-agent:
+      - patent-client-agents-tipo-opdata/0.1
+    method: GET
+    uri: https://cloud.tipo.gov.tw/S220/opdataapi/api/TmarkAppl?format=json&skip=0&tk=REDACTED&top=2
+  response:
+    body:
+      string: "{\n  \"version\": \"1.0\",\n  \"status\": \"ok\",\n  \"message\": \"\",\n
+        \ \"top\": 2,\n  \"skip\": 0,\n  \"order-by\": \"appl-no\",\n  \"total-count\":
+        3386403,\n  \"tmarkappl\": {\n    \"-page-count\": 2,\n    \"-create-date\":
+        \"2026/05/17\",\n    \"tmarkcontent\": [\n      {\n        \"-sequence\":
+        1,\n        \"appl-no\": \"000000001\",\n        \"appl-date\": \"1951/02/27\",\n
+        \       \"tmark-name\": \"\u6797\u68EE\",\n        \"tmark-class\": \"1\",\n
+        \       \"tmark-class-desc\": \"\u5546\u6A19\",\n        \"tmark-image-url\":
+        [\n          {\n            \"image-data-1\": \"https://cloud.tipo.gov.tw/S282/S282WV1/pic/20160227/000/000/001/pic_000000001_20110105_1.jpg\",\n
+        \           \"image-data-2\": null,\n            \"image-data-3\": null,\n
+        \           \"image-data-4\": null,\n            \"image-data-5\": null,\n
+        \           \"image-data-6\": null,\n            \"audio-filename\": null\n
+        \         }\n        ],\n        \"tmark-type\": null,\n        \"tmark-type-desc\":
+        null,\n        \"tmark-color\": \"1\",\n        \"tmark-color-desc\": \"\u58A8\u8272\",\n
+        \       \"tmark-draft-c\": \"\u6797\u68EE\",\n        \"tmark-draft-e\": null,\n
+        \       \"tmark-draft-j\": null,\n        \"tmark-sign\": null,\n        \"word-description\":
+        null,\n        \"out-off-draft\": null,\n        \"tmark-desc\": null,\n        \"receive-date\":
+        null,\n        \"goodsclasses\": [\n          {\n            \"-sequence\":
+        1,\n            \"goodsclass-code\": \"032\",\n            \"goods-name\":
+        \"\u7F8E\u9AEE\u971C\u5546\u54C1\u3002\",\n            \"goods-group\": \"\"\n
+        \         }\n        ],\n        \"parties\": {\n          \"applicants\":
+        [\n            {\n              \"-sequence\": 1,\n              \"chinese-name\":
+        \"\u76DB\u9999\u5802\u3000\u8A31\u9257\",\n              \"english-name\":
+        null,\n              \"japanese-name\": null,\n              \"address\":
+        \"\u81FA\u4E2D\u5E02\u5FA9\u8208\u8DEF170\u865F\",\n              \"country-code\":
+        \"TW\",\n              \"chinese-country-name\": \"\u4E2D\u83EF\u6C11\u570B\"\n
+        \           }\n          ],\n          \"agents\": [\n            {\n              \"-sequence\":
+        1,\n              \"chinese-name\": \"\u9673\u5BB6\u852D\",\n              \"address\":
+        null\n            }\n          ]\n        }\n      },\n      {\n        \"-sequence\":
+        2,\n        \"appl-no\": \"000000002\",\n        \"appl-date\": \"1951/02/27\",\n
+        \       \"tmark-name\": \"\u6797\u68EE\",\n        \"tmark-class\": \"1\",\n
+        \       \"tmark-class-desc\": \"\u5546\u6A19\",\n        \"tmark-image-url\":
+        [\n          {\n            \"image-data-1\": \"https://cloud.tipo.gov.tw/S282/S282WV1/pic/20160227/000/000/002/pic_000000002_20110105_1.jpg\",\n
+        \           \"image-data-2\": null,\n            \"image-data-3\": null,\n
+        \           \"image-data-4\": null,\n            \"image-data-5\": null,\n
+        \           \"image-data-6\": null,\n            \"audio-filename\": null\n
+        \         }\n        ],\n        \"tmark-type\": null,\n        \"tmark-type-desc\":
+        null,\n        \"tmark-color\": \"1\",\n        \"tmark-color-desc\": \"\u58A8\u8272\",\n
+        \       \"tmark-draft-c\": \"\u6797\u68EE\",\n        \"tmark-draft-e\": null,\n
+        \       \"tmark-draft-j\": null,\n        \"tmark-sign\": null,\n        \"word-description\":
+        null,\n        \"out-off-draft\": null,\n        \"tmark-desc\": null,\n        \"receive-date\":
+        null,\n        \"goodsclasses\": [\n          {\n            \"-sequence\":
+        1,\n            \"goodsclass-code\": \"033\",\n            \"goods-name\":
+        \"\u9762\u971C\u5546\u54C1\u3002\",\n            \"goods-group\": \"\"\n          }\n
+        \       ],\n        \"parties\": {\n          \"applicants\": [\n            {\n
+        \             \"-sequence\": 1,\n              \"chinese-name\": \"\u76DB\u9999\u5802\u3000\u8A31\u9257\",\n
+        \             \"english-name\": null,\n              \"japanese-name\": null,\n
+        \             \"address\": \"\u81FA\u4E2D\u5E02\u5FA9\u8208\u8DEF170\u865F\",\n
+        \             \"country-code\": \"TW\",\n              \"chinese-country-name\":
+        \"\u4E2D\u83EF\u6C11\u570B\"\n            }\n          ],\n          \"agents\":
+        [\n            {\n              \"-sequence\": 1,\n              \"chinese-name\":
+        \"\u9673\u5BB6\u852D\",\n              \"address\": null\n            }\n
+        \         ]\n        }\n      }\n    ]\n  }\n}"
+    headers:
+      CF-RAY:
+      - 9fcd895f0fcb6b56-DFW
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Sat, 16 May 2026 21:39:45 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - Path=/; HttpOnly; Secure
+      Transfer-Encoding:
+      - chunked
+      cf-cache-status:
+      - DYNAMIC
+      content-length:
+      - '3713'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+version: 1

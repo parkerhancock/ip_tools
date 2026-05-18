@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-18T17:01:44+00:00",
+  "generated_at": "2026-05-18T19:55:15+00:00",
   "schema_version": 1,
   "summary": {
     "total_entities": 46,
@@ -1101,7 +1101,72 @@
       "last_verified": "2026-05-16",
       "synopsis_url": "https://docs.patentclient.com/patent-client-index/national/tw-tipo/",
       "github_research_url": "https://github.com/parkerhancock/patent-client-agents/blob/main/research/national/tw-tipo.md",
-      "shipped_sources": []
+      "shipped_sources": [
+        {
+          "id": "TW/TIPO/Patents",
+          "name": "TIPO Taiwan \u2014 Patents (invention)",
+          "rights": [
+            "patent"
+          ],
+          "data_types": [
+            "bibliographic",
+            "legal_status",
+            "classification"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.tipo_opdata"
+        },
+        {
+          "id": "TW/TIPO/UtilityModels",
+          "name": "TIPO Taiwan \u2014 Utility Models",
+          "rights": [
+            "patent"
+          ],
+          "data_types": [
+            "bibliographic",
+            "legal_status",
+            "classification"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.tipo_opdata"
+        },
+        {
+          "id": "TW/TIPO/Designs",
+          "name": "TIPO Taiwan \u2014 Designs",
+          "rights": [
+            "design"
+          ],
+          "data_types": [
+            "bibliographic",
+            "legal_status",
+            "classification"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.tipo_opdata"
+        },
+        {
+          "id": "TW/TIPO/Trademarks",
+          "name": "TIPO Taiwan \u2014 Trademarks",
+          "rights": [
+            "trademark"
+          ],
+          "data_types": [
+            "bibliographic",
+            "legal_status",
+            "classification"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.tipo_opdata"
+        }
+      ]
     },
     {
       "id": "RU/Rospatent",

@@ -64,6 +64,9 @@ src/
     tw_trade_secrets/       # Taiwan Trade Secrets Act (營業秘密法,
                             #   EN translation) Arts. 1/2/3/10/11/13/13-1.
                             #   Single-statute SQLite/FTS5 corpus.
+    tipo_opdata/            # TIPO Taiwan OpenData REST — patents, utility
+                            #   models, designs, trademarks (biblio-only).
+                            #   Needs TIPO_API_KEY (single ``tk`` UUID).
     cpc/                    # CPC classification lookups (via EPO OPS)
     mpep/                   # Manual of Patent Examining Procedure search
     skills/ip_research/     # Skill content packaged with the wheel; downstream
