@@ -49,6 +49,15 @@ os.environ.setdefault("EUIPO_CLIENT_SECRET", "test_euipo_secret")
 # ``filter_query_parameters`` config below.
 os.environ.setdefault("TIPO_API_KEY", "test_tipo_tk")
 
+# KIPRIS Plus (kipo_kipris) MCP tools are env-gated on a single per-user
+# ``serviceKey`` (ToS §11 BYOK). KIPRIS responses are XML — no OAuth
+# token endpoint to scrub. The placeholder below registers the env-gated
+# tools so the MCP-envelope tests can call into them; the value never
+# reaches the network because every KIPRIS test uses httpx.MockTransport
+# (no live cassettes recorded for KIPRIS in v1 — see
+# tests/kipo_kipris/conftest.py docstring for the rationale).
+os.environ.setdefault("KIPO_KIPRIS_API_KEY", "test_kipris_servicekey")
+
 USPTO_LIVE_ENV_VAR = "USPTO_LIVE_TESTS"
 JPO_LIVE_ENV_VAR = "JPO_LIVE_TESTS"
 EUIPO_LIVE_ENV_VAR = "EUIPO_LIVE_TESTS"

@@ -35,6 +35,7 @@ from .tools.ip_australia_patents import ip_australia_patents_mcp
 from .tools.ip_australia_trademarks import ip_australia_trademarks_mcp
 from .tools.ipo_in_mppp import ipo_in_mppp_mcp
 from .tools.ipo_in_statutes import ipo_in_statutes_mcp
+from .tools.kipo_kipris import kipo_kipris_mcp
 from .tools.mpep import mpep_mcp
 from .tools.tipo_opdata import tipo_opdata_mcp
 from .tools.tw_trade_secrets import tw_trade_secrets_mcp
@@ -96,6 +97,7 @@ ip_mcp.mount(ipo_in_mppp_mcp)
 ip_mcp.mount(dpma_statutes_mcp)
 ip_mcp.mount(tipo_opdata_mcp)
 ip_mcp.mount(tw_trade_secrets_mcp)
+ip_mcp.mount(kipo_kipris_mcp)
 ip_mcp.mount(upc_mcp)
 
 __all__ = ["ip_mcp"]

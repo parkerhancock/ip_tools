@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-18T19:55:15+00:00",
+  "generated_at": "2026-05-18T19:57:45+00:00",
   "schema_version": 1,
   "summary": {
     "total_entities": 46,
@@ -733,7 +733,56 @@
       "last_verified": "2026-05-17",
       "synopsis_url": "https://docs.patentclient.com/patent-client-index/national/kr-kipo/",
       "github_research_url": "https://github.com/parkerhancock/patent-client-agents/blob/main/research/national/kr-kipo.md",
-      "shipped_sources": []
+      "shipped_sources": [
+        {
+          "id": "KR/KIPO/Patents",
+          "name": "KIPO Korea \u2014 Patents and Utility Models (KIPRIS Plus)",
+          "rights": [
+            "patent"
+          ],
+          "data_types": [
+            "bibliographic",
+            "classification",
+            "legal_status"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.kipo_kipris"
+        },
+        {
+          "id": "KR/KIPO/Trademarks",
+          "name": "KIPO Korea \u2014 Trademarks (KIPRIS Plus)",
+          "rights": [
+            "trademark"
+          ],
+          "data_types": [
+            "bibliographic",
+            "classification",
+            "legal_status"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.kipo_kipris"
+        },
+        {
+          "id": "KR/KIPO/Designs",
+          "name": "KIPO Korea \u2014 Designs (KIPRIS Plus)",
+          "rights": [
+            "design"
+          ],
+          "data_types": [
+            "bibliographic",
+            "classification",
+            "legal_status"
+          ],
+          "access_method": "rest_api",
+          "auth": "api_key",
+          "status": "active",
+          "module": "patent_client_agents.kipo_kipris"
+        }
+      ]
     },
     {
       "id": "CN/CNIPA",
