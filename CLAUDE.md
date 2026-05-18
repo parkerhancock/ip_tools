@@ -64,6 +64,11 @@ src/
     tw_trade_secrets/       # Taiwan Trade Secrets Act (營業秘密法,
                             #   EN translation) Arts. 1/2/3/10/11/13/13-1.
                             #   Single-statute SQLite/FTS5 corpus.
+    inpi_pi/                # INPI France — National Trademarks (ST.66
+                            #   v1.0) + Designs (ST.86 v1.0). TM + Design
+                            #   only; FR patents via EPO OPS. BYOK
+                            #   session-bearer + XSRF auth — needs
+                            #   INPI_USERNAME + INPI_PASSWORD.
     cpc/                    # CPC classification lookups (via EPO OPS)
     mpep/                   # Manual of Patent Examining Procedure search
     skills/ip_research/     # Skill content packaged with the wheel; downstream

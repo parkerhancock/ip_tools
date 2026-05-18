@@ -142,6 +142,25 @@ def _empty_str_to_none(value: Any) -> Any:
     return value
 
 
+def _coerce_to_list(value: Any) -> Any:
+    """Coerce scalars / None to lists for repeated-element fields.
+
+    INPI's XML representation collapses single-occurrence repeated
+    elements (e.g. ``<ClassNumber>9</ClassNumber>`` appearing once)
+    into a scalar via :func:`InpiPiClient._xml_to_dict`. The same
+    field is a JSON array (``["9", "42"]``) in the JSON envelope.
+    Empty XML elements (``<HolderName></HolderName>``) come through
+    as ``None`` and must round-trip to ``[]``. We normalize all three
+    shapes — scalar / None / list — to a list so the row models stay
+    one-shape on the Python side.
+    """
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
+
 class _InpiRowBase(BaseModel):
     """Shared config for INPI row models.
 
@@ -341,6 +360,19 @@ class InpiTrademarkRow(_InpiRowBase):
     def _coerce_empty(cls, value: Any) -> Any:
         return _empty_str_to_none(value)
 
+    # --- List validators (scalar/None → list) -------------------------
+    @field_validator(
+        "nice_classes",
+        "vienna_codes",
+        "applicant_names",
+        "holder_names",
+        "priority_claims",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_list_field(cls, value: Any) -> Any:
+        return _coerce_to_list(value)
+
 
 # =============================================================================
 # Design — ST.86 v1.0
@@ -490,10 +522,7 @@ class InpiDesignRow(_InpiRowBase):
     agent_name: str | None = Field(
         default=None,
         alias="RepresentativeName",
-        description=(
-            "Representative / agent name (INID 74) — ``MANDATAIRE`` "
-            "in INPI search index"
-        ),
+        description=("Representative / agent name (INID 74) — ``MANDATAIRE`` in INPI search index"),
     )
 
     # --- Priority (INID 30/31/32) -------------------------------------
@@ -546,6 +575,20 @@ class InpiDesignRow(_InpiRowBase):
     @classmethod
     def _coerce_empty(cls, value: Any) -> Any:
         return _empty_str_to_none(value)
+
+    # --- List validators (scalar/None → list) -------------------------
+    @field_validator(
+        "image_urls",
+        "loc_classes",
+        "applicant_names",
+        "holder_names",
+        "designer_names",
+        "priority_claims",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_list_field(cls, value: Any) -> Any:
+        return _coerce_to_list(value)
 
 
 __all__ = [

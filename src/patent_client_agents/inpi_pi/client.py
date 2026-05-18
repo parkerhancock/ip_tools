@@ -51,7 +51,7 @@ from law_tools_core.exceptions import (
 from law_tools_core.resilience import default_retryer
 
 from .models import InpiDesignRow, InpiTrademarkRow
-from .session import InpiSession, XSRF_HEADER_NAME, fetch_xsrf, login, refresh
+from .session import XSRF_HEADER_NAME, InpiSession, fetch_xsrf, login, refresh
 
 logger = logging.getLogger(__name__)
 
@@ -402,14 +402,23 @@ class InpiPiClient(BaseAsyncClient):
         list as the row list.
         """
         if isinstance(body, list):
-            return list(body), len(body)
+            coerced: list[dict[str, Any]] = [row for row in body if isinstance(row, dict)]
+            return coerced, len(coerced)
         if not isinstance(body, dict):
             return [], None
         for key in row_key_candidates:
             rows = body.get(key)
             if isinstance(rows, list):
-                total = body.get("total") or body.get("totalCount") or body.get("numFound")
-                return list(rows), (int(total) if isinstance(total, int | float) else None)
+                # Use explicit ``in`` checks so a legitimate zero total
+                # ({"total": 0, "hits": []}) doesn't get swallowed by
+                # truthiness short-circuit.
+                total: Any = None
+                for total_key in ("total", "totalCount", "numFound"):
+                    if total_key in body:
+                        total = body[total_key]
+                        break
+                typed_rows: list[dict[str, Any]] = [r for r in rows if isinstance(r, dict)]
+                return typed_rows, (int(total) if isinstance(total, int | float) else None)
         return [], None
 
     # ------------------------------------------------------------------
@@ -533,9 +542,7 @@ class InpiPiClient(BaseAsyncClient):
         rows, total = self._parse_search_envelope(response.json())
         return [InpiTrademarkRow.model_validate(row) for row in rows], total
 
-    async def get_trademark(
-        self, application_number: str | list[str]
-    ) -> list[InpiTrademarkRow]:
+    async def get_trademark(self, application_number: str | list[str]) -> list[InpiTrademarkRow]:
         """Fetch one or more FR national trademarks by application number.
 
         Accepts a single string or a list (capped at 50 per §5.4). Calls
@@ -603,9 +610,7 @@ class InpiPiClient(BaseAsyncClient):
         rows, total = self._parse_search_envelope(response.json())
         return [InpiDesignRow.model_validate(row) for row in rows], total
 
-    async def get_design(
-        self, application_number: str | list[str]
-    ) -> list[InpiDesignRow]:
+    async def get_design(self, application_number: str | list[str]) -> list[InpiDesignRow]:
         """Fetch one or more FR national designs by application number."""
         numbers = _coerce_list(application_number)
         if not numbers:
