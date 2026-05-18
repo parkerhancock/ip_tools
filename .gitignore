@@ -32,4 +32,7 @@ Thumbs.db
 # MkDocs build output
 site/
 
+# patent-client-index: generated overview matrix (synopsis pages are virtual-mounted)
+docs/patent-client-index/
+
 .claude/

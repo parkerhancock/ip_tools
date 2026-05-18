@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'docs_hooks/**'
+      - 'research/**'
+      - 'coverage/atlas.json'
       - 'mkdocs.yml'
       - 'README.md'
       - 'pyproject.toml'

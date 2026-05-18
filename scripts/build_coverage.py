@@ -30,6 +30,48 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES_YAML = ROOT / "coverage" / "sources.yaml"
 COVERAGE_JSON = ROOT / "coverage" / "coverage.json"
+STATE_YAML = ROOT / "research" / "STATE.yaml"
+ATLAS_JSON = ROOT / "coverage" / "atlas.json"
+
+DOCS_BASE_URL = "https://docs.patentclient.com/patent-client-index"
+GITHUB_RESEARCH_URL = (
+    "https://github.com/parkerhancock/patent-client-agents/blob/main/research"
+)
+
+# Rating vocabulary. Mirrored in docs_hooks/sync_patent_client_index.py —
+# keep both in sync until lifted into a shared module.
+# (emoji, short_label, one-line description used as fallback basis.)
+RATING_LABELS: dict[str, tuple[str, str, str]] = {
+    "green": ("🟢", "Green", "Live API, queryable, ToS-clean."),
+    "yellow_byok": ("🟡", "Yellow — BYOK", "Live API, per-user keys required (ToS forbids shared-key proxy)."),
+    "yellow_paid": ("🟡", "Yellow — Paid", "Programmatic access only behind a paid contract or subscription."),
+    "red_tos": ("🔴", "Red — ToS", "Terms of use prohibit programmatic / automated access."),
+    "red_no_api": ("🔴", "Red — No API", "No queryable API surface; HTML-only or bulk-dump access."),
+    "red_bulk_only": ("🔴", "Red — Bulk only", "Bulk download exists but no per-query API."),
+    "red_contract": ("🔴", "Red — Contract", "Access requires a paper / wet-signature contract."),
+    "red_blocked": ("🔴", "Red — Blocked", "Access path exists but is currently blocked (egress filter, geofence, etc.)."),
+    "watch": ("⚪", "Watch", "Monitoring for changes; no decision yet."),
+    "tbd": ("⚪", "TBD", "Research pending."),
+}
+
+# ISO 3166-1 alpha-2 → UN M.49 macro-region bucket. Limited to the
+# countries that appear in research/STATE.yaml; extend as we add entities.
+ISO_TO_REGION: dict[str, str] = {
+    # Americas
+    "US": "americas", "CA": "americas", "MX": "americas", "BR": "americas", "AR": "americas",
+    # Europe
+    "DE": "europe", "GB": "europe", "FR": "europe", "CH": "europe", "NL": "europe",
+    "SE": "europe", "FI": "europe", "AT": "europe", "ES": "europe", "IT": "europe",
+    "RU": "europe",
+    # Asia
+    "JP": "asia", "KR": "asia", "CN": "asia", "IN": "asia", "TW": "asia",
+    "SG": "asia", "ID": "asia", "TH": "asia", "PH": "asia", "AE": "asia",
+    "SA": "asia", "IL": "asia", "TR": "asia",
+    # Oceania
+    "AU": "oceania", "NZ": "oceania",
+    # Africa
+    "ZA": "africa",
+}
 
 RIGHTS = {"patent", "trademark", "design", "copyright", "plant_variety", "gi", "trade_secret"}
 DATA_TYPES = {
@@ -445,6 +487,166 @@ def serialize(obj: Any) -> Any:
     return obj
 
 
+# ─── atlas.json — office-centric fusion of STATE.yaml + sources.yaml ────
+
+
+def _source_matches_entity(source_id: str, entity_id: str) -> bool:
+    """``US/USPTO/ODP/Applications`` matches entity ``US/USPTO``."""
+    return source_id == entity_id or source_id.startswith(entity_id + "/")
+
+
+def _region_for(entity: dict[str, Any]) -> str:
+    layer = entity.get("layer", "")
+    if layer == "multilateral":
+        return "multilateral"
+    if layer == "regional":
+        return "regional"
+    iso = entity.get("iso2") or ""
+    return ISO_TO_REGION.get(iso, "other")
+
+
+def _synopsis_url(entity: dict[str, Any]) -> str | None:
+    syn = entity.get("synopsis")
+    if not syn:
+        return None
+    # ``national/kr-kipo.md`` → ``https://docs.../national/kr-kipo/``
+    slug = syn.replace(".md", "").lstrip("/")
+    return f"{DOCS_BASE_URL}/{slug}/"
+
+
+def _github_research_url(entity: dict[str, Any]) -> str | None:
+    syn = entity.get("synopsis")
+    if not syn:
+        return None
+    return f"{GITHUB_RESEARCH_URL}/{syn.lstrip('/')}"
+
+
+def build_atlas_entities(
+    sources: list[dict[str, Any]],
+    state: dict[str, Any],
+) -> list[dict[str, Any]]:
+    state_entities = state.get("entities", [])
+    # Match sources to entities longest-prefix first so e.g.
+    # ``US/USPTO/ODP/Applications`` binds to ``US/USPTO`` rather than ``US``.
+    entity_ids_sorted = sorted(
+        (e.get("id", "") for e in state_entities), key=len, reverse=True
+    )
+    sources_by_entity: dict[str, list[dict[str, Any]]] = {eid: [] for eid in entity_ids_sorted}
+    for src in sources:
+        sid = src.get("id", "")
+        for eid in entity_ids_sorted:
+            if eid and _source_matches_entity(sid, eid):
+                sources_by_entity[eid].append(src)
+                break
+
+    out: list[dict[str, Any]] = []
+    for entity in state_entities:
+        eid = entity.get("id", "")
+        rating_code = entity.get("rating", "tbd")
+        emoji, label, default_basis = RATING_LABELS.get(
+            rating_code, RATING_LABELS["tbd"]
+        )
+        basis = entity.get("rating_basis", "").strip() or default_basis
+        out.append(
+            {
+                "id": eid,
+                "name": entity.get("name", ""),
+                "layer": entity.get("layer", ""),
+                "iso2": entity.get("iso2") if entity.get("iso2") != "n/a" else None,
+                "region": _region_for(entity),
+                "rights": list(entity.get("rights", [])),
+                "rating": rating_code,
+                "rating_emoji": emoji,
+                "rating_label": label,
+                "rating_basis": basis,
+                "connector_status": entity.get("connector_status", "none"),
+                "last_verified": (
+                    entity["last_verified"].isoformat()
+                    if isinstance(entity.get("last_verified"), dt.date)
+                    else entity.get("last_verified")
+                ),
+                "synopsis_url": _synopsis_url(entity),
+                "github_research_url": _github_research_url(entity),
+                "shipped_sources": [
+                    {
+                        "id": s.get("id"),
+                        "name": s.get("name"),
+                        "rights": s.get("rights", []),
+                        "data_types": s.get("data_types", []),
+                        "access_method": (s.get("access") or {}).get("method"),
+                        "auth": (s.get("access") or {}).get("auth"),
+                        "status": s.get("status"),
+                        "module": (s.get("connector") or {}).get("module"),
+                    }
+                    for s in sources_by_entity.get(eid, [])
+                ],
+            }
+        )
+    return out
+
+
+def build_atlas_unattached_sources(
+    sources: list[dict[str, Any]],
+    state_entities: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Sources that don't bind to any STATE entity (third-party DBs, court
+    repositories, substantive-law corpora not tied to a registry office).
+    Kept as a separate top-level list so the office-centric atlas stays
+    clean.
+    """
+    entity_ids_sorted = sorted(
+        (e.get("id", "") for e in state_entities), key=len, reverse=True
+    )
+    unattached = []
+    for src in sources:
+        sid = src.get("id", "")
+        matched = any(eid and _source_matches_entity(sid, eid) for eid in entity_ids_sorted)
+        if not matched:
+            unattached.append(src)
+    return unattached
+
+
+def compute_atlas_summary(entities: list[dict[str, Any]]) -> dict[str, Any]:
+    by_rating: dict[str, int] = {}
+    by_connector_status: dict[str, int] = {}
+    by_region: dict[str, int] = {}
+    by_layer: dict[str, int] = {}
+    synopses_filled = 0
+
+    for e in entities:
+        by_rating[e["rating"]] = by_rating.get(e["rating"], 0) + 1
+        cs = e.get("connector_status", "none")
+        by_connector_status[cs] = by_connector_status.get(cs, 0) + 1
+        by_region[e["region"]] = by_region.get(e["region"], 0) + 1
+        by_layer[e["layer"]] = by_layer.get(e["layer"], 0) + 1
+        if e.get("synopsis_url"):
+            synopses_filled += 1
+
+    return {
+        "total_entities": len(entities),
+        "by_rating": by_rating,
+        "by_connector_status": by_connector_status,
+        "by_region": by_region,
+        "by_layer": by_layer,
+        "synopses_filled": synopses_filled,
+    }
+
+
+def build_atlas_payload(
+    sources: list[dict[str, Any]],
+    state: dict[str, Any],
+) -> dict[str, Any]:
+    entities = build_atlas_entities(sources, state)
+    unattached = build_atlas_unattached_sources(sources, state.get("entities", []))
+    return {
+        "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+        "schema_version": 1,
+        "summary": compute_atlas_summary(entities),
+        "entities": serialize(entities),
+        "unattached_sources": serialize(unattached),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="validate only; don't write")
@@ -482,12 +684,26 @@ def main() -> int:
         "sources": serialize(sources),
     }
 
+    state = yaml.safe_load(STATE_YAML.read_text()) if STATE_YAML.exists() else {"entities": []}
+    atlas_payload = build_atlas_payload(sources, state)
+
     if args.check:
-        print(f"OK — {len(sources)} sources validated (no write)")
+        print(
+            f"OK — {len(sources)} sources validated; "
+            f"{len(atlas_payload['entities'])} atlas entities; "
+            f"{len(atlas_payload['unattached_sources'])} unattached sources"
+        )
         return 0
 
     COVERAGE_JSON.write_text(json.dumps(payload, indent=2) + "\n")
     print(f"Wrote {COVERAGE_JSON.relative_to(ROOT)} — {len(sources)} sources")
+
+    ATLAS_JSON.write_text(json.dumps(atlas_payload, indent=2) + "\n")
+    print(
+        f"Wrote {ATLAS_JSON.relative_to(ROOT)} — "
+        f"{len(atlas_payload['entities'])} entities, "
+        f"{len(atlas_payload['unattached_sources'])} unattached sources"
+    )
     return 0
 
 

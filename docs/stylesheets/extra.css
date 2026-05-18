@@ -75,3 +75,31 @@
   background-color: var(--md-primary-fg-color);
   color: #fff;
 }
+
+/* ─── Patent Client Index — synopsis frontmatter table ─────────────── */
+/* The first table on a synopsis page is the metadata k:v block emitted
+   by docs_hooks/sync_patent_client_index.py. Style as a compact infobox
+   instead of the default full-width table. */
+.md-typeset article > table:first-of-type {
+  margin: 0 0 1.5rem;
+  font-size: 0.88rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 6px;
+  overflow: hidden;
+  width: auto;
+}
+.md-typeset article > table:first-of-type thead { display: none; }
+.md-typeset article > table:first-of-type td:first-child {
+  width: 1%;
+  white-space: nowrap;
+  color: var(--md-default-fg-color--light);
+  background: color-mix(in srgb, var(--md-default-fg-color) 4%, transparent);
+  font-weight: 600;
+}
+.md-typeset article > table:first-of-type td {
+  padding: 0.35rem 0.85rem;
+  border: none;
+}
+.md-typeset article > table:first-of-type tr:not(:last-child) td {
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}

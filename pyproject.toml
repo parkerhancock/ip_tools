@@ -99,6 +99,10 @@ dev = [
 docs = [
     "mkdocs-material>=9.5",
     "mkdocs-include-markdown-plugin>=6.2",
+    # pygments 2.20 changed filename handling in a way that breaks
+    # pymdownx.highlight (filename=None passed through to html.escape).
+    # Pin until pymdownx releases a fix.
+    "pygments<2.20",
 ]
 
 [tool.ruff]

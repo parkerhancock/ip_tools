@@ -81,10 +81,15 @@ plugins:
   - search
   - include-markdown
 
+hooks:
+  - docs_hooks/sync_patent_client_index.py
+
 nav:
   - Home: index.md
   - Installation: installation.md
   - MCP Reference: mcp-stdio.md
+  # Patent Client Index: children injected by docs_hooks/sync_patent_client_index.py
+  - Patent Client Index: patent-client-index/index.md
   - API Reference:
     - USPTO ODP: api/uspto-odp.md
     - USPTO Applications: api/uspto-applications.md
