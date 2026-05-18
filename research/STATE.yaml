@@ -31,13 +31,13 @@
 # When updating: bump `last_updated` and the affected row's `last_verified`.
 
 schema_version: 1
-last_updated: 2026-05-17  # INPI 4-chunk build PASS — all 3 connectors (TIPO/KIPO/INPI) now in_progress, awaiting integration
+last_updated: 2026-05-18  # TIPO/KIPO/INPI France merged to main — connector_status: shipped
 
 stats:
   total_entities: 43
-  synopses_filled: 17    # +5 from coverage-batch-2: Madrid, Hague, CNIPA, INPI France, TIPO
-  connectors_shipped: 12
-  connectors_in_progress: 3  # TIPO (4 rows) + KIPO (3 rows) + INPI (2 rows); all awaiting human cherry-pick
+  synopses_filled: 17
+  connectors_shipped: 15     # +3: TW/TIPO, KR/KIPO, FR/INPI
+  connectors_in_progress: 3  # BR/INPI, SG/IPOS, IL/ILPO — stale worktrees from 2026-05 fan-out, needs reconciliation
   connectors_spec_ready: 0
   connectors_planned: 0
   connectors_blocked: 7      # DPMA, UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
@@ -339,24 +339,23 @@ entities:
     connector_spec: specs/kr-kipo-connector-spec.md
     rating: yellow_byok
     rating_basis: KIPRIS Plus API real and clean; ToS §11 forbids key sharing → BYOK only
-    connector_status: in_progress
+    connector_status: shipped
     manifest_ids: [KR/KIPO/Patents, KR/KIPO/Trademarks, KR/KIPO/Designs]
-    next_action: human_integration
+    next_action: live_cassettes_pending_servicekey
     blocked_by: []
     last_verified: 2026-05-17
     notes: |
-      Connector built on feature/kipo-kipris-connector at SHA 989c825
-      (4-chunk build 2026-05-17; verify_connector VERDICT: PASS, 99.3%
-      coverage, 104 tests). Synthesized XML fixtures only — no live
-      KIPRIS traffic recorded because foreign-developer signup blocks
-      on Korean phone/i-PIN (synopsis §6 open question). When a real
-      serviceKey arrives, extend conftest filter_query_parameters with
-      `serviceKey` and add `--run-live-kipo` flag mirroring JPO.
-      Manifest vocabulary clamp: spec called for `rights: [patent,
-      utility_model]` but build_coverage.py rejects `utility_model` —
-      filed under `[patent]` with note; vocabulary expansion is a
-      CONNECTOR_STANDARDS §6 follow-up. Top-5 office; biggest
-      single-office gap closed.
+      Merged to main 2026-05-18 (verify_connector VERDICT: PASS,
+      99.3% coverage, 104 tests). Synthesized XML fixtures only —
+      no live KIPRIS traffic recorded because foreign-developer
+      signup blocks on Korean phone/i-PIN (synopsis §6 open
+      question). When a real serviceKey arrives, extend conftest
+      filter_query_parameters with `serviceKey` and add
+      `--run-live-kipo` flag mirroring JPO. Manifest vocabulary
+      clamp: spec called for `rights: [patent, utility_model]` but
+      build_coverage.py rejects `utility_model` — filed under
+      `[patent]` with note; vocabulary expansion is a
+      CONNECTOR_STANDARDS §6 follow-up.
 
   - id: CN/CNIPA
     name: CNIPA China
@@ -419,27 +418,27 @@ entities:
     connector_spec: specs/fr-inpi-connector-spec.md
     rating: yellow_byok
     rating_basis: api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE — older survey was wrong); 10 req/min throttle
-    connector_status: in_progress
+    connector_status: shipped
     manifest_ids: [FR/Legifrance/IP, FR/INPI/Trademarks, FR/INPI/Designs]
-    next_action: human_integration
+    next_action: live_cassettes_pending_account
     blocked_by: []
     last_verified: 2026-05-17
     notes: |
-      Connector built on feature/inpi-pi-connector at SHA 303bfc4
-      (4-chunk build 2026-05-17; verify_connector VERDICT: PASS, 95.4%
-      coverage, 151 tests). Scope = TM + Design only (FR/INPI/Patents
-      deliberately excluded; EPO OPS covers FR patents). Synthesized
-      JSON+ST.66/ST.86 XML fixtures only — no live INPI traffic recorded
-      because data.inpi.fr signup is French-only (synopsis §6 open
-      question). Novel auth lifecycle implemented in session.py: XSRF
-      bootstrap → login → access_token + refresh_token → refresh-on-401
-      → re-login fallback. 10 req/min sliding-window throttle with
-      injectable clock. Manifest vocabulary clamps: `image` data_type
-      dropped (not in closed vocab; image-URL fields surfaced in the
-      connector but not in manifest); `auth: cookie_token` chosen over
-      spec-hinted `session_token` (latter not in closed vocab).
-      BYOK for TMs + designs (real gaps); FR IP case law via Judilibre
-      over PISTE; PIBD froze 2026-03-11.
+      Merged to main 2026-05-18 (verify_connector VERDICT: PASS,
+      95.4% coverage, 151 tests). Scope = TM + Design only
+      (FR/INPI/Patents deliberately excluded; EPO OPS covers FR
+      patents). Synthesized JSON+ST.66/ST.86 XML fixtures only — no
+      live INPI traffic recorded because data.inpi.fr signup is
+      French-only (synopsis §6 open question). Novel auth lifecycle
+      implemented in session.py: XSRF bootstrap → login →
+      access_token + refresh_token → refresh-on-401 → re-login
+      fallback. 10 req/min sliding-window throttle with injectable
+      clock. Manifest vocabulary clamps: `image` data_type dropped
+      (not in closed vocab; image-URL fields surfaced in the
+      connector but not in manifest); `auth: cookie_token` chosen
+      over spec-hinted `session_token` (latter not in closed
+      vocab). BYOK for TMs + designs (real gaps); FR IP case law
+      via Judilibre over PISTE; PIBD froze 2026-03-11.
 
 
 
@@ -559,18 +558,18 @@ entities:
     connector_spec: specs/tw-tipo-connector-spec.md
     rating: green
     rating_basis: Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks
-    connector_status: in_progress
+    connector_status: shipped
     manifest_ids: [TW/MOJ/TradeSecretsAct, TW/TIPO/Patents, TW/TIPO/UtilityModels, TW/TIPO/Designs, TW/TIPO/Trademarks]
-    next_action: human_integration
+    next_action: monitor
     blocked_by: []
     last_verified: 2026-05-16
     notes: |
-      Connector built on feature/tipo-opdata-connector at SHA 30e853f
-      (4-chunk build 2026-05-16; verify_connector VERDICT: PASS, 99.3% coverage).
-      Awaiting human cherry-pick / merge to main. Only path to TW IP (not a
-      WIPO member; no PCT/Madrid/Hague/INPADOC bridges). Auth via `tk` query
-      param (TIPO_API_KEY). Per-record FTPS detail skipped in v1 (biblio-only).
-      TWPAT retiring 2025-04-25 (iPKM replaced 2024-12-18).
+      Merged to main 2026-05-18 (verify_connector VERDICT: PASS,
+      99.3% coverage). Only path to TW IP (not a WIPO member; no
+      PCT/Madrid/Hague/INPADOC bridges). Auth via `tk` query param
+      (TIPO_API_KEY). Per-record FTPS detail skipped in v1
+      (biblio-only). TWPAT retiring 2025-04-25 (iPKM replaced
+      2024-12-18).
 
   - id: RU/Rospatent
     name: Rospatent Russia

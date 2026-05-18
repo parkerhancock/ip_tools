@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-18T19:59:44+00:00",
+  "generated_at": "2026-05-18T20:01:29+00:00",
   "schema_version": 1,
   "summary": {
     "total_entities": 46,
@@ -15,9 +15,9 @@
     },
     "by_connector_status": {
       "skipped": 14,
-      "shipped": 8,
+      "shipped": 11,
       "none": 18,
-      "in_progress": 6
+      "in_progress": 3
     },
     "by_region": {
       "multilateral": 6,
@@ -729,7 +729,7 @@
       "rating_emoji": "\ud83d\udfe1",
       "rating_label": "Yellow \u2014 BYOK",
       "rating_basis": "KIPRIS Plus API real and clean; ToS \u00a711 forbids key sharing \u2192 BYOK only",
-      "connector_status": "in_progress",
+      "connector_status": "shipped",
       "last_verified": "2026-05-17",
       "synopsis_url": "https://docs.patentclient.com/patent-client-index/national/kr-kipo/",
       "github_research_url": "https://github.com/parkerhancock/patent-client-agents/blob/main/research/national/kr-kipo.md",
@@ -897,7 +897,7 @@
       "rating_emoji": "\ud83d\udfe1",
       "rating_label": "Yellow \u2014 BYOK",
       "rating_basis": "api-gateway.inpi.fr is the cleanest national REST surface surveyed (JSON, SolR Lucene, ST.36/66/86); session-bearer + XSRF auth bound to personal data.inpi.fr account (NOT PISTE \u2014 older survey was wrong); 10 req/min throttle",
-      "connector_status": "in_progress",
+      "connector_status": "shipped",
       "last_verified": "2026-05-17",
       "synopsis_url": "https://docs.patentclient.com/patent-client-index/national/fr-inpi/",
       "github_research_url": "https://github.com/parkerhancock/patent-client-agents/blob/main/research/national/fr-inpi.md",
@@ -1179,7 +1179,7 @@
       "rating_emoji": "\ud83d\udfe2",
       "rating_label": "Green",
       "rating_basis": "Swagger 2.0 REST API at cloud.tipo.gov.tw/S220/opdataapi/ verified live; Taiwan OGDL v1.0 (CC-BY-4.0 + explicit sublicensing); 15 GET ops; 1.45M patents + 3.39M trademarks",
-      "connector_status": "in_progress",
+      "connector_status": "shipped",
       "last_verified": "2026-05-16",
       "synopsis_url": "https://docs.patentclient.com/patent-client-index/national/tw-tipo/",
       "github_research_url": "https://github.com/parkerhancock/patent-client-agents/blob/main/research/national/tw-tipo.md",
