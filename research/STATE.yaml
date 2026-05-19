@@ -31,17 +31,17 @@
 # When updating: bump `last_updated` and the affected row's `last_verified`.
 
 schema_version: 1
-last_updated: 2026-05-18  # Priority-1 synopses (USCO, UPC, WIPO Lex) — shipped connectors now documented
+last_updated: 2026-05-18  # Secondary-national wave 13/17 done — CH/AT/NL/SE/FI/ES/IT/NZ/MX/AR/PH/ID/TH
 
 stats:
   total_entities: 43
-  synopses_filled: 24        # +3: US/USCO, UPC/UPC, WO/WIPO/Lex
+  synopses_filled: 37        # +13 from secondary-nationals wave
   connectors_shipped: 15
   connectors_in_progress: 0
   connectors_spec_ready: 0
-  connectors_planned: 1      # DE/DPMA
+  connectors_planned: 7      # DE/DPMA + CH/IPI + SE/PRV + FI/PRH + ES/OEPM + NZ/IPONZ + TH/DIP
   connectors_blocked: 7      # UKIPO, CIPO + WIPO trio + Madrid + Hague + CNIPA
-  next_unblocked_synopses: 17
+  next_unblocked_synopses: 4 # ZA, SA, AE, TR remaining
 
 entities:
 
@@ -660,34 +660,47 @@ entities:
     layer: national
     iso2: MX
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/mx-impi.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_blocked
+    rating_basis: Infrastructure-level US-egress packet drop on every *.impi.gob.mx subdomain (silent TCP timeout, not WAF 403, not geofence content). Only marcia.impi.gob.mx survives on a different CDN, covers only TM slice (~25%).
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor_impi_egress
     blocked_by: []
-    last_verified: never
-    notes: Top-30 office; MX coverage via EPO OPS + Google Patents
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Coverage flows transitively via EPO
+      INPADOC + Google Patents + WIPO Madrid/Hague/Patentscope.
+      Different shape from CNIPA (signup-layer block) — IMPI's
+      block is one layer deeper; there's no account to apply for.
+      Re-evaluate if Telmex 187.130.250.0/24 egress posture
+      changes.
 
   - id: ID/DGIP
     name: DGIP Indonesia
     layer: national
     iso2: ID
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/id-dgip.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: PDKI and every DGIP transaction subdomain walled behind Alibaba Cloud ESA + Imperva/Incapsula + Distil behavioral fingerprinting. Zero DGIP entries in WIPO IP API Catalog. ID hosts the regional ASEAN IP Register server but locks its own front door.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: backlog_id_statutes_corpus
     blocked_by: []
-    last_verified: never
-    notes: Top-30 office; significant filing volume
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Register-side closure confirmed.
+      Statutes-side separately 🟢 green — queue `id_statutes` as
+      StaticLawCorpus over peraturan.bpk.go.id + jdih.dgip.go.id
+      (Paten UU 13/2016 + UU 65/2024 amendment, Merek+GI UU
+      20/2016, Desain Industri, Hak Cipta, Rahasia Dagang, DTLST,
+      PVP). Re-evaluate 2027-Q1 for Hague re-accession and any
+      DGIP open-data shift.
 
   - id: TR/TURKPATENT
     name: TÜRKPATENT Turkey
@@ -711,17 +724,23 @@ entities:
     layer: national
     iso2: CH
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/ch-ipi.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: yellow_byok
+    rating_basis: IPI datadelivery API at swissreg.ch/public/api/v1 is XML over HTTPS POST + OIDC ROPC auth (Keycloak at idp.ipi.ch). Free; 2 GiB/24h rolling quota. Covers TMs, patents, patent pubs, SPCs, SPC pubs — NOT designs. ToU §2 forbids credential sharing → BYOK only.
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: Patents via EPO designations primarily; national CH-only filings exist
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. SPCs are unique to IPI (EPO doesn't
+      register national SPCs). CH+LI unified patent territory
+      under 1978 Treaty. Registration: wet-signed ToU posted to
+      Stauffacherstrasse 65/59g, 3003 Bern — foreign signup
+      permitted, no Swiss-residency requirement. Designs route via
+      WIPO Designview only (no DesignSearch action on the IPI API).
 
   # ────────────────────────────────────────────────────────────────────
   # National — Nordics, Western Europe, Pacific (10)
@@ -732,119 +751,173 @@ entities:
     layer: national
     iso2: NL
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/nl-rvo.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: BPP eRegister is Struts2 server-rendered; structured outputs limited to saved-search RSS + per-document XML download requiring opaque docId from prior HTML search + 1,000-row CSV export. NL feeds a daily delta to EPO Federated Register — coverage closes transitively via EPO OPS.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor
     blocked_by: []
-    last_verified: never
-    notes: Patents via EPO; BX (Benelux Office) handles NL+BE+LU TMs/designs
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Building a direct RVO connector would
+      re-derive what EPO Patent Register already ingests with
+      daily freshness. data.overheid.nl Octrooiregister Nederland
+      dataset is dormant metadata. NL TMs/designs covered via BOIP
+      (Benelux Office for IP) — separate office, no API; route
+      Benelux TMs/designs through EUIPO TMview/DesignView.
 
   - id: SE/PRV
     name: PRV Sweden
     layer: national
     iso2: SE
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/se-prv.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: green
+    rating_basis: Three undocumented unauthenticated REST/JSON APIs (patents-search-api.prv.se, dv-search-api.prv.se, api.prv.se) reverse-engineered from beta UI bundle.js. CC0 / CC BY 4.0 on parallel bulk feeds + Sweden's Open Data Act SFS 2022:818. Probes returned 764k patents + 89 IKEA TMs + design records.
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: Nordic office cluster
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Most permissive licence posture of the
+      secondary-nationals wave. Nordic vendor-infra pattern shared
+      with FI/PRH (both use `nis-api-gateway` hosts). Build pattern:
+      Google Patents-shaped (zero-auth REST/JSON, polite caching,
+      User-Agent identification). Pre-flight courtesy email to
+      data@prv.se before hosted-demo cutover. Versionless schema
+      is the principal risk; the internal hostname leak
+      (wildflyexternprod.prv.se:8080/prvpublicapi-web/api/public/)
+      shows the agency designed these for outside callers but
+      never published documentation.
 
   - id: FI/PRH
     name: PRH Finland
     layer: national
     iso2: FI
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/fi-prh.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: green
+    rating_basis: Three independent unauthenticated JSON APIs under one office (patenttitietopalvelu.prh.fi/nis-api-gateway-pat/, tavaramerkkitietopalvelu.prh.fi/nis-api-gateway/, mallioikeustietopalvelu.prh.fi/nis-api-gateway/) covering 393,750 patents + UM + SPC + EP-FI, 282,824 TMs back to 1891, 33,682 designs back to 1971. Per-application GET returns true register-fidelity prosecution data.
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: Nordic; possibly clean Finnish open-data culture
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Nordic vendor-infra pattern shared with
+      SE/PRV (both use `nis-api-gateway`-style hosts). Arguably
+      richer than SE in per-application detail (examiner name,
+      representative, annual-fee payment timeline with creditor
+      reference, T-prefixed EP-translation kind codes). Build
+      pattern: same as SE/PRV — sibling connectors. Catch: 3,000-row
+      hard server-side cap per query, no exposed paging cursor.
 
   - id: AT/OPA
     name: Austrian Patent Office
     layer: national
     iso2: AT
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/at-opa.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: see.ip (seeip.patentamt.at) is a Next.js SPA relaunched 2026-03-05 with no API, no developer portal, no entry in WIPO IP API Catalog (179 APIs across 10 offices — zero ÖPA). Legacy ASP.NET helpers now 404. patentamt.at Impressum explicitly restricts content to personal use; commercial reuse and third-party disclosure require written consent.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor
     blocked_by: []
-    last_verified: never
-    notes: Patents via EPO primarily
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. AT is institutionally upstream-delegated
+      to EPO INPADOC (EPO Patent Information sits in Vienna) — that
+      explains why ÖPA hasn't built one. Coverage: AT patents via
+      EPO OPS; EUTMs/REUDs via EUIPO; Madrid/Hague IRs via WIPO;
+      UPC matters via upc_decisions (AT is UPC member). National-
+      only gaps (Gebrauchsmuster, AT-only TMs/designs, AT file
+      history) have no path.
 
   - id: ES/OEPM
     name: OEPM Spain
     layer: national
     iso2: ES
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/es-oepm.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: yellow_byok
+    rating_basis: OEPM publishes 5 free SOAP/XML web services (INVENES + Diseños, CEO, CLINMAR, Localizador de marcas, BOPI-LOPD) requiring per-applicant credentials. WIPO ST.36/66/86 compliance (since 2019-01-01 for ST.36). Aviso legal explicitly permits commercial AND non-commercial reuse with attribution under Ley 37/2007 (EU Open Data Directive transposition).
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: ES is non-UPC; national TM/design coverage gap
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Strongest standards posture + most
+      permissive licence of the secondary-nationals wave. ES is
+      non-UPC (the major EU holdout). JPO-shaped BYOK pattern.
+      Open question: shared-key permission — services are
+      credentialed, SOAP licence isn't separately published.
+      Submit acceso-a-servicios-web form with simultaneous
+      shared-key question; if permitted, rerate to
+      green-restricted (EPO-OPS shape).
 
   - id: IT/UIBM
     name: UIBM Italy
     layer: national
     iso2: IT
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/it-uibm.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: No REST/JSON/XML API. Absent from WIPO IP API Catalog (0/179). Zero presence on dati.gov.it. Bancadati AJAX endpoints DO respond unauthenticated (1,298 Ferrari records pulled empirically) but Note Legali PDF explicitly forbids "deep linking" (Vietato il cd. 'deep linking') + HTML chunks not JSON + recaptcha tripwire could activate without notice.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: monitor
     blocked_by: []
-    last_verified: never
-    notes: Patents via EPO; national TM/design
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. AT/ÖPA structural sibling in southern
+      Europe, except UIBM hosts the UPC Milan Central Division
+      (2024-06-27 — IPC class A jurisdiction). Coverage:
+      EPO OPS + upc_decisions (shipped, incl. Milan) + EUIPO +
+      EUIPN CTI (IT national TMs/designs into TMview/DesignView) +
+      WIPO Madrid/Hague. Residual gaps: modello di utilità + IT
+      SPCs (latter explicitly outside Milan UPC's class A
+      jurisdiction).
 
   - id: NZ/IPONZ
     name: IPONZ New Zealand
     layer: national
     iso2: NZ
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/nz-iponz.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: yellow_byok
+    rating_basis: v5 API on MBIE shared gateway at api.business.govt.nz/gateway/iponz/v5/; portal at portal.api.business.govt.nz/api/iponz. Every caller needs RealMe + MBIE subscription key + optional OAuth2 bearer. Chargeable ops require direct-debit/credit billing. IPONZ copyright statement carves the *registers* out of the otherwise-permissive Crown-copyright reuse grant.
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: Often modeled alongside IP Australia (Trans-Tasman)
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Despite Trans-Tasman branding, IPONZ
+      does NOT share IP Australia's OAuth2 infrastructure — IPONZ
+      runs on MBIE Azure APIM (shared with NZBN/Companies/PPSR/
+      Disclose); IP Australia runs on a separate OAuth2 server.
+      Zero credential reuse. Plan iponz_common + iponz_patents +
+      iponz_trademarks + iponz_designs mirroring the ip_australia_*
+      template. Env-gate on IPONZ_SUBSCRIPTION_KEY + optional
+      IPONZ_OAUTH_CLIENT_ID/SECRET. PVR + GI stay uncovered.
 
   - id: ZA/CIPC
     name: CIPC South Africa
@@ -861,58 +934,85 @@ entities:
     next_action: synopsis_discovery
     blocked_by: []
     last_verified: never
-    notes: Top-30 office; African coverage
+    notes: Top-30 office; African coverage. 2026-05-18 wave attempted but agent TPM-stalled before writing anything — re-queue for next session.
 
   - id: AR/INPI
     name: INPI Argentina
     layer: national
     iso2: AR
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/ar-inpi.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: Live WSDL at ws.inpi.gob.ar/wsinpi.asmx?WSDL is a filer-portal SOAP — six Ingresar_* submission ops + three narrow Consulta* reads that are TM-only and CUIT-bound (no shared-key posture contemplated). Same false-positive shape as BR/INPI's swagger. AR has never joined PCT.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: backlog_ar_statute_corpus
     blocked_by: []
-    last_verified: never
-    notes: Largest South American IP office (with Brazil)
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. AR patent biblio reachable transitively
+      via EPO INPADOC where EP/future-PCT counterparts exist; AR
+      trademark/design biblio via TMview/DesignView (AR joined
+      2017-11-20 with ~2.5M TMs + ~86k designs). Highest-value
+      follow-up is AR/IP/Statute static-law module (Ley 24.481 +
+      Ley 22.362 + Decreto-Ley 6.673/63 + Ley 22.426 via Infoleg).
+      Watchitem: 2026-02-05 US-Argentina ARTI committed AR to
+      submit PCT accession to Congress by 2026-04-30.
 
   - id: TH/DIP
     name: DIP Thailand
     layer: national
     iso2: TH
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/th-dip.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: yellow_byok
+    rating_basis: DIP Data Exchange platform at api.ipthailand.go.th/data-exchange/ catalogues 21 documented REST APIs across all six DIP rights (patents, petty patents, designs, TMs, copyright, music copyright, GI, statistics). Bearer-token auth via two-step paper-contract registration (DPMA / KIPO shape).
+    connector_status: planned
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: spec_writing
     blocked_by: []
-    last_verified: never
-    notes: Top-30 SEA office
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Unlike most SEA offices (ID/PH/SG all
+      red register-side), DIP runs a real REST/JSON platform —
+      contract gate is the constraint, not the technology. 21
+      catalogued APIs: 6 register-data (patents/petty patents/
+      designs/TMs/copyright/music copyright/GI/unified chatbot),
+      1 TM-application search, 13 statistics views. Statutes-side
+      🟢 green via www.ocs.go.th (formerly krisdika.go.th post-OCS
+      rebrand). Hague accession in legislative pipeline but not
+      yet ratified. Build: DPMA-shaped Bearer auth + catalogue-
+      resolved per-API URL + JSON POST.
 
   - id: PH/IPOPHL
     name: IPOPHL Philippines
     layer: national
     iso2: PH
     rights: [patent, trademark, design]
-    synopsis: null
+    synopsis: national/ph-ipophl.md
     detail_survey: null
     connector_spec: null
-    rating: tbd
-    rating_basis: Not yet researched
-    connector_status: none
+    rating: red_no_api
+    rating_basis: WIPO Publish at wipopublish.ipophil.gov.ph is Apache Wicket SSR HTML over internal Solr core (Solr ?query=OFCO:PH works but pagination is Wicket-coordinate, no JSON envelope). onlineservices.ipophil.gov.ph is Incapsula-WAF-walled. Zero IPOPHL entries in WIPO IP API Catalog. No IPOPHL datasets on data.gov.ph.
+    connector_status: skipped
     manifest_ids: []
-    next_action: synopsis_discovery
+    next_action: backlog_ph_statutes_corpus
     blocked_by: []
-    last_verified: never
-    notes: Top-30 SEA office
+    last_verified: 2026-05-18
+    notes: |
+      Synopsis 2026-05-18. Register-side closure confirmed.
+      Surprise: IPOPHL is the regional Country Lead operating
+      ASEAN TMview / ASEAN DesignView / ASEAN TMclass on EUIPO's
+      TMDN infrastructure for all 9 ASEAN states. Combined with
+      PATENTSCOPE refreshing the PH national patent collection
+      twice a month (~3-month lag), the PH register is materially
+      better-covered transitively than several offices with their
+      own "API." Queue small ph_statutes static corpus (RA 8293 +
+      IPOPHL Memorandum Circulars from LawPhil).
 
   - id: AE/IPO
     name: UAE Ministry of Economy IP
