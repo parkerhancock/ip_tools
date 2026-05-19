@@ -28,7 +28,6 @@ from .tools.epo_guidelines import epo_guidelines_mcp
 from .tools.epo_pct_guidelines import epo_pct_guidelines_mcp
 from .tools.epo_up_guidelines import epo_up_guidelines_mcp
 from .tools.euipo import euipo_mcp
-from .tools.fees import fees_mcp
 from .tools.inpi_pi import inpi_pi_mcp
 from .tools.international import international_mcp
 from .tools.ip_australia_bulk import ip_australia_bulk_mcp
@@ -102,6 +101,5 @@ ip_mcp.mount(tipo_opdata_mcp)
 ip_mcp.mount(tw_trade_secrets_mcp)
 ip_mcp.mount(kipo_kipris_mcp)
 ip_mcp.mount(upc_mcp)
-ip_mcp.mount(fees_mcp)
 
 __all__ = ["ip_mcp"]

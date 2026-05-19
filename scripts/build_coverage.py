@@ -34,22 +34,36 @@ STATE_YAML = ROOT / "research" / "STATE.yaml"
 ATLAS_JSON = ROOT / "coverage" / "atlas.json"
 
 DOCS_BASE_URL = "https://docs.patentclient.com/patent-client-index"
-GITHUB_RESEARCH_URL = (
-    "https://github.com/parkerhancock/patent-client-agents/blob/main/research"
-)
+GITHUB_RESEARCH_URL = "https://github.com/parkerhancock/patent-client-agents/blob/main/research"
 
 # Rating vocabulary. Mirrored in docs_hooks/sync_patent_client_index.py —
 # keep both in sync until lifted into a shared module.
 # (emoji, short_label, one-line description used as fallback basis.)
 RATING_LABELS: dict[str, tuple[str, str, str]] = {
     "green": ("🟢", "Green", "Live API, queryable, ToS-clean."),
-    "yellow_byok": ("🟡", "Yellow — BYOK", "Live API, per-user keys required (ToS forbids shared-key proxy)."),
-    "yellow_paid": ("🟡", "Yellow — Paid", "Programmatic access only behind a paid contract or subscription."),
+    "yellow_byok": (
+        "🟡",
+        "Yellow — BYOK",
+        "Live API, per-user keys required (ToS forbids shared-key proxy).",
+    ),
+    "yellow_paid": (
+        "🟡",
+        "Yellow — Paid",
+        "Programmatic access only behind a paid contract or subscription.",
+    ),
     "red_tos": ("🔴", "Red — ToS", "Terms of use prohibit programmatic / automated access."),
-    "red_no_api": ("🔴", "Red — No API", "No queryable API surface; HTML-only or bulk-dump access."),
+    "red_no_api": (
+        "🔴",
+        "Red — No API",
+        "No queryable API surface; HTML-only or bulk-dump access.",
+    ),
     "red_bulk_only": ("🔴", "Red — Bulk only", "Bulk download exists but no per-query API."),
     "red_contract": ("🔴", "Red — Contract", "Access requires a paper / wet-signature contract."),
-    "red_blocked": ("🔴", "Red — Blocked", "Access path exists but is currently blocked (egress filter, geofence, etc.)."),
+    "red_blocked": (
+        "🔴",
+        "Red — Blocked",
+        "Access path exists but is currently blocked (egress filter, geofence, etc.).",
+    ),
     "watch": ("⚪", "Watch", "Monitoring for changes; no decision yet."),
     "tbd": ("⚪", "TBD", "Research pending."),
 }
@@ -58,17 +72,40 @@ RATING_LABELS: dict[str, tuple[str, str, str]] = {
 # countries that appear in research/STATE.yaml; extend as we add entities.
 ISO_TO_REGION: dict[str, str] = {
     # Americas
-    "US": "americas", "CA": "americas", "MX": "americas", "BR": "americas", "AR": "americas",
+    "US": "americas",
+    "CA": "americas",
+    "MX": "americas",
+    "BR": "americas",
+    "AR": "americas",
     # Europe
-    "DE": "europe", "GB": "europe", "FR": "europe", "CH": "europe", "NL": "europe",
-    "SE": "europe", "FI": "europe", "AT": "europe", "ES": "europe", "IT": "europe",
+    "DE": "europe",
+    "GB": "europe",
+    "FR": "europe",
+    "CH": "europe",
+    "NL": "europe",
+    "SE": "europe",
+    "FI": "europe",
+    "AT": "europe",
+    "ES": "europe",
+    "IT": "europe",
     "RU": "europe",
     # Asia
-    "JP": "asia", "KR": "asia", "CN": "asia", "IN": "asia", "TW": "asia",
-    "SG": "asia", "ID": "asia", "TH": "asia", "PH": "asia", "AE": "asia",
-    "SA": "asia", "IL": "asia", "TR": "asia",
+    "JP": "asia",
+    "KR": "asia",
+    "CN": "asia",
+    "IN": "asia",
+    "TW": "asia",
+    "SG": "asia",
+    "ID": "asia",
+    "TH": "asia",
+    "PH": "asia",
+    "AE": "asia",
+    "SA": "asia",
+    "IL": "asia",
+    "TR": "asia",
     # Oceania
-    "AU": "oceania", "NZ": "oceania",
+    "AU": "oceania",
+    "NZ": "oceania",
     # Africa
     "ZA": "africa",
 }
@@ -89,6 +126,7 @@ DATA_TYPES = {
     "statutes",
     "treaties",
     "bulk_data",
+    "fees",
 }
 ACCESS_METHODS = {
     "rest_api",
@@ -528,9 +566,7 @@ def build_atlas_entities(
     state_entities = state.get("entities", [])
     # Match sources to entities longest-prefix first so e.g.
     # ``US/USPTO/ODP/Applications`` binds to ``US/USPTO`` rather than ``US``.
-    entity_ids_sorted = sorted(
-        (e.get("id", "") for e in state_entities), key=len, reverse=True
-    )
+    entity_ids_sorted = sorted((e.get("id", "") for e in state_entities), key=len, reverse=True)
     sources_by_entity: dict[str, list[dict[str, Any]]] = {eid: [] for eid in entity_ids_sorted}
     for src in sources:
         sid = src.get("id", "")
@@ -543,9 +579,7 @@ def build_atlas_entities(
     for entity in state_entities:
         eid = entity.get("id", "")
         rating_code = entity.get("rating", "tbd")
-        emoji, label, default_basis = RATING_LABELS.get(
-            rating_code, RATING_LABELS["tbd"]
-        )
+        emoji, label, default_basis = RATING_LABELS.get(rating_code, RATING_LABELS["tbd"])
         basis = entity.get("rating_basis", "").strip() or default_basis
         out.append(
             {
@@ -594,9 +628,7 @@ def build_atlas_unattached_sources(
     Kept as a separate top-level list so the office-centric atlas stays
     clean.
     """
-    entity_ids_sorted = sorted(
-        (e.get("id", "") for e in state_entities), key=len, reverse=True
-    )
+    entity_ids_sorted = sorted((e.get("id", "") for e in state_entities), key=len, reverse=True)
     unattached = []
     for src in sources:
         sid = src.get("id", "")
