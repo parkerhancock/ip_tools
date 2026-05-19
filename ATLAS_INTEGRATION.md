@@ -201,3 +201,45 @@ Goal: `/atlas` is canonical; `/coverage` is a 301 alias.
 - `coverage/sources.yaml` — shipped manifest
 - `research/STATE.yaml` — research truth
 - `patentclient-web/coverage.html` + `assets/coverage.js` + `assets/coverage.css` — existing map
+
+---
+
+## §8 Deployment + CDN refresh
+
+Three surfaces, three different deploy paths. Knowing which is which prevents staring at unchanged pages and wondering why.
+
+| Surface | Hosted by | Triggered by | Latency |
+|---|---|---|---|
+| `coverage/atlas.json` + `coverage/coverage.json` (the data) | jsDelivr CDN, pulled from `gh/parkerhancock/patent-client-agents@main/coverage/*.json` | Push to `main` that touches `coverage/**` | **CDN edge caches for up to 12 hours.** Manual purge required for immediate refresh — see below. |
+| Synopsis pages at `docs.patentclient.com/patent-client-index/<office>/` | Cloudflare Pages, mkdocs build of this repo | Push to `main` that touches `research/**`, `docs/**`, `docs_hooks/**`, or `mkdocs.yml` | Auto via `.github/workflows/deploy-docs.yml` — typically ~30-40s end-to-end. Path-filtered: pushes that touch only `src/`, `scripts/`, or tests do **not** redeploy docs. |
+| Atlas HTML + JS + CSS at `patentclient.com/atlas` | Cloudflare Pages, sibling `patentclient-web` repo | Push to that repo's `main` | Auto via that repo's CI. Independent of this repo. |
+
+### Manual CDN purge after atlas changes
+
+After any push to `main` that regenerates `coverage/atlas.json` or `coverage/coverage.json`, fire the jsDelivr purge endpoint or the atlas page will keep serving stale data for hours:
+
+```bash
+curl -s https://purge.jsdelivr.net/gh/parkerhancock/patent-client-agents@main/coverage/atlas.json
+curl -s https://purge.jsdelivr.net/gh/parkerhancock/patent-client-agents@main/coverage/coverage.json
+```
+
+Each returns `"status": "finished"` when the CDN nodes have been told to drop the cached copy. Next jsDelivr fetch will repopulate from GitHub raw. The browser will also need a hard refresh (Cmd-Shift-R) if the atlas page itself was already loaded with the old data.
+
+**Verification:** compare timestamps between GitHub raw and jsDelivr:
+
+```bash
+curl -s https://raw.githubusercontent.com/parkerhancock/patent-client-agents/main/coverage/atlas.json \
+  | jq -r .generated_at
+curl -s https://cdn.jsdelivr.net/gh/parkerhancock/patent-client-agents@main/coverage/atlas.json \
+  | jq -r .generated_at
+```
+
+These should match once the purge has propagated (within seconds, in practice).
+
+### Future improvement — auto-purge in CI
+
+The manual purge is the kind of step that gets forgotten. A future improvement: add a one-step job to `.github/workflows/ci.yml` that fires the purge curl on push to `main` when `coverage/atlas.json` changes. ~10 lines of yaml. Tracked but not blocking.
+
+### Lesson — surprise CDN TTL
+
+The original architecture note said jsDelivr "caches for a few minutes after push." In practice the edge TTL is up to ~12 hours for `@<branch>` URLs. The purge endpoint exists precisely because the cache is sticky; treat it as part of the deploy ritual, not an optimization.
